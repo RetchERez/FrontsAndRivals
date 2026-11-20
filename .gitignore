@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+*.user
+.vs/
+*.suo
+
+# Local machine settings (GTA V path for the deploy step)
+Directory.Build.props.user
+
+# Never commit game files, ScriptHookV / SHVDN files, or other mods' DLLs
+*.dll
+*.asi
+*.rpf
+*.exe
+ScriptHookV*
+dinput8.dll
+scripts/
+mods/
+GTA5*/
+# Runtime output the mod writes in-game
+*.log
+empire.json
+empire.tmp
+empire.bak*

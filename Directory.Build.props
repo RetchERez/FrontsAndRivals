@@ -1,0 +1,9 @@
+<Project>
+  <!--
+    Machine-local settings live in Directory.Build.props.user (git-ignored).
+    Copy Directory.Build.props.user.example to Directory.Build.props.user and set GtaVDir.
+    When GtaVDir is empty, the build still works and simply skips the deploy step.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')" />
+</Project>

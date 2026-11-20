@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <AssemblyName>FrontsAndRivals</AssemblyName>
+    <RootNamespace>FrontsAndRivals</RootNamespace>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="ScriptHookVDotNet3" Version="3.6.0" />
+    <PackageReference Include="LemonUI.SHVDN3" Version="2.2.0" />
+    <PackageReference Include="iFruitAddon2" Version="3.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Runtime.Serialization" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FrontsAndRivals.ini" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    Deploy: copies only our own files (dll, pdb for line numbers in the log, ini) into <GtaVDir>\scripts.
+    GtaVDir comes from the git-ignored Directory.Build.props.user. Never copies game files or other mods' DLLs.
+  -->
+  <Target Name="DeployToGta" AfterTargets="Build" Condition="'$(GtaVDir)' != ''">
+    <Error Condition="!Exists('$(GtaVDir)')" Text="GtaVDir does not exist: $(GtaVDir). Fix it in Directory.Build.props.user." />
+    <MakeDir Directories="$(GtaVDir)\scripts" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb;$(TargetDir)FrontsAndRivals.ini"
+          DestinationFolder="$(GtaVDir)\scripts" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Deployed FrontsAndRivals to $(GtaVDir)\scripts" />
+  </Target>
+</Project>

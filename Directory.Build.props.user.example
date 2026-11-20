@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Your GTA V install folder (the one that holds the game's .exe). The deploy step copies into its scripts\ folder. -->
+    <GtaVDir>C:\Path\To\Grand Theft Auto V</GtaVDir>
+  </PropertyGroup>
+</Project>
