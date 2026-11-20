@@ -28,3 +28,16 @@ Mirror Park Tavern: taxi stop on the road at 1209.94, -415.29, 67.26; door at 12
 ## Still needed
 - Exact door positions for the pawn shop, laundromat, chop shop and truck depot
 - Coordinates for Grove Street, the LSPD impound in Davis, Downtown Cab Co., and Floyd's apartment, for the 150 m checks
+
+## Final front doors (2026-11-20, user chose known-door buildings)
+
+| # | Front | Door (x, y, z, h) | Zone (DurtyFree zones.json) | Source |
+|---|---|---|---|---|
+| 1 | Hands On Car Wash | 25.20, -1391.98, 28.91, 0 | Strawberry | FiveM car wash configs; alt:V anchor 55.7, -1391.3 confirms the site |
+| 2 | Brewer's Drop Liquor | 98.90, -1309.50, 29.30, 122 | Strawberry | dydrmr/gtav-enhancedtaximissions (passenger walk-to point) |
+| 3 | Discount Jewels | 130.90, -1771.80, 29.70, 320 | Davis | same taxi list |
+| 4 | Mirror Park Tavern | 1217.94, -416.80, 67.78, 78 | Mirror Park | same taxi list |
+| 5 | Atomic Service Center | 487.00, -1878.30, 26.20, 272 | Rancho | same taxi list |
+| 6 | Fridgit Cold Storage | 867.80, -1639.70, 30.20, 103 | La Mesa | same taxi list |
+
+Guard posts are generated in-game from the navmesh (F10 > Scout fronts > Auto-scout all fronts), then copied into src/Content/fronts.json and shipped.

@@ -16,6 +16,38 @@ static class FrontTests
         EmpireTests();
         StreamRuleTests();
         LayLowTests();
+        AutoPostTests();
+    }
+
+    static void AutoPostTests()
+    {
+        T.Section("Automatic guard posts");
+        Spot door = Spot.At(100f, 200f, 30f, 0f); // facing north
+
+        var probes = AutoPosts.Probes(door);
+        T.Check("12 probe points (two rings of 6)", probes.Count, 12, 0);
+        T.Check("First probe is 5 m straight out front (north)", probes[0][1] - door.Y, 5, 0.01);
+        T.Check("...with no sideways offset", probes[0][0] - door.X, 0, 0.01);
+        T.Check("Heading 90 (west) puts the first probe to the west", AutoPosts.Probes(Spot.At(0, 0, 0, 90f))[0][0], -5, 0.01);
+
+        var chosen = new List<PostDef>();
+        T.True("A spot 5 m out on the same floor is accepted", AutoPosts.Accept(door, chosen, 100f, 205f, 29f));
+        chosen.Add(AutoPosts.MakePost(door, 0, 100f, 205f, 29f));
+        T.True("A second spot 2 m from the first is refused (spacing)", !AutoPosts.Accept(door, chosen, 101f, 206.5f, 29f));
+        T.True("A spot 4 m from the first is accepted", AutoPosts.Accept(door, chosen, 104f, 205f, 29f));
+        T.True("Standing in the doorway is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100.5f, 200.5f, 29f));
+        T.True("More than 14 m away is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 215f, 29f));
+        T.True("A rooftop 6 m up is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 205f, 35f));
+
+        PostDef p = chosen[0];
+        T.Check("Post stands 1 m above the ground the navmesh gave", p.Z, 30, 0.001);
+        T.Check("Guard north of the door faces north (away from it)", p.H, 0, 0.01);
+        T.Check("Guard west of the door faces west (90)", AutoPosts.FacingAway(door, 90f, 200f), 90, 0.01);
+        T.Check("Guard south of the door faces south (180)", AutoPosts.FacingAway(door, 100f, 190f), 180, 0.01);
+        T.Check("Guard east of the door faces east (270)", AutoPosts.FacingAway(door, 110f, 200f), 270, 0.01);
+        T.Equal("Idles rotate: post 1 stands guard", AutoPosts.MakePost(door, 0, 0, 0, 0).Scenario, StreamRules.GuardStand);
+        T.Equal("Idles rotate: post 2 smokes", AutoPosts.MakePost(door, 1, 0, 0, 0).Scenario, "WORLD_HUMAN_SMOKING");
+        T.Equal("Idles rotate: post 4 is on the phone", AutoPosts.MakePost(door, 3, 0, 0, 0).Scenario, "WORLD_HUMAN_STAND_MOBILE");
     }
 
     static void ContentTests()
@@ -29,9 +61,11 @@ static class FrontTests
         T.Check("Shipped fronts.json has 6 fronts", shipped.Fronts.Count, 6, 0);
         T.True("No fallback warnings for shipped files", !log.Exists(l => l.Contains("built-in") || l.Contains("could not")));
         T.True("Car wash is for sale at start", shipped.Front("carwash_handson").StartOwner == Owners.ForSale);
-        T.True("Truck depot starts with Ironside", shipped.Front("truckdepot_elysian").StartOwner == Owners.Ironside);
-        T.Check("Truck depot income $12,000", shipped.Front("truckdepot_elysian").Income, 12000, 0);
+        T.True("Cold storage depot starts with Ironside", shipped.Front("depot_fridgit").StartOwner == Owners.Ironside);
+        T.Check("Cold storage depot income $12,000", shipped.Front("depot_fridgit").Income, 12000, 0);
         T.True("Shipped fronts are not scouted yet", !shipped.Front("carwash_handson").IsScouted);
+        T.True("Every shipped front has its door set", shipped.Fronts.TrueForAll(f => f.Door.IsSet));
+        T.True("Built-in defaults match the shipped doors", ContentDb.DefaultFronts().TrueForAll(d => d.Door.IsSet && shipped.Front(d.Id) != null && Math.Abs(shipped.Front(d.Id).Door.X - d.Door.X) < 0.01f));
         T.True("Shipped name pools are filled", shipped.Names.MaleNames.Count >= 20 && shipped.Names.FemaleNames.Count >= 10);
         T.True("Shipped guard models are filled", shipped.Models.GuardsMale.Count >= 20 && shipped.Models.GuardsFemale.Count >= 3);
 
@@ -105,7 +139,7 @@ static class FrontTests
         FrontDef wash = c.Front("carwash_handson");
         wash.Door = Spot.At(1, 1, 1, 0);
         for (int i = 0; i < 4; i++) wash.Posts.Add(new PostDef { X = i, Y = 1, Z = 1, Scenario = "WORLD_HUMAN_SMOKING" });
-        FrontDef pawn = c.Front("pawnshop_strawberry");
+        FrontDef pawn = c.Front("jewelry_discountjewels");
         pawn.Door = Spot.At(2, 2, 2, 0);
         pawn.Posts.Add(new PostDef { X = 2, Y = 2, Z = 2 });
         return c;
@@ -120,7 +154,7 @@ static class FrontTests
         var rng = new Rng(42);
 
         T.Check("Every front gets a save entry", state.Fronts.Count, 6, 0);
-        T.True("Fronts start with their doc owners", e.OwnerOf("chopshop_lamesa") == Owners.CrownKings && e.OwnerOf("carwash_handson") == Owners.ForSale);
+        T.True("Fronts start with their doc owners", e.OwnerOf("autoshop_atomic") == Owners.CrownKings && e.OwnerOf("carwash_handson") == Owners.ForSale);
 
         GuardState g1 = e.Recruit(rng);
         T.True("Recruit has a full name and a model", g1 != null && g1.First != null && g1.Nick != null && g1.Last != null && g1.Model != null);
@@ -132,7 +166,7 @@ static class FrontTests
         e.SetOwner("carwash_handson", Owners.Player);
         T.True("Can post once you own it", e.Assign(g1, "carwash_handson", 0));
         T.True("AtPost finds the guard", e.AtPost("carwash_handson", 0) == g1);
-        T.True("Post beyond the scouted posts refused", !e.Assign(g1, "pawnshop_strawberry", 3) && !e.Assign(g1, "carwash_handson", 4));
+        T.True("Post beyond the scouted posts refused", !e.Assign(g1, "jewelry_discountjewels", 3) && !e.Assign(g1, "carwash_handson", 4));
 
         GuardState g2 = e.Recruit(rng);
         e.Assign(g2, "carwash_handson", 0);

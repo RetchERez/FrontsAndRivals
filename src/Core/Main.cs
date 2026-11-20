@@ -31,6 +31,8 @@ namespace FrontsAndRivals.Core
         private readonly ContentDb _content;
         private readonly Streamer _streamer;
         private readonly DevTools _dev;
+        private readonly AutoPostPlacer _placer = new AutoPostPlacer();
+        private readonly AutoScout _autoScout;
         private readonly FailureWindow _tickFailures = new FailureWindow();
 
         private EmpireState _state;
@@ -66,7 +68,8 @@ namespace FrontsAndRivals.Core
             if (_config.DevTools)
             {
                 _dev = new DevTools(_registry, _director, SaveNow, () => _gate);
-                new ScoutMenu(_dev, _content, () => _empire, () => _rng, WorldChanged, () => _gate);
+                _autoScout = new AutoScout(_content, _placer, WorldChanged);
+                new ScoutMenu(_dev, _content, () => _empire, () => _rng, WorldChanged, () => _gate, _placer, _autoScout);
                 _dev.ExtraStatus = () => "streams in " + _streamer.StreamIns + " / out " + _streamer.StreamOuts
                                        + "   leftovers " + _streamer.Leftovers;
                 KeyDown += OnKeyDown;
@@ -81,6 +84,7 @@ namespace FrontsAndRivals.Core
                 _scheduler.Add("DevCounter", "dev tools", 500, () => _dev.RefreshCounter(_gate), runWhilePaused: true);
             }
             _scheduler.Add("Streamer", "guards", 500, StreamerTick);
+            _scheduler.Add("AutoPosts", "guard posts", 1000, AutoPostsTick);
             _scheduler.Add("Blips", "map blips", 2000, () => _blips.Refresh(_empire, _content));
             _scheduler.Add("World", "guard recovery", 60000, WorldTick);
             _scheduler.Add("Director", "attacks", 60000, () => _director.Update());
@@ -178,6 +182,19 @@ namespace FrontsAndRivals.Core
             _registry.Prune();
             _streamer.Update();
             if (_dev != null) _dev.UpdateSpawns();
+            if (_autoScout != null) _autoScout.Update();
+        }
+
+        /// <summary>Any front with a door but no posts gets posts the first time the player comes within 100 m.
+        /// Shipped fronts.json already has posts; this is the fallback for new or hand-edited fronts.</summary>
+        private void AutoPostsTick()
+        {
+            if (_empire == null || (_autoScout != null && _autoScout.Running)) return;
+            if (_placer.Update(_content, ActiveNow()) > 0)
+            {
+                _content.SaveFronts();
+                WorldChanged();
+            }
         }
 
         private void WorldTick()
@@ -216,6 +233,7 @@ namespace FrontsAndRivals.Core
             try
             {
                 if (_dev != null) _dev.CancelPending();
+                if (_autoScout != null) _autoScout.Cancel();
                 int n = _registry.DeleteAll();
                 if (_streamer != null) _streamer.Reset();
                 if (n > 0) Log.Write("Cleared " + n + " mod entities (" + why + ")");

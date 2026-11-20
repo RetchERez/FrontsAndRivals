@@ -18,6 +18,8 @@ namespace FrontsAndRivals.Dev
         private readonly Func<Random> _rng;
         private readonly Action _worldChanged; // rebuild streamer + blips, save
         private readonly Func<PauseReason> _gate;
+        private readonly AutoPostPlacer _placer;
+        private readonly AutoScout _autoScout;
 
         private readonly NativeMenu _menu;
         private readonly NativeListItem<string> _front;
@@ -25,13 +27,16 @@ namespace FrontsAndRivals.Dev
         private readonly NativeListItem<string> _scenario;
         private readonly NativeItem _status;
 
-        public ScoutMenu(DevTools dev, ContentDb content, Func<Empire> empire, Func<Random> rng, Action worldChanged, Func<PauseReason> gate)
+        public ScoutMenu(DevTools dev, ContentDb content, Func<Empire> empire, Func<Random> rng, Action worldChanged,
+                         Func<PauseReason> gate, AutoPostPlacer placer, AutoScout autoScout)
         {
             _content = content;
             _empire = empire;
             _rng = rng;
             _worldChanged = worldChanged;
             _gate = gate;
+            _placer = placer;
+            _autoScout = autoScout;
 
             _menu = new NativeMenu("Fronts & Rivals", "Scout fronts", "Stand on a spot, then press an item. Saves fronts.json.");
             dev.Pool.Add(_menu);
@@ -46,6 +51,9 @@ namespace FrontsAndRivals.Dev
             _status = new NativeItem("Status", "What this front has so far.");
             _menu.Add(_status);
 
+            Add("Auto-scout all fronts", "Visits every front with a door, places its 4 guard posts automatically, saves, brings you back.", () => StartAutoScout(false));
+            Add("Auto-scout all (redo posts)", "Same, but also replaces posts that are already set.", () => StartAutoScout(true));
+            Add("Auto-place posts for this front", "Places this front's 4 posts automatically. Stand within 100 m of its door.", AutoPlaceSelected);
             Add("Teleport to its door", "Only works once the door is set.", TeleportToDoor);
             Add("Set door here", "Where the front's door is: blip, help prompts and attackers' target.", SetDoor);
 
@@ -104,6 +112,23 @@ namespace FrontsAndRivals.Dev
         }
 
         private void SetDoor() { Selected.Door = Here(); Saved("door set"); }
+
+        private void StartAutoScout(bool overwrite)
+        {
+            if (_gate() != PauseReason.None) { DevTools.Notify("Not during " + _gate() + "."); return; }
+            _autoScout.Start(overwrite);
+        }
+
+        private void AutoPlaceSelected()
+        {
+            FrontDef f = Selected;
+            if (!f.Door.IsSet) { DevTools.Notify("Set the door first."); return; }
+            Vector3 p = Game.Player.Character.Position;
+            if (f.Door.DistanceTo(p.X, p.Y, p.Z) > AutoPostPlacer.PlaceRange) { DevTools.Notify("Get within 100 m of the door first."); return; }
+            int n = _placer.Place(f);
+            if (n == 0) { DevTools.Notify("No usable ground found near the door. Try again in a few seconds."); return; }
+            Saved(n + " posts placed automatically");
+        }
 
         private void SetPost()
         {

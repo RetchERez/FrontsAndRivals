@@ -21,5 +21,6 @@
     <Compile Include="../src/Data/Content.cs" />
     <Compile Include="../src/World/Empire.cs" />
     <Compile Include="../src/Spawn/StreamRules.cs" />
+    <Compile Include="../src/Spawn/AutoPosts.cs" />
   </ItemGroup>
 </Project>

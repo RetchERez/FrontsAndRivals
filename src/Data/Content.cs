@@ -201,20 +201,22 @@ namespace FrontsAndRivals.Data
 
         public static List<FrontDef> DefaultFronts()
         {
+            // Real GTA V buildings; doors from published coordinates (see docs/locations_found.md).
             return new List<FrontDef>
             {
-                Def("carwash_handson", "Hands On Car Wash", "Strawberry", 1, 0, 4000, Owners.ForSale),
-                Def("laundromat_rancho", "Rancho Laundromat", "Rancho", 2, 0, 5000, Owners.Velvet),
-                Def("pawnshop_strawberry", "Strawberry Pawn Shop", "Strawberry", 3, 1, 6000, Owners.CrownKings),
-                Def("bar_mirrorpark", "Mirror Park Bar", "Mirror Park", 4, 1, 7000, Owners.Velvet),
-                Def("chopshop_lamesa", "La Mesa Chop Shop", "La Mesa", 5, 2, 9000, Owners.CrownKings),
-                Def("truckdepot_elysian", "Elysian Island Truck Depot", "Elysian Island", 6, 2, 12000, Owners.Ironside)
+                Def("carwash_handson", "Hands On Car Wash", "Strawberry", 1, 0, 4000, Owners.ForSale, 25.20f, -1391.98f, 28.91f, 0f),
+                Def("liquor_brewersdrop", "Brewer's Drop Liquor", "Strawberry", 2, 0, 5000, Owners.Velvet, 98.90f, -1309.50f, 29.30f, 122f),
+                Def("jewelry_discountjewels", "Discount Jewels", "Davis", 3, 1, 6000, Owners.CrownKings, 130.90f, -1771.80f, 29.70f, 320f),
+                Def("bar_mirrorpark", "Mirror Park Tavern", "Mirror Park", 4, 1, 7000, Owners.Velvet, 1217.94f, -416.80f, 67.78f, 78f),
+                Def("autoshop_atomic", "Atomic Service Center", "Rancho", 5, 2, 9000, Owners.CrownKings, 487.00f, -1878.30f, 26.20f, 272f),
+                Def("depot_fridgit", "Fridgit Cold Storage", "La Mesa", 6, 2, 12000, Owners.Ironside, 867.80f, -1639.70f, 30.20f, 103f)
             };
         }
 
-        private static FrontDef Def(string id, string name, string area, int number, int tier, int income, string owner)
+        private static FrontDef Def(string id, string name, string area, int number, int tier, int income, string owner,
+                                    float x, float y, float z, float h)
         {
-            var f = new FrontDef { Id = id, Name = name, Area = area, Number = number, Tier = tier, Income = income, StartOwner = owner };
+            var f = new FrontDef { Id = id, Name = name, Area = area, Number = number, Tier = tier, Income = income, StartOwner = owner, Door = Spot.At(x, y, z, h) };
             f.Normalize();
             return f;
         }
