@@ -23,3 +23,6 @@ GTA5*/
 empire.json
 empire.tmp
 empire.bak*
+
+# Release output
+dist/

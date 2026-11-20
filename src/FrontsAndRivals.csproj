@@ -6,7 +6,7 @@
     <RootNamespace>FrontsAndRivals</RootNamespace>
     <Nullable>disable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Version>0.1.0</Version>
+    <Version>1.0.0</Version>
     <!-- Keep SHVDN/LemonUI/iFruitAddon2 DLLs out of bin: players install them, we never ship them. -->
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
@@ -39,7 +39,7 @@
           Condition="!Exists('$(GtaVDir)\scripts\FrontsAndRivals.ini')" />
     <!-- Content: names/models always update; fronts.json only if missing, because in-game scouting writes it. -->
     <MakeDir Directories="$(GtaVDir)\scripts\FrontsAndRivals" />
-    <Copy SourceFiles="$(TargetDir)Content\names.json;$(TargetDir)Content\models.json"
+    <Copy SourceFiles="$(TargetDir)Content\names.json;$(TargetDir)Content\models.json;$(TargetDir)Content\crews.json;$(TargetDir)Content\lines.json"
           DestinationFolder="$(GtaVDir)\scripts\FrontsAndRivals" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(TargetDir)Content\fronts.json" DestinationFolder="$(GtaVDir)\scripts\FrontsAndRivals"
           Condition="!Exists('$(GtaVDir)\scripts\FrontsAndRivals\fronts.json')" />

@@ -1,0 +1,26 @@
+# Changelog
+
+## 1.0.0 (2026-11-20)
+
+First full release.
+
+- Six real businesses as fronts, with guard posts placed from the game's navigation data
+- The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
+- Guards: hiring from the Broker's daily recruits, traits, ranks and experience, weapon upgrades, permanent death, memorial
+- Fronts: buying the starter car wash, four upgrades (cameras, reinforced doors, floodlights, armory), defense and income bars
+- Rival crews: Crown Kings, Ironside MC and Velvet Syndicate, each with a named boss and three lieutenants
+- Attacks: cooldown by frequency, warning texts and taunts, attack window, auto-resolve, live defenses with convoys, timer bars,
+  door integrity, a fleeing leader, police response, and a hand-off to auto-resolve if you die or leave
+- Taking fronts: clear a crew front's soldiers and claim the door
+- Nemesis loop: rep, scars, return texts, promotions, boss succession, collapse and rebuild
+- Economy: midnight payouts (wages first), unpaid guards quit (Loyal ones never do), up to three skipped midnights paid
+- Map: front blips with threatened and under-attack states, rival fronts in crew colours
+- Stability: pause during missions, entity budget (28 peds, 8 vehicles), full cleanup, crash-safe saves with backups,
+  every system self-disables after three errors in a minute
+- Options: protected mode, permanent death, attack frequency, police response, skip intro, Office hotkey
+
+## Development milestones
+
+- 0.1 (M1): skeleton, pause gate, crash-safe save, dev tools (confirmed in game)
+- 0.2 (M2): fronts, streamed guards, in-game scouting
+- 0.3 (M3): the Office, hiring, payouts

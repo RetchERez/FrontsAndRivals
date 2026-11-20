@@ -1,35 +1,81 @@
-# Fronts & Rivals
+# Fronts & Rivals 1.0
 
-A single-player script mod for Grand Theft Auto V. Not affiliated with or endorsed by Rockstar Games.
-Design doc v1.0: https://claude.ai/artifact/KAYesFun6qhyBrRT8d5BBr
+A free single-player script mod for Grand Theft Auto V. Not affiliated with or endorsed by Rockstar Games.
 
-Status: milestone 2 (one front, guards streamed). Fronts are scouted in-game with the dev tools.
+Run real Los Santos businesses as fronts, post guards with names, faces, traits and ranks, and hold them against three rival crews whose leaders remember you. Attacks resolve on their own while you're away and turn into real fights when you're close. Michael, Franklin and Trevor share one empire.
 
-## Requirements (install these yourself; the mod never bundles them)
-- Disable BattlEye for Story Mode (Rockstar Games Launcher setting, or the `-nobattleye` launch argument)
+## What's in 1.0
+
+- Six real businesses as fronts: Hands On Car Wash, Brewer's Drop Liquor, Discount Jewels, Mirror Park Tavern, Atomic Service Center and Fridgit Cold Storage
+- The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
+- Guards with traits, ranks, experience, weapons and permanent death; a memorial for the fallen
+- Three original crews (Crown Kings, Ironside MC, Velvet Syndicate), each with a named boss and three lieutenants
+- Attacks with a warning text first; within 300 m they become a live defense with convoys, timer bars and a door to hold
+- Take rival fronts by clearing their guards and claiming the door
+- A nemesis loop: leaders who escape come back with scars and text you about it; dead lieutenants are replaced by promoted survivors
+- Midnight payouts with wages, front upgrades, and a protected mode for a lower-stakes game
+- Nothing to collect and no upkeep; good guards win without you
+
+## Requirements
+
+Install these yourself; the mod never bundles them:
+
+- BattlEye off for Story Mode (Rockstar Games Launcher setting, or the `-nobattleye` launch argument)
 - ScriptHookV for your game build
-- ScriptHookVDotNet: a nightly build (v3.6.0-nightly.89 or later) on Legacy, or SHVDN Enhanced on Enhanced
+- ScriptHookVDotNet: a nightly build (3.6.0-nightly.89 or later) on Legacy, or SHVDN Enhanced on Enhanced
 - LemonUI (SHVDN3 build)
-- iFruitAddon2 3.x (from milestone 3, for the phone contact)
+- iFruitAddon2 3.x, for the phone contact
+
+After a GTA V update, wait for ScriptHookV to update before reporting bugs.
 
 ## Install
-Copy `FrontsAndRivals.dll` and `FrontsAndRivals.ini` into `<GTA V>\scripts\`.
-The mod writes its log and save to `<GTA V>\scripts\FrontsAndRivals\`. Windows may need to allow
-mods to create files in the GTA V folder.
+
+1. Copy `FrontsAndRivals.dll` and `FrontsAndRivals.ini` into `<GTA V>\scripts\`
+2. Copy the `FrontsAndRivals` folder into `<GTA V>\scripts\` too
+3. Start Story Mode; about ten minutes in, the Broker texts you
+
+Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2 also writes its settings to `scripts\iFruitAddon2\`.
+
+## Playing
+
+- Call **The Office** on your phone to open the menu; it's near the end of your contacts list
+- In the Office, **Enter** opens the next panel and **Backspace** goes back; **Left/Right** changes a guard's post or a setting
+- Buy the car wash from the Broker, hire recruits, post them, and you're in business
+- Income arrives at every in-game midnight, after wages; sleeping across midnights pays each one (up to three)
+- When a warning text arrives, you can go and fight beside your guards or leave it to them
+- Rival fronts show on the map in their crew's colour; clear the guards, stand at the door and press **E** to claim it
+
+## Settings
+
+Edit `scripts\FrontsAndRivals.ini`. Highlights:
+
+- `OfficeHotkey`: a key that opens the Office, e.g. `F7` (off by default)
+- `Frequency`: attack frequency, Off, Low, Normal or High (also in the Office's Settings)
+- `ProtectedMode`: fronts can't be lost; a failed defense costs one night's income and deaths become injuries
+- `PermanentDeath`: set to false to turn guard deaths into injuries
+- `PoliceRespond`: police chase the attacking crews during live defenses
+- `SkipIntro`: start with the car wash and two guards (for reinstalls)
 
 ## Uninstall
-Delete `FrontsAndRivals.dll`, `FrontsAndRivals.pdb`, `FrontsAndRivals.ini` and the `FrontsAndRivals` folder.
 
-## Developing
-- `cd src; dotnet build -c Release` builds the DLL and, if `Directory.Build.props.user` sets `GtaVDir`,
-  copies it into `<GtaVDir>\scripts`. Start from `Directory.Build.props.user.example`.
-  The INI is only copied when the scripts folder has none, so your settings survive rebuilds.
-- `cd tests; dotnet run` runs the unit tests for every pure system (rules, scheduler, save, config, markers).
-- In game, SHVDN's console (F4) reloads scripts with `Reload()`. Every reload doubles as a cleanup test.
-- Set `DevTools=true` in `scripts\FrontsAndRivals.ini`: F9 copies your position for fronts.json,
-  F10 opens the dev menu, and an entity counter shows at the top of the screen.
-- Content lives in `scripts\FrontsAndRivals\`: `fronts.json` (written by F10 > Scout fronts, never overwritten
-  by a build), `names.json` and `models.json` (updated by every build from `src\Content\`).
-  After scouting, copy the scouted `fronts.json` back into `src\Content\` and commit it.
+Delete `FrontsAndRivals.dll`, `FrontsAndRivals.pdb` (if present), `FrontsAndRivals.ini` and the `scripts\FrontsAndRivals` folder. The mod never touches GTA V's own save files; cash it paid out stays with your characters.
 
-Compiling proves every API name, type and signature exists. It does not prove in-game behaviour.
+## Compatibility
+
+- Single-player only; the mod switches itself off if a GTA Online session starts
+- It pauses during story missions, random events, cutscenes and character switches, and removes its people so missions never see them
+- Other gang mods are fine; all of this mod's groups are prefixed `FR_`
+- At most 28 people and 8 vehicles at once, all cleaned up when you leave, reload scripts or start a mission
+
+## Known issues
+
+- The Office contact sits at the end of the phone's contact list; that's where iFruitAddon2 places mod contacts so story contacts are never overwritten
+- A few fronts have fewer than four guard posts where the street layout leaves no safe spot
+
+## For developers
+
+- `cd src; dotnet build -c Release` builds the DLL and, if `Directory.Build.props.user` sets `GtaVDir`, deploys it to `<GtaVDir>\scripts` (start from `Directory.Build.props.user.example`)
+- `cd tests; dotnet run` runs the unit tests for every pure system
+- `powershell -File tools\package.ps1` builds the release zip in `dist\`
+- `DevTools=true` in the INI turns on F9 (copy position), F10 (dev menu: scout fronts, force attack, test spawns) and an entity counter
+- Content lives in `scripts\FrontsAndRivals\`: `fronts.json`, `crews.json`, `lines.json`, `names.json`, `models.json`

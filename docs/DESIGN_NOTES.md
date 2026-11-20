@@ -1,0 +1,24 @@
+# Where 1.0 differs from design doc v1.0
+
+Each difference was a user decision or a simplification made to keep 1.0 finished and stable.
+
+| Design doc | 1.0 | Why |
+|---|---|---|
+| An HQ in Cypress Flats with a door, fade, yard guards and HQ upgrades | No HQ; the Office opens from the phone (or an optional hotkey) | User decision ("maybe no HQ"); the phone contact covers every HQ function, and reserve guards simply wait off the map |
+| Six fronts in Davis, Little Seoul, Strawberry, Mirror Park, La Mesa, Elysian Island | Hands On Car Wash, Brewer's Drop Liquor, Discount Jewels, Mirror Park Tavern, Atomic Service Center, Fridgit Cold Storage | User decisions: fronts must be real buildings; only buildings with published door positions were used (docs/locations_found.md) |
+| Fronts at least 150 m from story properties | Rule dropped | User decision; the pause gate removes all mod peds during missions |
+| Lost fronts keep half their upgrades | They keep all of them | The doc lists this as an open question; on/off upgrades can't be halved, and keeping them avoids chores |
+| Guard posts scouted by hand | Placed from the navmesh (GET_SAFE_COORD_FOR_PED) and shipped in fronts.json | User request |
+| Guard portraits in the Office | Names, traits and ranks only | LemonUI menus can't show live headshots; the feed still uses real mugshots where a ped exists |
+| Arrival camera | Not in 1.0 | Cut to keep the live defense simple and safe; the INI option was removed |
+| Workers, customers and ownership cars at fronts | Not in 1.0 | Cut for scope; guards make the fronts read as held |
+| Laying low: guards walk inside | Guards on screen walk to the door, others despawn | As designed |
+| Rival fronts show once seen or tipped off | Shown when Map > ShowRivalFronts is on | Simpler and clearer |
+| Office: two levels, separate screens | Three side-by-side panels | User request: submenus visible at the same time |
+
+## Needs in-game confirmation
+
+- Convoys reaching the door on every front (AI driving is the doc's biggest risk)
+- CREATE_INCIDENT_WITH_ENTITY with service 1 sending police (community notes, not Rockstar)
+- Crew soldiers at rival fronts engaging the player at a sensible range
+- The Office banner texture (commonmenu/interaction_bgd) and timer bars on Enhanced

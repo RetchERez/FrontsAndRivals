@@ -256,8 +256,9 @@ namespace FrontsAndRivals.UI
             AddSection("Fronts", "Every business: who holds it, its defense and income. Enter to manage one.", e.OwnedCount() + " held" + Open);
             AddSection("Guards", "Your roster: rank, trait and post. Enter to manage one.", e.LivingCount() + (injured > 0 ? " (" + injured + " hurt)" : "") + Open);
             AddSection("Hire recruits", "The Broker sends 3 new faces every morning at 06:00.", e.State.Offers.Count + " today" + Open);
-            NativeItem rivals = AddSection("Rivals", "The Crown Kings, Ironside MC and the Velvet Syndicate. Their leaders show up here once the crews start moving.", "Soon");
-            rivals.Enabled = false;
+            int maxGrudge = 0;
+            foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
+            AddSection("Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge + Open);
             AddSection("Settings", "Attack frequency and map blips.", Open.Trim());
         }
 
@@ -284,9 +285,7 @@ namespace FrontsAndRivals.UI
                 case Section.Guards: ListGuards(e); break;
                 case Section.Hire: ListRecruits(e); break;
                 case Section.Settings: ListSettings(e); break;
-                default:
-                    SetTitles(_list, "Rivals", "COMING WITH THE CREWS");
-                    break;
+                case Section.Rivals: ListRivals(e); break;
             }
             if (resetSelection && _list.Items.Count > 0) _list.SelectedIndex = 0;
             BuildDetail();
@@ -325,7 +324,10 @@ namespace FrontsAndRivals.UI
             foreach (FrontDef def in _content.Fronts)
             {
                 string owner = e.OwnerOf(def.Id);
-                string badge = owner == Owners.Player ? GuardsAt(e, def) + "/4 guards" : OwnerLabel(owner);
+                AttackState atk = e.State.Attack;
+                string badge = owner == Owners.Player
+                    ? (atk != null && atk.Front == def.Id ? (atk.Phase == AttackPhase.Warning ? "Threatened" : "Under attack") : GuardsAt(e, def) + "/" + def.Posts.Count + " guards")
+                    : OwnerLabel(owner);
                 NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Enter to manage.", badge + Open);
                 AddListRow(row, def, true);
             }
@@ -416,6 +418,7 @@ namespace FrontsAndRivals.UI
             if (!show) { if (_focus == 2) Focus(1); return; }
 
             if (key is FrontDef) DetailFront(e, (FrontDef)key);
+            else if (key is CrewState) DetailCrew(e, (CrewState)key);
             else if (key is GuardState && _section == Section.Hire) DetailRecruit(e, (GuardState)key);
             else if (key is GuardState) DetailGuard(e, (GuardState)key);
         }
@@ -452,6 +455,8 @@ namespace FrontsAndRivals.UI
                 held.Enabled = false;
                 _detail.Add(held);
             }
+
+            if (owner == Owners.Player) AddUpgrades(e, def);
 
             NativeItem waypoint = Row("Set waypoint", "Marks the front's door on your map.", "");
             waypoint.Activated += (s, a) =>
@@ -500,6 +505,33 @@ namespace FrontsAndRivals.UI
                 Changed(true);
             });
             return item;
+        }
+
+        // ---------- upgrades ----------
+
+        private void AddUpgrades(Empire e, FrontDef def)
+        {
+            FrontState fs = e.Find(def.Id);
+            if (fs == null) return;
+            AddUpgrade(fs, "Cameras", 15000, "+10% defense, and attack warnings arrive an hour earlier.", fs.Cameras, () => fs.Cameras = true);
+            AddUpgrade(fs, "Reinforced doors", 25000, "+15 defense.", fs.Doors, () => fs.Doors = true);
+            AddUpgrade(fs, "Floodlights", 10000, "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
+            AddUpgrade(fs, "Armory", 30000, "Guards here fight one weapon tier higher (rifles get +10%).", fs.Armory, () => fs.Armory = true);
+        }
+
+        private void AddUpgrade(FrontState fs, string name, int price, string effect, bool owned, Action install)
+        {
+            NativeItem row = Row(name, effect + (owned ? " Installed." : " Permanent, even if the front changes hands."), owned ? "Installed" : Money(price));
+            row.Enabled = !owned;
+            row.Activated += (s, a) => Safe("upgrade", () =>
+            {
+                if (Game.Player.Money < price) { GTA.UI.Notification.Show("You need " + Money(price) + " for " + name.ToLowerInvariant() + "."); return; }
+                Game.Player.Money -= price;
+                install();
+                Log.Write("Office: bought " + name + " at " + fs.Id);
+                Changed(true);
+            });
+            _detail.Add(row);
         }
 
         private void BuyFront(Empire e, FrontDef def)
@@ -582,6 +614,63 @@ namespace FrontsAndRivals.UI
                 Changed(true);
             });
             _detail.Add(letGo);
+        }
+
+        // ---------- rivals ----------
+
+        private void ListRivals(Empire e)
+        {
+            SetTitles(_list, "Rivals", "THE CREWS WHO WANT WHAT YOU HAVE");
+            foreach (CrewState c in e.State.Crews)
+            {
+                CrewDef def = _content.Crew(c.Id);
+                if (def == null) continue;
+                int held = 0;
+                foreach (FrontState f in e.State.Fronts) if (f.Owner == c.Id) held++;
+                bool quiet = Nemesis.IsQuiet(c, e.State.Day);
+                string desc = def.Style + ". Holds " + held + (held == 1 ? " front. " : " fronts. ") + (quiet ? "Gone quiet after losing their leaders." : "Enter for their leaders.");
+                NativeItem row = Row(def.Name, desc, (quiet ? "Quiet" : "Grudge " + c.Grudge) + Open);
+                AddListRow(row, c, true);
+            }
+        }
+
+        private void DetailCrew(Empire e, CrewState c)
+        {
+            CrewDef def = _content.Crew(c.Id);
+            SetTitles(_detail, def.Name, def.Style.ToUpperInvariant());
+            NativeItem header = Info("Last move", string.IsNullOrEmpty(c.LastMove) ? "Nothing yet. They're watching." : c.LastMove + ".", "Grudge " + c.Grudge);
+            header.Panel = new NativeStatsPanel(new NativeStatsInfo("Grudge", c.Grudge), new NativeStatsInfo("Manpower", Bar(c.Manpower, Nemesis.MaxManpower)));
+            _detail.Add(header);
+
+            CrewMember boss = c.Boss;
+            if (boss != null) _detail.Add(MemberRow(boss, "Boss"));
+            foreach (CrewMember m in c.Lieutenants()) _detail.Add(MemberRow(m, "Lieutenant"));
+            foreach (CrewMember m in c.Members)
+            {
+                if (m.Alive) continue;
+                NativeItem dead = Row(m.DisplayName, m.Log.Count > 0 ? m.Log[m.Log.Count - 1] : "Dead.", "Dead");
+                dead.Enabled = false;
+                _detail.Add(dead);
+            }
+
+            FrontDef theirs = null;
+            foreach (FrontState f in e.State.Fronts) if (f.Owner == c.Id) { theirs = _content.Front(f.Id); break; }
+            NativeItem waypoint = Row("Waypoint to their front",
+                theirs != null ? "Marks the " + theirs.Name + ". Clear its guards and claim the door to take it." : "They hold no fronts right now.", "");
+            waypoint.Enabled = theirs != null && theirs.Door.IsSet;
+            waypoint.Activated += (s, a) =>
+            {
+                GTA.World.WaypointPosition = new Vector3(theirs.Door.X, theirs.Door.Y, theirs.Door.Z);
+                GTA.UI.Notification.Show("Waypoint set: " + theirs.Name + " (" + def.Name + ").");
+            };
+            _detail.Add(waypoint);
+        }
+
+        private static NativeItem MemberRow(CrewMember m, string role)
+        {
+            string last = m.Log.Count > 0 ? " " + m.Log[m.Log.Count - 1] : "";
+            string scars = m.Scars.Count > 0 ? ", " + m.Scars.Count + (m.Scars.Count == 1 ? " scar" : " scars") : "";
+            return Info(m.DisplayName, role + ", " + m.LeaderTrait + ". Rep " + m.Rep + scars + "." + last, role + " · Rep " + m.Rep);
         }
 
         private void DetailRecruit(Empire e, GuardState offer)

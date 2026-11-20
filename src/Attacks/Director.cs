@@ -32,6 +32,7 @@ namespace FrontsAndRivals.Attacks
         private readonly LiveDefense _live;
 
         private long _nextPlanRoll;
+        private AttackState _liveFailed; // a convoy that could not spawn: auto-resolve, don't retry every 2 s
         private bool _forceRequested;
         private string _claimFront;
         private string _claimCrew;
@@ -96,7 +97,7 @@ namespace FrontsAndRivals.Attacks
             {
                 Vector3 p = Game.Player.Character.Position;
                 bool near = front.IsScouted && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.LiveRange;
-                if (near && StartLive(e, a, front)) return;
+                if (near && _liveFailed != a && StartLive(e, a, front)) return;
                 if (now >= a.WindowEnds) FinishAuto(e, a, front, hour, now, null, 0);
             }
             else if (a.Phase == AttackPhase.Live && !_live.Active)
@@ -161,7 +162,7 @@ namespace FrontsAndRivals.Attacks
             if (_live.Active) return true;
             CrewDef crew = _content.Crew(a.Crew);
             CrewMember leader = Nemesis.Crew(e.State, a.Crew).Member(a.Leader);
-            if (!_live.Start(a, front, crew, leader, _config.PoliceRespond)) return false;
+            if (!_live.Start(a, front, crew, leader, _config.PoliceRespond)) { _liveFailed = a; return false; }
             a.Phase = AttackPhase.Live;
             _streamer.SetFighting(front.Id, true);
             GTA.UI.Screen.ShowSubtitle("The ~r~" + crew.Name + "~s~ are coming for the " + front.ShortName + ". Hold the door.", 6000);
