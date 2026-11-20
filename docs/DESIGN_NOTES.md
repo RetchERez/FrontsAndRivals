@@ -5,7 +5,9 @@ Each difference was a user decision or a simplification made to keep 1.0 finishe
 | Design doc | 1.0 | Why |
 |---|---|---|
 | An HQ in Cypress Flats with a door, fade, yard guards and HQ upgrades | No HQ; the Office opens from the phone (or an optional hotkey) | User decision ("maybe no HQ"); the phone contact covers every HQ function, and reserve guards simply wait off the map |
-| Six fronts in Davis, Little Seoul, Strawberry, Mirror Park, La Mesa, Elysian Island | Hands On Car Wash, Brewer's Drop Liquor, Discount Jewels, Mirror Park Tavern, Atomic Service Center, Fridgit Cold Storage | User decisions: fronts must be real buildings; only buildings with published door positions were used (docs/locations_found.md) |
+| Six fronts | 29 real businesses, crews holding their own turf, five for sale | User decisions: fronts must be real buildings, and the city should be full of fronts with rivals gunning for them. Doors come from published positions (docs/locations_found.md); posts are placed from the navmesh the first time anyone comes near |
+| Crews only attack you | Crews also grab neutral fronts and fight each other each night (Turf) | User request: rivals gunning for every front |
+| Rival front guards fight on sight | Calm until you walk up on foot, shoot nearby or hurt one | With 24 crew fronts around the city, fighting on sight would turn every drive into a gunfight |
 | Fronts at least 150 m from story properties | Rule dropped | User decision; the pause gate removes all mod peds during missions |
 | Lost fronts keep half their upgrades | They keep all of them | The doc lists this as an open question; on/off upgrades can't be halved, and keeping them avoids chores |
 | Guard posts scouted by hand | Placed from the navmesh (GET_SAFE_COORD_FOR_PED) and shipped in fronts.json | User request |

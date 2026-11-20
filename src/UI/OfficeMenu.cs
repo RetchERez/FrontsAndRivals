@@ -320,8 +320,14 @@ namespace FrontsAndRivals.UI
 
         private void ListFronts(Empire e)
         {
-            SetTitles(_list, "Fronts", "YOUR BUSINESSES AND THEIRS");
-            foreach (FrontDef def in _content.Fronts)
+            SetTitles(_list, "Fronts", e.OwnedCount() + " OF " + _content.Fronts.Count + " ARE YOURS");
+            var ordered = new List<FrontDef>(_content.Fronts);
+            ordered.Sort((x, y) =>
+            {
+                int c = OwnerRank(e.OwnerOf(x.Id)).CompareTo(OwnerRank(e.OwnerOf(y.Id)));
+                return c != 0 ? c : string.Compare(x.Area + x.Name, y.Area + y.Name, StringComparison.Ordinal);
+            });
+            foreach (FrontDef def in ordered)
             {
                 string owner = e.OwnerOf(def.Id);
                 AttackState atk = e.State.Attack;
@@ -330,6 +336,18 @@ namespace FrontsAndRivals.UI
                     : OwnerLabel(owner);
                 NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Enter to manage.", badge + Open);
                 AddListRow(row, def, true);
+            }
+        }
+
+        private static int OwnerRank(string owner)
+        {
+            switch (owner)
+            {
+                case Owners.Player: return 0;
+                case Owners.ForSale: return 1;
+                case Owners.CrownKings: return 2;
+                case Owners.Ironside: return 3;
+                default: return 4;
             }
         }
 
@@ -441,7 +459,7 @@ namespace FrontsAndRivals.UI
 
             if (owner == Owners.ForSale)
             {
-                NativeItem buy = Row("Buy from the Broker", "The starter price. It's yours the moment you pay; then post guards here.", Money(Economy.StarterFrontPrice));
+                NativeItem buy = Row("Buy from the Broker", (def.Starter ? "The starter price. " : "Six days of its takings. ") + "It's yours the moment you pay; then post guards here.", Money(Economy.FrontPrice(def)));
                 buy.Activated += (s, a) => Safe("buy", () => BuyFront(e, def));
                 _detail.Add(buy);
             }
@@ -538,14 +556,15 @@ namespace FrontsAndRivals.UI
         {
             if (!e.CanBuy(def.Id)) return;
             Player p = Game.Player;
-            if (p.Money < Economy.StarterFrontPrice)
+            int price = Economy.FrontPrice(def);
+            if (p.Money < price)
             {
-                GTA.UI.Notification.Show("The Broker wants " + Money(Economy.StarterFrontPrice) + " for the " + def.Name + ".");
+                GTA.UI.Notification.Show("The Broker wants " + Money(price) + " for the " + def.Name + ".");
                 return;
             }
-            p.Money -= Economy.StarterFrontPrice;
+            p.Money -= price;
             e.SetOwner(def.Id, Owners.Player);
-            Log.Write("Office: bought " + def.Id + " for " + Economy.StarterFrontPrice);
+            Log.Write("Office: bought " + def.Id + " for " + price);
             Notifier.Post("CHAR_DEFAULT", "The Broker", def.Name, "It's yours. Put some people on it before somebody else gets ideas.");
             Changed(true);
         }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -168,11 +169,43 @@ static class AttackTests
         Nemesis.EnsureCrews(ds, content, rng);
         CrewState dck = Nemesis.Crew(ds, "CK");
         dck.Manpower = 10; dck.Grudge = 20; dck.LastContactDay = 0; ds.Day = 1;
+        int ckHeld = ds.Fronts.FindAll(x => x.Owner == "CK").Count;
         Nemesis.Daily(ds, 1);
-        T.Check("CK holds 2 fronts: manpower +2", dck.Manpower, 12, 0);
+        T.Check("Manpower grows by 1 per front the crew holds", dck.Manpower, 10 + ckHeld, 0);
         T.Check("No contact today: grudge -5", dck.Grudge, 15, 0);
         dck.Manpower = 19; Nemesis.Daily(ds, 2);
         T.Check("Manpower caps at 20", dck.Manpower, 20, 0);
+
+        T.Section("Turf (the city moves without you)");
+        var ts = SaveService.NewEmpire();
+        var te = new Empire(ts, content);
+        Nemesis.EnsureCrews(ts, content, rng);
+        foreach (CrewState c in ts.Crews) c.Manpower = 20;
+        te.SetOwner("cafe_tacolibre", Owners.Player);
+        int grabs = 0, wars = 0;
+        for (int night = 0; night < 200; night++)
+        {
+            ts.Day = night;
+            foreach (CrewState c in ts.Crews) c.Manpower = 20;
+            foreach (Turf.Move m in Turf.Nightly(ts, content, rng))
+            {
+                if (!m.Success) continue;
+                if (m.FromCrew == null) grabs++; else wars++;
+            }
+        }
+        T.True("Crews grab fronts that are for sale", grabs > 0);
+        T.True("Crews take fronts from each other", wars > 0);
+        T.True("Your fronts are never taken by turf moves", te.OwnerOf("cafe_tacolibre") == Owners.Player);
+        T.True("The starter car wash is never grabbed", te.OwnerOf("carwash_handson") == Owners.ForSale);
+        var weak = SaveService.NewEmpire();
+        new Empire(weak, content);
+        Nemesis.EnsureCrews(weak, content, rng);
+        foreach (CrewState c in weak.Crews) c.Manpower = 3;
+        bool none = true;
+        for (int i = 0; i < 50; i++) if (Turf.Nightly(weak, content, rng).Count > 0) none = false;
+        T.True("Crews with fewer than 8 soldiers stay home", none);
+        T.Check("Starter price is $25,000", Economy.FrontPrice(content.Front("carwash_handson")), 25000, 0);
+        T.Check("Other fronts cost six days of income", Economy.FrontPrice(content.Front("motel_alta")), 4500 * 6, 0);
 
         T.Section("Text lines");
         var tokens = new Dictionary<string, string> { { "crew", "Crown Kings" }, { "front", "Car Wash" } };

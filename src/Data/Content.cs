@@ -58,6 +58,8 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "convoySpawns", Order = 10)] public List<Spot> ConvoySpawns;
         /// <summary>Short label for tight spots in menus, e.g. "Car Wash".</summary>
         [DataMember(Name = "short", Order = 11)] public string Short;
+        /// <summary>The front a new empire buys first. Crews never grab it.</summary>
+        [DataMember(Name = "starter", Order = 12)] public bool Starter;
 
         public string ShortName { get { return string.IsNullOrEmpty(Short) ? Name : Short; } }
 
@@ -277,7 +279,7 @@ namespace FrontsAndRivals.Data
         private static FrontDef Def(string id, string name, string area, int number, int tier, int income, string owner,
                                     float x, float y, float z, float h)
         {
-            var f = new FrontDef { Id = id, Name = name, Short = ShortFor(id), Area = area, Number = number, Tier = tier, Income = income, StartOwner = owner, Door = Spot.At(x, y, z, h) };
+            var f = new FrontDef { Id = id, Name = name, Short = ShortFor(id), Starter = id == "carwash_handson", Area = area, Number = number, Tier = tier, Income = income, StartOwner = owner, Door = Spot.At(x, y, z, h) };
             f.Normalize();
             return f;
         }
@@ -331,6 +333,7 @@ namespace FrontsAndRivals.Data
                 Field(sb, "id", Str(f.Id)); Field(sb, "name", Str(f.Name)); Field(sb, "short", Str(f.ShortName)); Field(sb, "area", Str(f.Area));
                 Field(sb, "number", Int(f.Number)); Field(sb, "tier", Int(f.Tier)); Field(sb, "income", Int(f.Income));
                 Field(sb, "startOwner", Str(f.StartOwner));
+                Field(sb, "starter", f.Starter ? "true" : "false");
                 Field(sb, "door", SpotJson(f.Door)); Field(sb, "ownerSpot", SpotJson(f.OwnerSpot));
                 sb.Append("    \"posts\": [");
                 for (int p = 0; p < f.Posts.Count; p++)

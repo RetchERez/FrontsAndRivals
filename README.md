@@ -2,11 +2,13 @@
 
 A free single-player script mod for Grand Theft Auto V. Not affiliated with or endorsed by Rockstar Games.
 
-Run real Los Santos businesses as fronts, post guards with names, faces, traits and ranks, and hold them against three rival crews whose leaders remember you. Attacks resolve on their own while you're away and turn into real fights when you're close. Michael, Franklin and Trevor share one empire.
+Run real Los Santos businesses as fronts, post guards with names, faces, traits and ranks, and hold them against three rival crews who already own most of the city and whose leaders remember you. Attacks resolve on their own while you're away and turn into real fights when you're close. Michael, Franklin and Trevor share one empire.
 
 ## What's in 1.0
 
-- Six real businesses as fronts: Hands On Car Wash, Brewer's Drop Liquor, Discount Jewels, Mirror Park Tavern, Atomic Service Center and Fridgit Cold Storage
+- 29 real businesses as fronts across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
+- Three crews holding their own turf: the Crown Kings in South LS, Ironside MC on the east side, the Velvet Syndicate out west; five fronts start for sale
+- A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience, weapons and permanent death; a memorial for the fallen
 - Three original crews (Crown Kings, Ironside MC, Velvet Syndicate), each with a named boss and three lieutenants
@@ -43,7 +45,9 @@ Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2
 - Buy the car wash from the Broker, hire recruits, post them, and you're in business
 - Income arrives at every in-game midnight, after wages; sleeping across midnights pays each one (up to three)
 - When a warning text arrives, you can go and fight beside your guards or leave it to them
-- Rival fronts show on the map in their crew's colour; clear the guards, stand at the door and press **E** to claim it
+- Rival fronts show on the map in their crew's colour; their soldiers ignore you while you drive past, but walk up on foot, shoot nearby or hurt one of them and the whole front fights
+- Clear a rival front's soldiers, stand at the door and press **E** to claim it
+- Fronts that are for sale can be bought from the Office for six days of their takings (the car wash is the Broker's $25,000 starter)
 
 ## Settings
 

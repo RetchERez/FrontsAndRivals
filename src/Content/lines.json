@@ -72,6 +72,14 @@
   "counterStrike": [
     "The {crew} burned their soldiers on that hit. Their {front} is thin right now."
   ],
+  "turfGrab": [
+    "The {crew} moved into the {front} in {area} last night. Nobody stopped them.",
+    "The {crew} have their people on the {front} now."
+  ],
+  "turfWar": [
+    "The {crew} pushed the {rival} out of the {front} in {area}.",
+    "Shots in {area} last night. The {front} belongs to the {crew} now."
+  ],
   "brokerIntro": [
     "Heard you're looking to invest. Call the Office on your phone when you want to talk business. - The Broker"
   ],

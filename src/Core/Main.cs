@@ -356,6 +356,23 @@ namespace FrontsAndRivals.Core
                     Nemesis.Event rebuilt = Nemesis.Rebuild(_state, _content, crew, _rng, _state.Day);
                     if (rebuilt != null) Notifier.Post("CHAR_DEFAULT", "Street word", "Back in business", _content.Lines.Pick(_rng, rebuilt.Moment, rebuilt.Tokens));
                 }
+                // The city moves on its own: crews grab fronts for sale and take each other's. One text a night at most.
+                bool told = false;
+                foreach (Turf.Move move in Turf.Nightly(_state, _content, _rng))
+                {
+                    if (!move.Success) continue;
+                    CrewDef mover = _content.Crew(move.Crew);
+                    FrontDef where = _content.Front(move.Front);
+                    Log.Write("Turf: " + move.Crew + " took " + move.Front + (move.FromCrew != null ? " from " + move.FromCrew : ""));
+                    if (told || mover == null || where == null) continue;
+                    var t = new System.Collections.Generic.Dictionary<string, string>
+                    {
+                        { "crew", mover.Name }, { "front", where.ShortName }, { "area", where.Area },
+                        { "rival", move.FromCrew != null ? _content.Crew(move.FromCrew).Name : "" }
+                    };
+                    Notifier.Post("CHAR_DEFAULT", "Street word", where.Area, _content.Lines.Pick(_rng, move.FromCrew != null ? "turfWar" : "turfGrab", t));
+                    told = true;
+                }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
                 foreach (GuardState q in pay.Quit)
                 {

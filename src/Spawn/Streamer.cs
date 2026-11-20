@@ -1,4 +1,4 @@
-﻿// Fronts & Rivals: the Streamer. Every 0.5 s it checks the distance to each scouted front:
+// Fronts & Rivals: the Streamer. Every 0.5 s it checks the distance to each scouted front:
 //   under 250 m  -> its guards spawn at their posts with idle scenarios (nearest front first)
 //   over 300 m   -> they're deleted (the 50 m gap stops flicker)
 // Your fronts get your guards. Rival-held fronts get the crew's own soldiers, who fight you on sight;
@@ -50,6 +50,7 @@ namespace FrontsAndRivals.Spawn
             public readonly Slot[] Slots = new Slot[FrontDef.MaxPosts];
             public bool CrewSpawnedThisVisit;
             public bool ClearedReported;
+            public bool Alerted;          // crew soldiers have noticed you and are fighting
 
             public StreamedFront(FrontDef def, string owner)
             {
@@ -181,6 +182,7 @@ namespace FrontsAndRivals.Spawn
                     f.Streamed = true;
                     f.CrewSpawnedThisVisit = false;
                     f.ClearedReported = false;
+                    f.Alerted = false;
                     StreamIns++;
                 }
                 else if (!want && f.Streamed)
@@ -311,6 +313,7 @@ namespace FrontsAndRivals.Spawn
                 Load(slot, model, -1, 0, () => SpawnCrewGuard(slot, crew, f.Def.Posts[post], hour));
             }
             if (alive > 0 || killed > 0) f.CrewSpawnedThisVisit = true;
+            if (!f.Alerted && alive > 0 && ShouldAlert(f, count)) Alert(f, count);
             if (f.CrewSpawnedThisVisit && alive == 0 && killed > 0 && !f.ClearedReported)
             {
                 bool anyPending = false;
@@ -321,6 +324,38 @@ namespace FrontsAndRivals.Spawn
                     if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true);
                 }
             }
+        }
+
+        private const float AlertOnFootRange = 35f, AlertShotRange = 80f;
+
+        /// <summary>Crew soldiers stay calm while you drive past. They turn on you when you walk up to their door,
+        /// shoot nearby, or hurt one of them (or one of them was killed).</summary>
+        private bool ShouldAlert(StreamedFront f, int count)
+        {
+            Ped player = Game.Player.Character;
+            if (!player.IsInVehicle() && f.Distance < AlertOnFootRange) return true;
+            if (player.IsShooting && f.Distance < AlertShotRange) return true;
+            for (int i = 0; i < count; i++)
+            {
+                Slot s = f.Slots[i];
+                if (s.Killed) return true;
+                if (s.Ped != null && s.Ped.Exists() && !s.Ped.IsDead && s.Ped.Health < s.Ped.MaxHealth) return true;
+            }
+            return false;
+        }
+
+        private void Alert(StreamedFront f, int count)
+        {
+            f.Alerted = true;
+            for (int i = 0; i < count; i++)
+            {
+                Slot s = f.Slots[i];
+                if (s.Ped == null || !s.Ped.Exists() || s.Ped.IsDead) continue;
+                s.Ped.Task.ClearAll();
+                s.Ped.BlockPermanentEvents = false;
+                s.Ped.Task.FightAgainstHatedTargets(60f);
+            }
+            Log.Write("Streamer: crew at " + f.Def.Id + " alerted");
         }
 
         private void SpawnCrewGuard(Slot slot, CrewDef crew, PostDef post, int hour)
@@ -334,8 +369,10 @@ namespace FrontsAndRivals.Spawn
             ped.Weapons.Give(CrewWeapon(crew, Math.Abs(post.GetHashCode())), 250, false, true);
             ped.Accuracy = 25;
             Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
-            // Crew soldiers stand their post and fight anyone they hate who comes close (you and your guards).
-            Function.Call(Hash.TASK_GUARD_CURRENT_POSITION, ped, 15f, 15f, true);
+            // Calm until alerted (see ShouldAlert): idle at the post, ignoring the world.
+            ped.BlockPermanentEvents = true;
+            string scenario = StreamRules.GuardScenario(post.Scenario, Trait.None, hour);
+            Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, ped, scenario, post.X, post.Y, post.Z, post.H, -1, false, true);
         }
 
         public static WeaponHash CrewWeapon(CrewDef crew, int pick)

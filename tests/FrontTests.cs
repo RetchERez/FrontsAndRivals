@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,7 +59,10 @@ static class FrontTests
         var log = new List<string>();
         var shipped = new ContentDb(RepoContent, log.Add);
         shipped.Load();
-        T.Check("Shipped fronts.json has 6 fronts", shipped.Fronts.Count, 6, 0);
+        T.Check("Shipped fronts.json has 29 fronts", shipped.Fronts.Count, 29, 0);
+        T.True("Exactly one starter front, and it is the car wash", shipped.Fronts.FindAll(x => x.Starter).Count == 1 && shipped.Front("carwash_handson").Starter);
+        T.True("Front numbers are unique and fit a plate (1-99)", shipped.Fronts.TrueForAll(x => x.Number >= 1 && x.Number <= 99) && new System.Collections.Generic.HashSet<int>(shipped.Fronts.ConvertAll(x => x.Number)).Count == shipped.Fronts.Count);
+        T.True("Every crew starts with fronts on its own turf", new[] { "CK", "IR", "VS" }.All(id => shipped.Fronts.Exists(x => x.StartOwner == id)));
         T.True("No fallback warnings for shipped files", !log.Exists(l => l.Contains("built-in") || l.Contains("could not")));
         T.True("Car wash is for sale at start", shipped.Front("carwash_handson").StartOwner == Owners.ForSale);
         T.True("Cold storage depot starts with Ironside", shipped.Front("depot_fridgit").StartOwner == Owners.Ironside);

@@ -4,7 +4,10 @@
 
 First full release.
 
-- Six real businesses as fronts, with guard posts placed from the game's navigation data
+- 29 real businesses as fronts across Los Santos, with guard posts placed from the game's navigation data
+- Crew territories (South LS, the east side, the west) and nightly turf moves: crews grab fronts for sale and fight each other for fronts
+- Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
+- Any front for sale can be bought (six days of its income; the starter car wash is $25,000)
 - The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, weapon upgrades, permanent death, memorial
 - Fronts: buying the starter car wash, four upgrades (cameras, reinforced doors, floodlights, armory), defense and income bars
