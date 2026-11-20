@@ -36,9 +36,9 @@ namespace FrontsAndRivals.Spawn
                 bool created = Function.Call<bool>(Hash.ADD_RELATIONSHIP_GROUP, name, outHash);
                 int got = outHash.GetResult<int>();
                 int expected = Markers.Hash(name);
-                if (created && got != expected)
-                    Log.Write("WARNING: group " + name + " hash " + got + " != expected " + expected);
-                Log.Write("Group " + name + (created ? " created" : " already existed") + ", hash " + expected);
+                // The game can report "not created" even on a fresh start, so check the returned hash whenever it gives one.
+                string check = got == 0 ? "game returned no hash" : got == expected ? "hash verified" : "HASH MISMATCH, game says " + got;
+                Log.Write((got != 0 && got != expected ? "WARNING: " : "") + "Group " + name + (created ? " created" : " exists") + ", hash " + expected + " (" + check + ")");
             }
 
             int player = Markers.Hash("PLAYER");

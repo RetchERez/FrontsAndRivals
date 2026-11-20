@@ -76,8 +76,9 @@ namespace FrontsAndRivals.Core
         {
             try
             {
-                Log.Write("Game version: " + Game.Version);
-                Log.Write("Game exe: " + Process.GetCurrentProcess().MainModule.ModuleName);
+                // SHVDN's GameVersion enum doesn't know Enhanced builds, so log the exe's own version too.
+                ProcessModule exe = Process.GetCurrentProcess().MainModule;
+                Log.Write("Game: " + exe.ModuleName + " " + exe.FileVersionInfo.FileVersion + " (SHVDN enum: " + Game.Version + ")");
             }
             catch (Exception ex) { Log.Write("Game version: unknown (" + ex.Message + ")"); }
             try
