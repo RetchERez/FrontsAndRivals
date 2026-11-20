@@ -1,14 +1,18 @@
-// Fronts & Rivals: the Office. GTA's native menu style via LemonUI (the game's own commonmenu textures).
-// Design doc rules: two levels deep at most, at most 7 rows on screen, every row has a one-line description
-// and a badge on the right, bars instead of raw numbers, one accent colour.
+// Fronts & Rivals: the Office. Three native GTA menus (LemonUI) side by side, all visible at once:
 //
-//   The Office ── Fronts ── (front page: bars, 4 posts, buy, waypoint)
-//              ├─ Guards ── (guard page: rank bar, post, weapon, let go)
-//              ├─ Hire recruits
-//              ├─ Rivals (arrives with the crews)
-//              └─ Settings
+//   [ SECTIONS ]   [ LIST ]                [ DETAIL ]
+//    Overview       every front / guard     the highlighted front's page,
+//    Fronts   ›     / recruit / setting     guard's page or recruit
+//    Guards   ›
+//    Hire     ›     updates as you move     updates as you move
+//    Rivals
+//    Settings ›
+//
+// Enter moves one panel to the right, Backspace one panel to the left; Backspace on the left panel closes.
+// Only the focused panel takes input. Design doc: native look, badges on the right, bars not numbers, one accent colour.
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using GTA;
 using GTA.Math;
@@ -24,69 +28,148 @@ namespace FrontsAndRivals.UI
 {
     public sealed class OfficeMenu
     {
-        private const int Rows = 7;
+        private const int Rows = 8;
+        private const float SectionsWidth = 380f, ListWidth = 500f, DetailWidth = 500f, Gap = 12f;
+        private const string Open = "  ›";
         private static readonly Color Accent = Color.FromArgb(255, 22, 112, 74); // the green of your front blips
+
+        private enum Section { Overview, Fronts, Guards, Hire, Rivals, Settings }
 
         public readonly ObjectPool Pool = new ObjectPool();
 
         private readonly ContentDb _content;
         private readonly Func<Empire> _empire;
         private readonly Func<Random> _rng;
-        private readonly Action _worldChanged; // streamer + blips + save
+        private readonly Action _changed; // empire changed: streamer + blips + save
         private readonly Action _save;
 
-        private readonly NativeMenu _office, _fronts, _frontPage, _guards, _guardPage, _recruits, _settings;
-        private string _frontId;
-        private int _guardId;
-        private int _letGoArmed;
+        private readonly NativeMenu _sections, _list, _detail;
+        private readonly NativeMenu[] _panels;
+        private int _focus;            // 0 sections, 1 list, 2 detail
+        private bool _open;
+        private bool _closingAll;
+        private Section _section = Section.Overview;
 
-        public OfficeMenu(ContentDb content, Func<Empire> empire, Func<Random> rng, Action worldChanged, Action save)
+        // What the list rows stand for, so the detail panel knows what to show.
+        private readonly List<object> _listKeys = new List<object>();
+        private int _letGoArmed;
+        private bool _rebuild;
+
+        public OfficeMenu(ContentDb content, Func<Empire> empire, Func<Random> rng, Action changed, Action save)
         {
             _content = content;
             _empire = empire;
             _rng = rng;
-            _worldChanged = worldChanged;
+            _changed = changed;
             _save = save;
 
-            _office = Menu("THE OFFICE", "Your fronts, your people.");
-            _fronts = Menu("FRONTS", "Every business on your list.");
-            _frontPage = Menu("FRONT", "");
-            _guards = Menu("GUARDS", "Everyone on your payroll.");
-            _guardPage = Menu("GUARD", "");
-            _recruits = Menu("HIRE", "Today's recruits from the Broker.");
-            _settings = Menu("SETTINGS", "How Fronts & Rivals behaves.");
+            _sections = Panel("The Office", "FRONTS & RIVALS", SectionsWidth, 0f);
+            _list = Panel("Fronts", "", ListWidth, SectionsWidth + Gap);
+            _detail = Panel("", "", DetailWidth, SectionsWidth + Gap + ListWidth + Gap);
+            _panels = new[] { _sections, _list, _detail };
 
-            _office.Opening += (s, e) => Safe("office", BuildOffice);
-            _fronts.Opening += (s, e) => Safe("fronts", BuildFronts);
-            _guards.Opening += (s, e) => Safe("guards", BuildGuards);
-            _recruits.Opening += (s, e) => Safe("recruits", BuildRecruits);
-            _settings.Opening += (s, e) => Safe("settings", BuildSettings);
+            _sections.SelectedIndexChanged += (s, e) => { if (_open) Safe("section", () => { _section = (Section)_sections.SelectedIndex; BuildList(true); }); };
+            _list.SelectedIndexChanged += (s, e) => { if (_open) Safe("detail", BuildDetail); };
+            for (int i = 0; i < _panels.Length; i++)
+            {
+                int index = i;
+                _panels[i].Closing += (s, e) => OnBack(index, e);
+            }
         }
 
-        private NativeMenu Menu(string subtitle, string description)
+        private NativeMenu Panel(string title, string subtitle, float width, float x)
         {
-            var m = new NativeMenu("Fronts & Rivals", subtitle, description);
+            var m = new NativeMenu(title, subtitle, "");
+            m.Width = width;
+            m.Offset = new PointF(x, 0f);
             m.MaxItems = Rows;
-            var banner = new ScaledRectangle(PointF.Empty, SizeF.Empty);
+            var banner = new ScaledRectangle(PointF.Empty, new SizeF(width, 107f));
             banner.Color = Accent;
             m.Banner = banner;
+            m.RotateCamera = false;
             Pool.Add(m);
             return m;
         }
 
-        public bool IsOpen { get { return Pool.AreAnyVisible; } }
+        public bool IsOpen { get { return _open; } }
 
-        public void Open()
+        public void Toggle() { if (_open) CloseAll(); else OpenOffice(); }
+
+        /// <summary>Opens the Office (phone contact, hotkey).</summary>
+        public void OpenOffice()
         {
             if (_empire() == null) { GTA.UI.Notification.Show("Fronts & Rivals: still loading. Try again in a moment."); return; }
-            if (Pool.AreAnyVisible) return;
-            _office.Visible = true;
+            if (_open) return;
+            _open = true;
+            _section = Section.Overview;
+            Safe("open", () =>
+            {
+                BuildSections();
+                _sections.SelectedIndex = 0;
+                BuildList(true);
+            });
+            foreach (NativeMenu m in _panels) m.Visible = true;
+            Focus(0);
         }
 
-        public void Toggle() { if (Pool.AreAnyVisible) Pool.HideAll(); else Open(); }
+        private void CloseAll()
+        {
+            _open = false;
+            _closingAll = true;
+            foreach (NativeMenu m in _panels) m.Visible = false;
+            _closingAll = false;
+        }
+
+        /// <summary>Backspace: one panel left, or close from the left panel.</summary>
+        private void OnBack(int panel, CancelEventArgs e)
+        {
+            if (_closingAll || !_open) return;
+            if (panel == 0) { e.Cancel = true; CloseAll(); return; }
+            e.Cancel = true;
+            if (panel == _focus) Focus(panel - 1);
+        }
+
+        private void Focus(int panel)
+        {
+            _focus = panel;
+            for (int i = 0; i < _panels.Length; i++)
+            {
+                _panels[i].AcceptsInput = i == panel;
+            }
+            _letGoArmed = 0;
+        }
 
         /// <summary>Every tick, also while paused, so the menu never freezes.</summary>
-        public void Process() { Pool.Process(); }
+        public void Process()
+        {
+            if (_open && _rebuild)
+            {
+                _rebuild = false;
+                int s = _sections.SelectedIndex, l = _list.SelectedIndex, d = _detail.SelectedIndex;
+                Safe("refresh", () =>
+                {
+                    BuildSections();
+                    Restore(_sections, s);
+                    BuildList(false);
+                    Restore(_list, l);
+                    BuildDetail();
+                    Restore(_detail, d);
+                });
+            }
+            Pool.Process();
+        }
+
+        private static void Restore(NativeMenu m, int index)
+        {
+            if (m.Items.Count > 0) m.SelectedIndex = Math.Max(0, Math.Min(index, m.Items.Count - 1));
+        }
+
+        /// <summary>Something changed: redraw all three panels on the next frame (never inside an item's own event).</summary>
+        private void Changed(bool empire)
+        {
+            if (empire) _changed(); else _save();
+            _rebuild = true;
+        }
 
         private void Safe(string where, Action build)
         {
@@ -101,24 +184,16 @@ namespace FrontsAndRivals.UI
             return new NativeItem(title, description, badge ?? "");
         }
 
+        private static NativeItem Info(string title, string description, string value)
+        {
+            return new NativeItem(title, description, value ?? "");
+        }
+
         private static string Money(long v) { return (v < 0 ? "-$" : "$") + Math.Abs(v).ToString("N0"); }
 
         private static int Hour() { return GTA.World.CurrentTimeOfDay.Hours; }
 
         private static int Bar(double value, double max) { return (int)Math.Max(0, Math.Min(100, Math.Round(value / max * 100.0))); }
-
-        private static NativeStatsPanel FrontBars(double defense, int income)
-        {
-            return new NativeStatsPanel(new NativeStatsInfo("Defense", Bar(defense, 200)), new NativeStatsInfo("Income", Bar(income, 12000)));
-        }
-
-        private void OpenPage(NativeMenu page, NativeMenu parent, Action build)
-        {
-            page.Parent = parent;
-            Safe(page.Name, build);
-            parent.Visible = false;
-            page.Visible = true;
-        }
 
         private static string OwnerLabel(string owner)
         {
@@ -143,147 +218,288 @@ namespace FrontsAndRivals.UI
 
         private static string Short(GuardState g) { return g.First + " \"" + g.Nick + "\""; }
 
-        // ---------- The Office (overview) ----------
+        private static void SetTitles(NativeMenu m, string title, string subtitle)
+        {
+            m.BannerText.Text = title;
+            m.Name = subtitle;
+        }
 
-        private void BuildOffice()
+        private void FocusRight(int from)
+        {
+            NativeMenu next = from == 0 ? _list : _detail;
+            if (!next.Visible || next.Items.Count == 0) return;
+            bool anyEnabled = false;
+            foreach (NativeItem it in next.Items) if (it.Enabled) { anyEnabled = true; break; }
+            if (!anyEnabled) return;
+            Focus(from + 1);
+            // Land on the first usable row.
+            for (int i = 0; i < next.Items.Count; i++) if (next.Items[i].Enabled) { next.SelectedIndex = i; break; }
+        }
+
+        // ---------- left: sections ----------
+
+        private void BuildSections()
         {
             Empire e = _empire();
-            _office.Clear();
+            _sections.Clear();
             if (e == null) return;
             int net = e.DailyIncome() - e.DailyWages();
             int injured = 0;
             foreach (GuardState g in e.State.Guards) if (g.Status == GuardStatus.Injured) injured++;
 
-            _office.Add(Row("Overview",
-                "Fronts held: " + e.OwnedCount() + " of " + _content.Fronts.Count + ". Daily income " + Money(e.DailyIncome())
-                + ", wages " + Money(e.DailyWages()) + ". This week about " + Money(net * 7L) + ". Last midnight: " + Money(e.State.LastNet) + ".",
-                Money(net) + " / day"));
-
-            var fronts = Row("Fronts", "Every business: who holds it, its defense and income.", e.OwnedCount() + " held");
-            fronts.Activated += (s, a) => OpenPage(_fronts, _office, BuildFronts);
-            _office.Add(fronts);
-
-            var guards = Row("Guards", "Your roster: rank, trait and where each guard stands.",
-                e.LivingCount() + (injured > 0 ? " (" + injured + " hurt)" : ""));
-            guards.Activated += (s, a) => OpenPage(_guards, _office, BuildGuards);
-            _office.Add(guards);
-
-            var hire = Row("Hire recruits", "The Broker sends new faces every morning. Unhired ones move on.", e.State.Offers.Count + " today");
-            hire.Activated += (s, a) => OpenPage(_recruits, _office, BuildRecruits);
-            _office.Add(hire);
-
-            var rivals = Row("Rivals", "The Crown Kings, Ironside MC and the Velvet Syndicate. Their leaders show up here once the crews start moving.", "Soon");
+            AddSection("Overview", "Your empire at a glance: income, wages, fronts and people.", Money(net) + "/day");
+            AddSection("Fronts", "Every business: who holds it, its defense and income. Enter to manage one.", e.OwnedCount() + " held" + Open);
+            AddSection("Guards", "Your roster: rank, trait and post. Enter to manage one.", e.LivingCount() + (injured > 0 ? " (" + injured + " hurt)" : "") + Open);
+            AddSection("Hire recruits", "The Broker sends 3 new faces every morning at 06:00.", e.State.Offers.Count + " today" + Open);
+            NativeItem rivals = AddSection("Rivals", "The Crown Kings, Ironside MC and the Velvet Syndicate. Their leaders show up here once the crews start moving.", "Soon");
             rivals.Enabled = false;
-            _office.Add(rivals);
-
-            var settings = Row("Settings", "Attack frequency and map blips.", "");
-            settings.Activated += (s, a) => OpenPage(_settings, _office, BuildSettings);
-            _office.Add(settings);
+            AddSection("Settings", "Attack frequency and map blips.", Open.Trim());
         }
 
-        // ---------- Fronts ----------
+        private NativeItem AddSection(string title, string description, string badge)
+        {
+            NativeItem item = Row(title, description, badge);
+            item.Activated += (s, a) => FocusRight(0);
+            _sections.Add(item);
+            return item;
+        }
 
-        private void BuildFronts()
+        // ---------- middle: the section's list ----------
+
+        private void BuildList(bool resetSelection)
         {
             Empire e = _empire();
-            _fronts.Clear();
+            _list.Clear();
+            _listKeys.Clear();
             if (e == null) return;
-            int hour = Hour();
+            switch (_section)
+            {
+                case Section.Overview: ListOverview(e); break;
+                case Section.Fronts: ListFronts(e); break;
+                case Section.Guards: ListGuards(e); break;
+                case Section.Hire: ListRecruits(e); break;
+                case Section.Settings: ListSettings(e); break;
+                default:
+                    SetTitles(_list, "Rivals", "COMING WITH THE CREWS");
+                    break;
+            }
+            if (resetSelection && _list.Items.Count > 0) _list.SelectedIndex = 0;
+            BuildDetail();
+        }
+
+        private void AddListRow(NativeItem item, object key, bool opensDetail)
+        {
+            if (opensDetail) item.Activated += (s, a) => FocusRight(1);
+            _list.Add(item);
+            _listKeys.Add(key);
+        }
+
+        private void ListOverview(Empire e)
+        {
+            SetTitles(_list, "Overview", "THIS IS YOUR OUTFIT");
+            int income = e.DailyIncome(), wages = e.DailyWages();
+            int injured = 0, fallen = 0;
+            foreach (GuardState g in e.State.Guards)
+            {
+                if (g.Status == GuardStatus.Injured) injured++;
+                if (g.Status == GuardStatus.Dead) fallen++;
+            }
+            AddListRow(Info("Daily income", "Paid at every in-game midnight to whoever you're playing.", Money(income)), null, false);
+            AddListRow(Info("Daily wages", "Taken out before income. Unpaid guards quit, newest first (Loyal ones never do).", Money(wages)), null, false);
+            AddListRow(Info("Net per day", "Income minus wages.", Money(income - wages)), null, false);
+            AddListRow(Info("This week, about", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
+            AddListRow(Info("Last midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
+            AddListRow(Info("Fronts held", "Buy the car wash from the Broker; the rest are held by rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
+            AddListRow(Info("Guards", "Hired people, posted or in the reserve.", e.LivingCount() + (injured > 0 ? ", " + injured + " hurt" : "")), null, false);
+            if (fallen > 0) AddListRow(Info("Fallen", "Guards who died at their post.", fallen.ToString()), null, false);
+        }
+
+        private void ListFronts(Empire e)
+        {
+            SetTitles(_list, "Fronts", "YOUR BUSINESSES AND THEIRS");
             foreach (FrontDef def in _content.Fronts)
             {
                 string owner = e.OwnerOf(def.Id);
-                double defense = owner == Owners.Player ? e.Defense(def.Id, hour) : 0;
-                string badge = owner == Owners.Player ? "Secure" : OwnerLabel(owner);
-                var row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". Income " + Money(def.Income) + " a day"
-                    + (owner == Owners.Player ? ", defense " + defense.ToString("0") + "." : "."), badge);
-                row.Panel = FrontBars(defense, def.Income);
-                string id = def.Id;
-                row.Activated += (s, a) => { _frontId = id; OpenPage(_frontPage, _fronts, BuildFrontPage); };
-                _fronts.Add(row);
+                string badge = owner == Owners.Player ? GuardsAt(e, def) + "/4 guards" : OwnerLabel(owner);
+                NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Enter to manage.", badge + Open);
+                AddListRow(row, def, true);
             }
         }
 
-        private void BuildFrontPage()
+        private static int GuardsAt(Empire e, FrontDef def)
+        {
+            int n = 0;
+            for (int p = 0; p < FrontDef.MaxPosts; p++) if (e.AtPost(def.Id, p) != null) n++;
+            return n;
+        }
+
+        private void ListGuards(Empire e)
+        {
+            SetTitles(_list, "Guards", "EVERYONE ON YOUR PAYROLL");
+            int living = 0;
+            foreach (GuardState g in e.State.Guards)
+            {
+                if (g.Status == GuardStatus.Dead) continue;
+                living++;
+                NativeItem row = Row(Short(g) + " " + g.Last,
+                    Economy.RankName((Rank)g.Rank) + ", " + Economy.TraitName((Trait)g.Trait) + ", " + Economy.WeaponName((Weapon)g.Weapon) + ". Enter to manage.",
+                    PostLabel(g) + Open);
+                AddListRow(row, g, true);
+            }
+            if (living == 0)
+            {
+                NativeItem none = Row("Nobody yet", "Hire recruits to start a roster.", "");
+                none.Enabled = false;
+                AddListRow(none, null, false);
+            }
+            foreach (GuardState g in e.State.Guards)
+            {
+                if (g.Status != GuardStatus.Dead) continue;
+                NativeItem row = Row(Short(g) + " " + g.Last, "Fell at " + (g.FellAt ?? "a front") + ". " + Economy.RankName((Rank)g.Rank) + ".", "Fallen");
+                row.Enabled = false;
+                AddListRow(row, null, false);
+            }
+        }
+
+        private void ListRecruits(Empire e)
+        {
+            SetTitles(_list, "Hire", "TODAY'S RECRUITS FROM THE BROKER");
+            if (e.State.Offers.Count == 0)
+            {
+                NativeItem none = Row("Nobody today", "The Broker sends new recruits every morning at 06:00.", "");
+                none.Enabled = false;
+                AddListRow(none, null, false);
+                return;
+            }
+            foreach (GuardState offer in e.State.Offers)
+            {
+                Trait t = (Trait)offer.Trait;
+                NativeItem row = Row(Short(offer) + " " + offer.Last, Economy.TraitName(t) + ". " + Economy.TraitEffect(t) + " Enter to hire.",
+                    Money(e.OfferPrice(offer)) + Open);
+                AddListRow(row, offer, true);
+            }
+        }
+
+        private void ListSettings(Empire e)
+        {
+            SetTitles(_list, "Settings", "HOW FRONTS & RIVALS BEHAVES");
+            string[] freq = { "Off", "Low", "Normal", "High" };
+            var f = new NativeListItem<string>("Attack frequency", "How often rival crews come for your fronts. Left and right to change. Off stops attacks.", freq);
+            int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
+            f.SelectedIndex = at < 0 ? 2 : at;
+            f.ItemChanged += (s, a) => { e.State.Frequency = f.SelectedItem; Changed(false); };
+            AddListRow(f, null, false);
+
+            var blips = new NativeCheckboxItem("Map blips", "Show your fronts on the map and minimap.", !e.State.HideBlips);
+            blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
+            AddListRow(blips, null, false);
+
+            NativeItem version = Row("Version", "Fronts & Rivals, a free single-player mod for Grand Theft Auto V.", Main.ModVersion);
+            version.Enabled = false;
+            AddListRow(version, null, false);
+        }
+
+        // ---------- right: detail of the highlighted list row ----------
+
+        private void BuildDetail()
         {
             Empire e = _empire();
-            FrontDef def = _content.Front(_frontId);
-            _frontPage.Clear();
-            if (e == null || def == null) return;
-            _frontPage.Name = def.Name.ToUpperInvariant();
+            _detail.Clear();
+            object key = _list.SelectedIndex >= 0 && _list.SelectedIndex < _listKeys.Count ? _listKeys[_list.SelectedIndex] : null;
+            bool show = e != null && key != null;
+            _detail.Visible = _open && show;
+            if (!show) { if (_focus == 2) Focus(1); return; }
+
+            if (key is FrontDef) DetailFront(e, (FrontDef)key);
+            else if (key is GuardState && _section == Section.Hire) DetailRecruit(e, (GuardState)key);
+            else if (key is GuardState) DetailGuard(e, (GuardState)key);
+        }
+
+        private static NativeStatsPanel FrontBars(double defense, int income)
+        {
+            return new NativeStatsPanel(new NativeStatsInfo("Defense", Bar(defense, 200)), new NativeStatsInfo("Income", Bar(income, 12000)));
+        }
+
+        private void DetailFront(Empire e, FrontDef def)
+        {
             string owner = e.OwnerOf(def.Id);
             double defense = owner == Owners.Player ? e.Defense(def.Id, Hour()) : 0;
+            SetTitles(_detail, def.Name, def.Area.ToUpperInvariant() + " · " + OwnerLabel(owner).ToUpperInvariant());
 
-            var header = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". Pays " + Money(def.Income) + " every in-game midnight while you hold it.",
-                owner == Owners.Player ? "D " + defense.ToString("0") : OwnerLabel(owner));
+            NativeItem header = Info("Defense " + defense.ToString("0"), "Total power of the guards here, adjusted for night. Pays " + Money(def.Income) + " every midnight while you hold it.",
+                Money(def.Income) + "/day");
             header.Panel = FrontBars(defense, def.Income);
-            _frontPage.Add(header);
+            _detail.Add(header);
 
             if (owner == Owners.ForSale)
             {
-                var buy = Row("Buy from the Broker", "The Broker's starter price. It's yours the moment you pay; post guards here right after.", Money(Economy.StarterFrontPrice));
-                buy.Activated += (s, a) => BuyFront(def);
-                _frontPage.Add(buy);
+                NativeItem buy = Row("Buy from the Broker", "The starter price. It's yours the moment you pay; then post guards here.", Money(Economy.StarterFrontPrice));
+                buy.Activated += (s, a) => Safe("buy", () => BuyFront(e, def));
+                _detail.Add(buy);
             }
             else if (owner == Owners.Player)
             {
-                for (int post = 0; post < FrontDef.MaxPosts; post++) _frontPage.Add(PostRow(e, def, post));
+                for (int post = 0; post < FrontDef.MaxPosts; post++) _detail.Add(PostRow(e, def, post));
             }
             else
             {
-                var held = Row("Held by the " + OwnerLabel(owner), "Clear their guards and claim the door to take it. Taking fronts arrives with the rival crews.", "");
+                NativeItem held = Row("Held by the " + OwnerLabel(owner), "Clear their guards and claim the door to take it. Taking fronts arrives with the rival crews.", "");
                 held.Enabled = false;
-                _frontPage.Add(held);
+                _detail.Add(held);
             }
 
-            var waypoint = Row("Set waypoint", "Marks the front's door on your map.", "");
+            NativeItem waypoint = Row("Set waypoint", "Marks the front's door on your map.", "");
             waypoint.Activated += (s, a) =>
             {
                 GTA.World.WaypointPosition = new Vector3(def.Door.X, def.Door.Y, def.Door.Z);
                 GTA.UI.Notification.Show("Waypoint set: " + def.Name + ".");
             };
             waypoint.Enabled = def.Door.IsSet;
-            _frontPage.Add(waypoint);
+            _detail.Add(waypoint);
         }
 
-        /// <summary>One row per post: left/right picks who stands there (the reserve, or nobody).</summary>
+        /// <summary>One row per post. Left/right steps through: Empty, then every guard who is free or already here,
+        /// in hire order, so the order never jumps around.</summary>
         private NativeItem PostRow(Empire e, FrontDef def, int post)
         {
             if (post >= def.Posts.Count)
             {
-                var none = Row("Post " + (post + 1), "This post is placed the first time you visit the front.", "Not placed");
+                NativeItem none = Row("Post " + (post + 1), "There's no safe spot for a fourth guard at this front.", "None");
                 none.Enabled = false;
                 return none;
             }
             GuardState current = e.AtPost(def.Id, post);
             var choices = new List<GuardState> { null };
-            if (current != null) choices.Add(current);
             foreach (GuardState g in e.State.Guards)
-                if (g.Status != GuardStatus.Dead && !g.IsPosted) choices.Add(g);
-
+            {
+                if (g.Status == GuardStatus.Dead) continue;
+                if (!g.IsPosted || g == current) choices.Add(g);
+            }
             string[] labels = new string[choices.Count];
+            int selected = 0;
             for (int i = 0; i < choices.Count; i++)
             {
                 GuardState g = choices[i];
                 labels[i] = g == null ? "Empty" : Short(g) + (g.Status == GuardStatus.Injured ? " (hurt)" : "");
+                if (g != null && g == current) selected = i;
             }
             var item = new NativeListItem<string>("Post " + (post + 1),
-                "Who stands here. Left and right pick from your reserve. The change happens right away.", labels);
-            item.SelectedIndex = current != null ? 1 : 0;
+                "Who stands here. Left and right step through your free guards. Guards already posted elsewhere aren't listed.", labels);
+            item.SelectedIndex = selected;
             item.ItemChanged += (s, a) => Safe("assign", () =>
             {
                 GuardState pick = choices[item.SelectedIndex];
                 GuardState now = e.AtPost(def.Id, post);
                 if (pick == null) { if (now != null) e.SendToReserve(now); }
                 else e.Assign(pick, def.Id, post);
-                _worldChanged();
+                Changed(true);
             });
             return item;
         }
 
-        private void BuyFront(FrontDef def)
+        private void BuyFront(Empire e, FrontDef def)
         {
-            Empire e = _empire();
-            if (e == null || !e.CanBuy(def.Id)) return;
+            if (!e.CanBuy(def.Id)) return;
             Player p = Game.Player;
             if (p.Money < Economy.StarterFrontPrice)
             {
@@ -293,65 +509,22 @@ namespace FrontsAndRivals.UI
             p.Money -= Economy.StarterFrontPrice;
             e.SetOwner(def.Id, Owners.Player);
             Log.Write("Office: bought " + def.Id + " for " + Economy.StarterFrontPrice);
-            _worldChanged();
             Notifier.Post("CHAR_DEFAULT", "The Broker", def.Name, "It's yours. Put some people on it before somebody else gets ideas.");
-            Safe("front page", BuildFrontPage);
+            Changed(true);
         }
 
-        // ---------- Guards ----------
-
-        private void BuildGuards()
+        private void DetailGuard(Empire e, GuardState g)
         {
-            Empire e = _empire();
-            _guards.Clear();
-            if (e == null) return;
-            int living = 0;
-            foreach (GuardState g in e.State.Guards)
-            {
-                if (g.Status == GuardStatus.Dead) continue;
-                living++;
-                var row = Row(Short(g) + " " + g.Last,
-                    Economy.RankName((Rank)g.Rank) + ", " + Economy.TraitName((Trait)g.Trait) + ", " + Economy.WeaponName((Weapon)g.Weapon)
-                    + ". " + Economy.TraitEffect((Trait)g.Trait), PostLabel(g));
-                int id = g.Id;
-                row.Activated += (s, a) => { _guardId = id; _letGoArmed = 0; OpenPage(_guardPage, _guards, BuildGuardPage); };
-                _guards.Add(row);
-            }
-            if (living == 0)
-            {
-                var none = Row("Nobody yet", "Hire recruits from the Office to start a roster.", "");
-                none.Enabled = false;
-                _guards.Add(none);
-            }
-            // The memorial: who fell, and where.
-            foreach (GuardState g in e.State.Guards)
-            {
-                if (g.Status != GuardStatus.Dead) continue;
-                var row = Row(Short(g) + " " + g.Last, "Fell at " + (g.FellAt ?? "a front") + ". " + Economy.RankName((Rank)g.Rank) + ".", "Fallen");
-                row.Enabled = false;
-                _guards.Add(row);
-            }
-        }
-
-        private void BuildGuardPage()
-        {
-            Empire e = _empire();
-            GuardState g = e != null ? e.Guard(_guardId) : null;
-            _guardPage.Clear();
-            if (g == null) return;
-            _guardPage.Name = (g.First + " " + g.Last).ToUpperInvariant();
             Rank rank = (Rank)g.Rank;
             int next = Economy.NextRankXp(rank);
+            SetTitles(_detail, g.First + " " + g.Last, ("\"" + g.Nick + "\" · " + Economy.RankName(rank)).ToUpperInvariant());
 
-            var header = Row(g.FullName,
-                Economy.TraitName((Trait)g.Trait) + ": " + Economy.TraitEffect((Trait)g.Trait) + " Kills " + g.Kills + ", defenses survived " + g.Defenses
+            NativeItem header = Info(Economy.TraitName((Trait)g.Trait), Economy.TraitEffect((Trait)g.Trait) + " Kills " + g.Kills + ", defenses survived " + g.Defenses
                 + ". " + (next > 0 ? g.Xp + " of " + next + " XP to the next rank." : "Top rank."), Economy.RankName(rank));
-            header.Panel = new NativeStatsPanel(
-                new NativeStatsInfo("Rank", Bar((int)rank + 1, 4)),
-                new NativeStatsInfo("Experience", next > 0 ? Bar(g.Xp, next) : 100));
-            _guardPage.Add(header);
+            header.Panel = new NativeStatsPanel(new NativeStatsInfo("Rank", Bar((int)rank + 1, 4)), new NativeStatsInfo("Experience", next > 0 ? Bar(g.Xp, next) : 100));
+            _detail.Add(header);
 
-            // Post: reserve, or any post at a front you own.
+            // Post: the reserve, or any post at a front you own (taking an occupied one swaps the two).
             var targets = new List<KeyValuePair<string, int>> { new KeyValuePair<string, int>(null, -1) };
             var labels = new List<string> { "Reserve" };
             int selected = 0;
@@ -363,25 +536,24 @@ namespace FrontsAndRivals.UI
                     GuardState there = e.AtPost(def.Id, post);
                     if (g.Front == def.Id && g.Post == post) selected = labels.Count;
                     targets.Add(new KeyValuePair<string, int>(def.Id, post));
-                    labels.Add(def.Name + " " + (post + 1) + (there != null && there != g ? " (swap with " + there.First + ")" : ""));
+                    labels.Add(def.Name + " " + (post + 1) + (there != null && there != g ? " (swap " + there.First + ")" : ""));
                 }
             }
-            var postItem = new NativeListItem<string>("Post", "Where this guard stands. Picking an occupied post swaps the two.", labels.ToArray());
+            var postItem = new NativeListItem<string>("Post", "Where this guard stands. Left and right to change. Picking an occupied post swaps the two.", labels.ToArray());
             postItem.SelectedIndex = selected;
             postItem.ItemChanged += (s, a) => Safe("reassign", () =>
             {
                 KeyValuePair<string, int> t = targets[postItem.SelectedIndex];
                 if (t.Key == null) e.SendToReserve(g); else e.Assign(g, t.Key, t.Value);
-                _worldChanged();
+                Changed(true);
             });
-            postItem.Enabled = g.Status != GuardStatus.Dead;
-            _guardPage.Add(postItem);
+            _detail.Add(postItem);
 
             int price = e.WeaponUpgradePrice(g);
             Weapon w = (Weapon)g.Weapon;
-            var weapon = Row(price > 0 ? "Buy " + (w == Weapon.Pistol ? "an SMG" : "a rifle") : "Weapon",
+            NativeItem weapon = Row(price > 0 ? "Buy " + (w == Weapon.Pistol ? "an SMG" : "a rifle") : "Weapon: rifle",
                 price > 0 ? "Carries a " + Economy.WeaponName(w) + " now. The " + (w == Weapon.Pistol ? "SMG is x1.2" : "rifle is x1.4") + " power."
-                          : "Already carries a rifle, the best tier.", price > 0 ? Money(price) : Economy.WeaponName(w));
+                          : "Already carries a rifle, the best tier.", price > 0 ? Money(price) : "Best");
             weapon.Activated += (s, a) => Safe("weapon", () =>
             {
                 int cost = e.WeaponUpgradePrice(g);
@@ -389,50 +561,35 @@ namespace FrontsAndRivals.UI
                 if (Game.Player.Money < cost) { GTA.UI.Notification.Show("You need " + Money(cost) + " for that."); return; }
                 Game.Player.Money -= cost;
                 e.UpgradeWeapon(g);
-                _worldChanged();
-                BuildGuardPage();
+                Changed(true);
             });
             weapon.Enabled = price > 0;
-            _guardPage.Add(weapon);
+            _detail.Add(weapon);
 
-            var letGo = Row(_letGoArmed == g.Id ? "Let go: press again to confirm" : "Let go",
-                "They leave your roster for good. No refund.", "");
+            NativeItem letGo = Row(_letGoArmed == g.Id ? "Let go: press Enter again" : "Let go", "They leave your roster for good. No refund.", "");
             letGo.Activated += (s, a) => Safe("let go", () =>
             {
-                if (_letGoArmed != g.Id) { _letGoArmed = g.Id; BuildGuardPage(); return; }
+                if (_letGoArmed != g.Id) { _letGoArmed = g.Id; _rebuild = true; return; }
                 e.LetGo(g);
                 Log.Write("Office: let go guard " + g.Id + " " + g.FullName);
-                _worldChanged();
                 _letGoArmed = 0;
-                _guardPage.Back();
+                Focus(1);
+                Changed(true);
             });
-            _guardPage.Add(letGo);
+            _detail.Add(letGo);
         }
 
-        // ---------- Hire ----------
-
-        private void BuildRecruits()
+        private void DetailRecruit(Empire e, GuardState offer)
         {
-            Empire e = _empire();
-            _recruits.Clear();
-            if (e == null) return;
-            if (e.State.Offers.Count == 0)
-            {
-                var none = Row("Nobody today", "The Broker sends new recruits every morning at 06:00.", "");
-                none.Enabled = false;
-                _recruits.Add(none);
-                return;
-            }
-            foreach (GuardState offer in e.State.Offers.ToArray())
-            {
-                Trait t = (Trait)offer.Trait;
-                var row = Row(offer.FullName,
-                    Economy.TraitName(t) + ": " + Economy.TraitEffect(t) + " Wage " + Money(Economy.Wage(Rank.Recruit)) + " a day. Starts with a pistol, waits at the HQ.",
-                    Money(e.OfferPrice(offer)));
-                GuardState pick = offer;
-                row.Activated += (s, a) => Safe("hire", () => Hire(e, pick));
-                _recruits.Add(row);
-            }
+            Trait t = (Trait)offer.Trait;
+            SetTitles(_detail, offer.First + " " + offer.Last, ("\"" + offer.Nick + "\" · RECRUIT"));
+            _detail.Add(Info(Economy.TraitName(t), Economy.TraitEffect(t), ""));
+            _detail.Add(Info("Wage", "Paid every in-game midnight.", Money(Economy.Wage(Rank.Recruit)) + "/day"));
+            _detail.Add(Info("Starts with", "A pistol. Buy better weapons on the guard's page.", "Pistol"));
+            int price = e.OfferPrice(offer);
+            NativeItem hire = Row("Hire for " + Money(price), "They join your reserve and wait for a post.", Money(price));
+            hire.Activated += (s, a) => Safe("hire", () => Hire(e, offer));
+            _detail.Add(hire);
         }
 
         private void Hire(Empire e, GuardState offer)
@@ -444,37 +601,14 @@ namespace FrontsAndRivals.UI
                 case Empire.HireResult.Ok:
                     Game.Player.Money -= price;
                     Log.Write("Office: hired " + offer.FullName + " for " + price);
-                    GTA.UI.Notification.Show("Hired " + offer.First + " \"" + offer.Nick + "\". Post them from a front's page.");
-                    _save();
+                    GTA.UI.Notification.Show("Hired " + Short(offer) + ". Post them from Fronts.");
+                    Focus(1);
+                    Changed(false);
                     break;
                 case Empire.HireResult.NotEnoughCash: GTA.UI.Notification.Show("You need " + Money(price) + " to hire " + offer.First + "."); break;
-                case Empire.HireResult.ReserveFull: GTA.UI.Notification.Show("The HQ reserve is full (6). Post someone first."); break;
+                case Empire.HireResult.ReserveFull: GTA.UI.Notification.Show("Your reserve is full (6). Post someone first."); break;
                 case Empire.HireResult.RosterFull: GTA.UI.Notification.Show("Your roster is full (30)."); break;
             }
-            BuildRecruits();
-        }
-
-        // ---------- Settings ----------
-
-        private void BuildSettings()
-        {
-            Empire e = _empire();
-            _settings.Clear();
-            if (e == null) return;
-            string[] freq = { "Off", "Low", "Normal", "High" };
-            var f = new NativeListItem<string>("Attack frequency", "How often rival crews come for your fronts. Off stops attacks completely.", freq);
-            int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
-            f.SelectedIndex = at < 0 ? 2 : at;
-            f.ItemChanged += (s, a) => { e.State.Frequency = f.SelectedItem; _save(); };
-            _settings.Add(f);
-
-            var blips = new NativeCheckboxItem("Map blips", "Show your fronts on the map and minimap.", !e.State.HideBlips);
-            blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; _worldChanged(); };
-            _settings.Add(blips);
-
-            var version = Row("Version", "Fronts & Rivals, a free single-player mod for Grand Theft Auto V.", Main.ModVersion);
-            version.Enabled = false;
-            _settings.Add(version);
         }
     }
 }

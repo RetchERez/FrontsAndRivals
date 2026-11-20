@@ -25,7 +25,7 @@ static class FrontTests
         Spot door = Spot.At(100f, 200f, 30f, 0f); // facing north
 
         var probes = AutoPosts.Probes(door);
-        T.Check("12 probe points (two rings of 6)", probes.Count, 12, 0);
+        T.Check("18 probe points (three rings of 6)", probes.Count, 18, 0);
         T.Check("First probe is 5 m straight out front (north)", probes[0][1] - door.Y, 5, 0.01);
         T.Check("...with no sideways offset", probes[0][0] - door.X, 0, 0.01);
         T.Check("Heading 90 (west) puts the first probe to the west", AutoPosts.Probes(Spot.At(0, 0, 0, 90f))[0][0], -5, 0.01);
@@ -36,7 +36,7 @@ static class FrontTests
         T.True("A second spot 2 m from the first is refused (spacing)", !AutoPosts.Accept(door, chosen, 101f, 206.5f, 29f));
         T.True("A spot 4 m from the first is accepted", AutoPosts.Accept(door, chosen, 104f, 205f, 29f));
         T.True("Standing in the doorway is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100.5f, 200.5f, 29f));
-        T.True("More than 14 m away is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 215f, 29f));
+        T.True("More than 18 m away is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 219f, 29f));
         T.True("A rooftop 6 m up is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 205f, 35f));
 
         PostDef p = chosen[0];
@@ -63,7 +63,7 @@ static class FrontTests
         T.True("Car wash is for sale at start", shipped.Front("carwash_handson").StartOwner == Owners.ForSale);
         T.True("Cold storage depot starts with Ironside", shipped.Front("depot_fridgit").StartOwner == Owners.Ironside);
         T.Check("Cold storage depot income $12,000", shipped.Front("depot_fridgit").Income, 12000, 0);
-        T.True("Shipped fronts are not scouted yet", !shipped.Front("carwash_handson").IsScouted);
+        T.True("Shipped car wash has its guard posts", shipped.Front("carwash_handson").IsScouted);
         T.True("Every shipped front has its door set", shipped.Fronts.TrueForAll(f => f.Door.IsSet));
         T.True("Built-in defaults match the shipped doors", ContentDb.DefaultFronts().TrueForAll(d => d.Door.IsSet && shipped.Front(d.Id) != null && Math.Abs(shipped.Front(d.Id).Door.X - d.Door.X) < 0.01f));
         T.True("Shipped name pools are filled", shipped.Names.MaleNames.Count >= 20 && shipped.Names.FemaleNames.Count >= 10);

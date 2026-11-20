@@ -1,7 +1,7 @@
 // Fronts & Rivals dev tools: "Auto-scout all fronts". One button, run once by the developer:
 // teleports to every front that has a door, waits for that area's navmesh to stream in,
-// places its 4 guard posts automatically, saves fronts.json, and returns you where you started.
-// The resulting fronts.json is copied into src/Content and shipped, so players get exact posts.
+// places its 4 guard posts automatically (up to 3 tries, keeping the best), saves fronts.json,
+// and returns you where you started. The resulting fronts.json is copied into src/Content and shipped.
 // A state machine stepped from the Streamer job: no Wait loops on the game thread.
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,8 @@ namespace FrontsAndRivals.Dev
     public sealed class AutoScout
     {
         private const int NavmeshTimeoutMs = 15000;
-        private const int SettleMs = 1500;      // let the ground and props settle after the navmesh reports loaded
+        private const int SettleMs = 4000;      // let the ground and props stream in after the navmesh reports loaded
+        private const int MaxAttempts = 3;
         private const float NavBox = 20f;       // half-size of the area that must have navmesh
 
         private readonly ContentDb _content;
@@ -28,6 +29,8 @@ namespace FrontsAndRivals.Dev
         private FrontDef _current;
         private int _arrivedAt;
         private int _loadedAt;
+        private int _attempt;
+        private bool _overwrite;
         private Vector3 _returnPos;
         private float _returnHeading;
         private int _done, _failed;
@@ -47,16 +50,17 @@ namespace FrontsAndRivals.Dev
         {
             if (Running) { DevTools.Notify("Auto-scout is already running."); return; }
             foreach (FrontDef def in _content.Fronts)
-                if (def.Door.IsSet && (overwrite || def.Posts.Count == 0)) _queue.Enqueue(def);
-            if (_queue.Count == 0) { DevTools.Notify("No fronts need posts (each needs a door first)."); return; }
+                if (def.Door.IsSet && (overwrite || def.Posts.Count < AutoPosts.Wanted)) _queue.Enqueue(def);
+            if (_queue.Count == 0) { DevTools.Notify("Every front already has 4 posts. Use \"redo posts\" to place them again."); return; }
 
+            _overwrite = overwrite;
             Ped p = Game.Player.Character;
             _returnPos = p.Position;
             _returnHeading = p.Heading;
             _done = _failed = 0;
             _report.Clear();
             Log.Write("AutoScout: starting, " + _queue.Count + " fronts");
-            DevTools.Notify("Auto-scouting " + _queue.Count + " fronts. Hands off for a moment.");
+            DevTools.Notify("Auto-scouting " + _queue.Count + " fronts, about 10 seconds each. Hands off.");
             Next();
         }
 
@@ -82,6 +86,7 @@ namespace FrontsAndRivals.Dev
             p.Position = new Vector3(_current.Door.X, _current.Door.Y, _current.Door.Z);
             _arrivedAt = Game.GameTime;
             _loadedAt = 0;
+            _attempt = 0;
         }
 
         /// <summary>Step every update (0.5 s).</summary>
@@ -96,13 +101,21 @@ namespace FrontsAndRivals.Dev
                 bool loaded = Function.Call<bool>(Hash.IS_NAVMESH_LOADED_IN_AREA,
                     f.Door.X - NavBox, f.Door.Y - NavBox, f.Door.Z - 10f, f.Door.X + NavBox, f.Door.Y + NavBox, f.Door.Z + 10f);
                 if (loaded) _loadedAt = now;
-                else if (now - _arrivedAt > NavmeshTimeoutMs) { Finish(f, 0, "navmesh never loaded"); return; }
+                else if (now - _arrivedAt > NavmeshTimeoutMs) { Finish(f, f.Posts.Count, "navmesh never loaded"); return; }
                 else return;
             }
             if (now - _loadedAt < SettleMs) return;
 
-            int n = _placer.Place(f);
-            Finish(f, n, n == 0 ? "no usable ground near the door" : null);
+            // First try replaces old posts when redoing; later tries only keep a better result.
+            int n = _placer.Place(f, _attempt == 0 && _overwrite);
+            _attempt++;
+            Log.Write("AutoScout: " + f.Id + " try " + _attempt + ": " + _placer.LastReport);
+            if (n < AutoPosts.Wanted && _attempt < MaxAttempts)
+            {
+                _loadedAt = now; // more of the area streams in every second; look again after another settle
+                return;
+            }
+            Finish(f, n, n == 0 ? "no usable ground near the door (" + _placer.LastReport + ")" : null);
         }
 
         private void Finish(FrontDef f, int posts, string why)
@@ -113,14 +126,13 @@ namespace FrontsAndRivals.Dev
             Next();
         }
 
-        /// <summary>Abort (e.g. a mission started): unfreeze and go back.</summary>
+        /// <summary>Abort (e.g. a mission started): unfreeze where you stand.</summary>
         public void Cancel()
         {
             if (!Running) return;
             _queue.Clear();
             _current = null;
-            Ped p = Game.Player.Character;
-            p.IsPositionFrozen = false;
+            Game.Player.Character.IsPositionFrozen = false;
             Log.Write("AutoScout: cancelled");
         }
     }

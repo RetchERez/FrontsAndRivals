@@ -14,7 +14,7 @@ namespace FrontsAndRivals.Spawn
         public const int Wanted = 4;            // posts per front
         public const float MinSpacing = 3.5f;   // metres between two guards
         public const float MinFromDoor = 1.5f;  // don't stand in the doorway
-        public const float MaxFromDoor = 14f;   // stay with the building
+        public const float MaxFromDoor = 18f;   // stay with the building
         public const float MaxHeightDiff = 3f;  // same floor as the door (no rooftops, no basements)
         public const float RootHeight = 1.0f;   // navmesh gives the ground; a ped's position is about 1 m up
 
@@ -24,13 +24,14 @@ namespace FrontsAndRivals.Spawn
             StreamRules.GuardStand, "WORLD_HUMAN_SMOKING", StreamRules.GuardStand, "WORLD_HUMAN_STAND_MOBILE"
         };
 
-        /// <summary>Probe points: an inner ring of 6 at 5 m, then an outer ring of 6 at 9 m (offset 30 degrees),
+        /// <summary>Probe points: rings of 6 at 5 m, 9 m (offset 30 degrees) and 13 m (offset 15 degrees),
         /// starting in front of the door so the first guards end up out front.</summary>
         public static List<float[]> Probes(Spot door)
         {
-            var list = new List<float[]>(12);
+            var list = new List<float[]>(18);
             AddRing(list, door, 5f, 0f);
             AddRing(list, door, 9f, 30f);
+            AddRing(list, door, 13f, 15f);
             return list;
         }
 

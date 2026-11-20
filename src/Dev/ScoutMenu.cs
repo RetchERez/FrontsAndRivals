@@ -40,7 +40,10 @@ namespace FrontsAndRivals.Dev
 
             _menu = new NativeMenu("Fronts & Rivals", "Scout fronts", "Stand on a spot, then press an item. Saves fronts.json.");
             dev.Pool.Add(_menu);
-            dev.Menu.AddSubMenu(_menu);
+            // Put "Scout fronts" at the top of the dev menu so it is never hidden below the fold.
+            NativeSubmenuItem entry = dev.Menu.AddSubMenu(_menu);
+            dev.Menu.Remove(entry);
+            dev.Menu.Add(0, entry);
 
             string[] names = new string[_content.Fronts.Count];
             for (int i = 0; i < names.Length; i++) names[i] = _content.Fronts[i].Name;
@@ -125,7 +128,7 @@ namespace FrontsAndRivals.Dev
             if (!f.Door.IsSet) { DevTools.Notify("Set the door first."); return; }
             Vector3 p = Game.Player.Character.Position;
             if (f.Door.DistanceTo(p.X, p.Y, p.Z) > AutoPostPlacer.PlaceRange) { DevTools.Notify("Get within 100 m of the door first."); return; }
-            int n = _placer.Place(f);
+            int n = _placer.Place(f, true);
             if (n == 0) { DevTools.Notify("No usable ground found near the door. Try again in a few seconds."); return; }
             Saved(n + " posts placed automatically");
         }

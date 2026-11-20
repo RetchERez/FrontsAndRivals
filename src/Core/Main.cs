@@ -67,9 +67,9 @@ namespace FrontsAndRivals.Core
             _content = new ContentDb(dataDir, Log.Write);
             _content.Load(); // files only, no game calls
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
-            _office = new OfficeMenu(_content, () => _empire, () => _rng, WorldChanged, SaveNow);
+            _office = new OfficeMenu(_content, () => _empire, () => _rng, EmpireChanged, SaveNow);
 
-            try { _phone = PhoneHost.TryCreate(() => _office.Open()); Log.Write("Phone contact \"The Office\" added"); }
+            try { _phone = PhoneHost.TryCreate(() => _office.OpenOffice()); Log.Write("Phone contact \"The Office\" added"); }
             catch (Exception ex) { _phone = null; Log.Write("Phone contact unavailable (is iFruitAddon2 installed?): " + ex.GetType().Name + ": " + ex.Message); }
 
             Keys key;
@@ -234,7 +234,18 @@ namespace FrontsAndRivals.Core
             SaveNow();
         }
 
-        /// <summary>Content or ownership changed (scouting, dev tools): re-sync the streamer and blips, then save.</summary>
+        /// <summary>The empire changed (ownership, posts, hires): the streamer re-reads posts by itself, so guards
+        /// already standing stay put and only moved or new ones change. Blips refresh, then save.</summary>
+        private void EmpireChanged()
+        {
+            if (_empire == null) return;
+            _empire.EnsureFronts();
+            _streamer.Rebuild();
+            _blips.Refresh(_empire, _content);
+            SaveNow();
+        }
+
+        /// <summary>Content changed (scouting moved doors or posts): respawn everyone at the new spots, then save.</summary>
         private void WorldChanged()
         {
             if (_empire == null) return;
@@ -324,7 +335,7 @@ namespace FrontsAndRivals.Core
                     "Fronts brought in $" + pay.Income.ToString("N0") + ". Wages $" + pay.Wages.ToString("N0") + ". Net " + (pay.Net < 0 ? "-$" : "$") + Math.Abs(pay.Net).ToString("N0") + ".");
                 changed = true;
             }
-            if (nights > 0) WorldChanged(); // quitters leave their posts
+            if (nights > 0) EmpireChanged(); // quitters leave their posts
 
             // The Broker's recruits: a fresh set each morning from 06:00, and right away on a brand-new empire.
             if (_state.OffersDay < 0 || (_state.OffersDay != _state.Day && GTA.World.CurrentTimeOfDay.Hours >= 6))

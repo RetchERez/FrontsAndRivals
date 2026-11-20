@@ -1,4 +1,4 @@
-// Fronts & Rivals: places a front's guard posts automatically, the first time you come near it.
+// Fronts & Rivals: places a front's guard posts automatically.
 // For each probe point around the door it asks the game's navmesh for the nearest safe spot
 // (GET_SAFE_COORD_FOR_PED, flags from NativeDB: 1 pavement only, 4 no interiors, 8 no water),
 // throws away spots on a road (IS_POINT_ON_ROAD) and keeps the ones AutoPosts accepts.
@@ -20,6 +20,9 @@ namespace FrontsAndRivals.Spawn
 
         private readonly Dictionary<string, long> _nextTry = new Dictionary<string, long>();
 
+        /// <summary>Why probes were rejected on the last Place call (for the log).</summary>
+        public string LastReport { get; private set; }
+
         /// <summary>Fronts that have a door but no posts get posts once the player is close. Returns the fronts it filled.</summary>
         public int Update(ContentDb content, long nowMs)
         {
@@ -32,45 +35,53 @@ namespace FrontsAndRivals.Spawn
                 long next;
                 if (_nextTry.TryGetValue(def.Id, out next) && nowMs < next) continue;
 
-                int n = Place(def);
+                int n = Place(def, false);
                 if (n > 0)
                 {
                     filled++;
-                    Log.Write("AutoPosts: " + def.Id + " got " + n + " posts automatically");
+                    Log.Write("AutoPosts: " + def.Id + " got " + n + " posts automatically (" + LastReport + ")");
                 }
                 else
                 {
                     _nextTry[def.Id] = nowMs + RetryMs; // navmesh not loaded yet, or nothing usable; try again later
-                    Log.Write("AutoPosts: no usable spots around " + def.Id + " yet, retrying in 30 s");
+                    Log.Write("AutoPosts: no usable spots around " + def.Id + " yet (" + LastReport + "), retrying in 30 s");
                 }
             }
             return filled;
         }
 
-        /// <summary>Replaces the front's posts with automatic ones. Returns how many were placed.</summary>
-        public int Place(FrontDef def)
+        /// <summary>Works out posts for a front. Replaces the current posts when it finds at least as many
+        /// (or always, with replace=true). Returns how many posts the front has afterwards.</summary>
+        public int Place(FrontDef def, bool replace)
         {
             var chosen = new List<PostDef>();
-            // First pass: pavement only (looks like guards on the forecourt). Second pass: any outdoor ground.
-            Fill(def, chosen, FlagPavement | FlagNotInterior | FlagNotWater);
-            if (chosen.Count < AutoPosts.Wanted) Fill(def, chosen, FlagNotInterior | FlagNotWater);
-            if (chosen.Count == 0) return 0;
-            def.Posts.Clear();
-            def.Posts.AddRange(chosen);
-            return chosen.Count;
+            var reasons = new int[4]; // 0 no navmesh spot, 1 on a road, 2 too near/far/high, 3 too close to another post
+            // First pass: pavement only (guards on the forecourt). Second pass: any outdoor ground.
+            Fill(def, chosen, FlagPavement | FlagNotInterior | FlagNotWater, reasons);
+            if (chosen.Count < AutoPosts.Wanted) Fill(def, chosen, FlagNotInterior | FlagNotWater, reasons);
+            LastReport = chosen.Count + " placed; rejected: " + reasons[0] + " no ground, " + reasons[1] + " road, "
+                       + reasons[2] + " distance/height, " + reasons[3] + " spacing";
+            if (chosen.Count == 0) return def.Posts.Count;
+            if (replace || chosen.Count >= def.Posts.Count)
+            {
+                def.Posts.Clear();
+                def.Posts.AddRange(chosen);
+            }
+            return def.Posts.Count;
         }
 
-        private static void Fill(FrontDef def, List<PostDef> chosen, int flags)
+        private static void Fill(FrontDef def, List<PostDef> chosen, int flags, int[] reasons)
         {
             foreach (float[] probe in AutoPosts.Probes(def.Door))
             {
                 if (chosen.Count >= AutoPosts.Wanted) return;
                 var outPos = new OutputArgument();
                 bool ok = Function.Call<bool>(Hash.GET_SAFE_COORD_FOR_PED, probe[0], probe[1], probe[2], true, outPos, flags);
-                if (!ok) continue;
+                if (!ok) { reasons[0]++; continue; }
                 Vector3 spot = outPos.GetResult<Vector3>();
-                if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, spot.X, spot.Y, spot.Z, 0)) continue;
-                if (!AutoPosts.Accept(def.Door, chosen, spot.X, spot.Y, spot.Z)) continue;
+                if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, spot.X, spot.Y, spot.Z, 0)) { reasons[1]++; continue; }
+                if (!AutoPosts.Accept(def.Door, new List<PostDef>(), spot.X, spot.Y, spot.Z)) { reasons[2]++; continue; }
+                if (!AutoPosts.Accept(def.Door, chosen, spot.X, spot.Y, spot.Z)) { reasons[3]++; continue; }
                 chosen.Add(AutoPosts.MakePost(def.Door, chosen.Count, spot.X, spot.Y, spot.Z));
             }
         }
