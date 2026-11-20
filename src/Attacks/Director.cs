@@ -56,7 +56,6 @@ namespace FrontsAndRivals.Attacks
         public bool ForceRequested { get { return _forceRequested; } }
 
         private EmpireState State { get { return _empire().State; } }
-        private AttackState _waited; // the attack that already waited for you once
 
         private string Frequency { get { string f = State.Frequency; return string.IsNullOrEmpty(f) ? _config.Frequency.ToString() : f; } }
 
@@ -109,11 +108,12 @@ namespace FrontsAndRivals.Attacks
                 bool liveOn = _config.LiveDefense && !State.LiveDefenseOff;
                 bool near = liveOn && front.IsScouted && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.LiveRange;
                 if (near && _liveFailed != a && StartLive(e, a, front)) return;
-                if (now >= a.WindowEnds && liveOn && _waited != a && front.IsScouted
-                    && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.OnTheWayRange)
+                float dist = front.Door.DistanceTo(p.X, p.Y, p.Z);
+                if (now >= a.WindowEnds && liveOn && !a.Waited && _liveFailed != a && front.IsScouted
+                    && dist >= Rules.Attacks.LiveRange && dist < Rules.Attacks.OnTheWayRange)
                 {
                     // You're on your way: the crew gathers outside a little longer, once.
-                    _waited = a;
+                    a.Waited = true;
                     a.WindowEnds = now + Rules.Attacks.OnTheWayMs;
                     CrewDef waiting = _content.Crew(a.Crew);
                     GTA.UI.Screen.ShowSubtitle("The ~r~" + (waiting != null ? waiting.Name : "crew") + "~s~ are gathering outside the " + front.ShortName + ". Get there.", 6000);
@@ -178,7 +178,7 @@ namespace FrontsAndRivals.Attacks
                 int defendBonus = Economy.DefendBonus(front.Income, _config.IncomeMultiplier);
                 _notifierPost(NoteKind.AttackWarning, "The Office", "Get to the " + front.ShortName,
                     "They hit around " + hitHour.ToString("00") + ":00. Be there and hold the door yourself: the Broker pays $" + defendBonus.ToString("N0") + " for it."
-                    + (s.RouteOff ? "" : " Route's on your GPS."));
+                    + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS."));
             }
             if (leader.LeaderTrait == LeaderTrait.Showboat)
                 _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(_rng(), "taunt", tokens));
@@ -215,6 +215,7 @@ namespace FrontsAndRivals.Attacks
                 if (g == null) continue;
                 g.Kills += kv.Value;
                 g.Xp += (g.Kills / 3) - ((g.Kills - kv.Value) / 3);
+                Stats.Add(g, Stats.Kills(kv.Value));
             }
 
             if (!r.Finished)
@@ -297,7 +298,7 @@ namespace FrontsAndRivals.Attacks
         {
             Random rng = _rng();
             string guardName = "Your people";
-            foreach (GuardState g in e.State.Guards) if (g.Front == a.Front && g.Status != GuardStatus.Dead) { guardName = g.First + " \"" + g.Nick + "\""; break; }
+            foreach (GuardState g in e.State.Guards) if (g.Front == a.Front && g.Status != GuardStatus.Dead) { guardName = g.ShortName; break; }
             var tokens = Tokens(crew, front, leader, guardName);
             tokens["lost"] = o.AttackersLost.ToString();
 
@@ -328,7 +329,7 @@ namespace FrontsAndRivals.Attacks
                     _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(rng, "tauntAfterWin", tokens));
             }
             foreach (GuardState g in o.Dead)
-                _notifierPost(NoteKind.GuardDeath, "The Office", "Guard down", _content.Lines.Pick(rng, "guardDied", Tokens(crew, front, leader, g.First + " \"" + g.Nick + "\"")));
+                _notifierPost(NoteKind.GuardDeath, "The Office", "Guard down", _content.Lines.Pick(rng, "guardDied", Tokens(crew, front, leader, g.ShortName)));
             foreach (Nemesis.Event ev in o.Events)
             {
                 string line = _content.Lines.Pick(rng, ev.Moment, Merge(tokens, ev.Tokens));
@@ -396,6 +397,7 @@ namespace FrontsAndRivals.Attacks
         /// <summary>Every tick while the gate is open: the claim prompt at a cleared rival front's door.</summary>
         public void UpdateFrame()
         {
+            BuyPrompt();
             if (_claimFront == null) return;
             Empire e = _empire();
             if (e == null || _now() > _claimUntil || e.OwnerOf(_claimFront) != _claimCrew) { _claimFront = null; return; }
@@ -409,18 +411,60 @@ namespace FrontsAndRivals.Attacks
             CrewDef crew = _content.Crew(_claimCrew);
             Rules.Attacks.TakeFront(e.State, e, fs, _claimCrew);
             _claimFront = null;
-            if (!e.State.RuledAll && Rules.Attacks.HeldCount(e.State) >= _content.Fronts.Count)
-            {
-                // The endgame moment. The crews still recruit off the street and will try to take it back.
-                e.State.RuledAll = true;
-                _banners.Show("LOS SANTOS IS YOURS", "Every front in the city answers to you. The crews won't stay gone.");
-                Log.Write("Director: player holds every front");
-            }
-            else _banners.Show("FRONT TAKEN", "The " + front.Name + " is yours.");
+            if (!CheckRuledAll(e)) _banners.Show("FRONT TAKEN", "The " + front.Name + " is yours.");
             Sounds.Play(Cue.FrontTaken);
             _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
             Log.Write("Director: player took " + front.Id + " from " + crew.Name);
             _changed();
+        }
+
+        // ---------------------------------------------------------------- buying at the door
+
+        private const float BuyRange = 3f;
+
+        /// <summary>Fronts for sale are bought in person, like GTA's own properties: walk up to the door on foot.</summary>
+        private void BuyPrompt()
+        {
+            Empire e = _empire();
+            if (e == null) return;
+            Ped me = Game.Player.Character;
+            if (me.IsInVehicle() || me.IsDead) return;
+            Vector3 p = me.Position;
+            FrontDef front = null;
+            foreach (FrontDef def in _content.Fronts)
+            {
+                if (!def.Door.IsSet || !e.CanBuy(def.Id)) continue;
+                if (def.Door.DistanceTo(p.X, p.Y, p.Z) <= BuyRange) { front = def; break; }
+            }
+            if (front == null) return;
+            int price = Economy.FrontPrice(front, _config.FrontPriceDays);
+            GTA.UI.Screen.ShowHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy the " + front.Name + " for $" + price.ToString("N0") + ".");
+            if (!Game.IsControlJustPressed(Control.Context)) return;
+            if (Game.Player.Money < price)
+            {
+                GTA.UI.Notification.Show("The Broker wants $" + price.ToString("N0") + " for the " + front.Name + ".");
+                return;
+            }
+            Game.Player.Money -= price;
+            e.SetOwner(front.Id, Owners.Player);
+            Sounds.Play(Cue.FrontTaken);
+            if (!CheckRuledAll(e)) _banners.Show("FRONT PURCHASED", "The " + front.Name + " is yours. Post some guards from the Office.");
+            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, "It's yours. Put some people on it before somebody else gets ideas.");
+            Log.Write("Director: player bought " + front.Id + " at the door for " + price);
+            _changed();
+        }
+
+        /// <summary>The endgame moment, the first time every front in the city is yours (bought or taken). Shows its banner
+        /// and returns true then. The crews still recruit off the street and will try to take fronts back.</summary>
+        private bool CheckRuledAll(Empire e)
+        {
+            if (e.State.RuledAll) return false;
+            foreach (FrontDef def in _content.Fronts)
+                if (def.Door.IsSet && !e.PlayerOwns(def.Id)) return false;
+            e.State.RuledAll = true;
+            _banners.Show("LOS SANTOS IS YOURS", "Every front in the city answers to you. The crews won't stay gone.");
+            Log.Write("Director: player holds every front");
+            return true;
         }
 
         // ---------------------------------------------------------------- helpers

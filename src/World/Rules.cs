@@ -19,6 +19,8 @@ namespace FrontsAndRivals.Rules
         public Weapon Weapon;
         public Trait Trait;
         public bool Injured;
+        // Skills (Rules.Stats). 50 is average, so a record without them counts as an average guard.
+        public int Shooting = Stats.Average, Strength = Stats.Average, Stamina = Stats.Average, Stealth = Stats.Average;
     }
 
     public sealed class FrontUpgrades
@@ -81,11 +83,12 @@ namespace FrontsAndRivals.Rules
         /// <summary>Night is 21:00 to 05:00 in-game.</summary>
         public static bool IsNight(int hour) => hour >= 21 || hour < 5;
 
-        /// <summary>g = R x W x T x N</summary>
+        /// <summary>g = R x W x T x N x S (S from Shooting and Strength, 1.0 for an average guard)</summary>
         public static double GuardPower(GuardRecord g, FrontUpgrades up, int hour)
         {
             double night = (IsNight(hour) && !up.Floodlights && g.Trait != Trait.NightOwl) ? 0.75 : 1.0;
-            return RankPower(g.Rank) * WeaponMultiplier(g.Weapon, up.Armory) * TraitMultiplier(g.Trait) * night;
+            return RankPower(g.Rank) * WeaponMultiplier(g.Weapon, up.Armory) * TraitMultiplier(g.Trait) * night
+                   * Stats.PowerFactor(g.Shooting, g.Strength);
         }
 
         /// <summary>D = (sum g) x O x (1 + C) + F</summary>
@@ -161,6 +164,8 @@ namespace FrontsAndRivals.Rules
                 if (g.Trait == Trait.Tough) injury *= 0.5;
                 if (medicPresent) injury *= 0.5;
                 if (g.Trait == Trait.Hothead) death *= 2.0;
+                injury *= Stats.InjuryFactor(g.Stamina);
+                death *= Stats.DeathFactor(g.Stealth);
                 var o = new GuardOutcome();
                 double roll = rng.NextDouble();
                 if (roll < death) o.Dead = true;

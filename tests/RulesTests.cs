@@ -9,6 +9,40 @@ static class RulesTests
 
     static List<GuardRecord> Many(int n, Rank r, Weapon w) { var l = new List<GuardRecord>(); for (int i = 0; i < n; i++) l.Add(G(r, w)); return l; }
 
+    static void StatsTests()
+    {
+        T.Section("Guard skills (Shooting, Strength, Stamina, Stealth)");
+        T.Check("Average skills: no change to power", Stats.PowerFactor(50, 50), 1.0, 0.0001);
+        T.True("Power x0.8 to x1.2", Math.Abs(Stats.PowerFactor(0, 0) - 0.8) < 1e-9 && Math.Abs(Stats.PowerFactor(100, 100) - 1.2) < 1e-9);
+        T.True("Shooting counts more than Strength", Stats.PowerFactor(80, 50) > Stats.PowerFactor(50, 80));
+        T.True("Stamina cuts injuries, Stealth cuts deaths", Stats.InjuryFactor(100) < Stats.InjuryFactor(50) && Stats.DeathFactor(100) < Stats.DeathFactor(0));
+        T.True("Live-fight aim and health", Stats.Accuracy(0) == 15 && Stats.Accuracy(100) == 65 && Stats.Health(100) == 300);
+        var rng = new Random(3);
+        bool inRange = true, sharpAim = true;
+        for (int i = 0; i < 200; i++)
+        {
+            int[] v = Stats.Seed(Trait.None, rng);
+            foreach (int x in v) if (x < 25 || x > 50) inRange = false;
+            if (Stats.Seed(Trait.Sharpshooter, rng)[0] < 45) sharpAim = false;
+        }
+        T.True("Fresh recruits start 25-50", inRange);
+        T.True("Sharpshooters start with good aim", sharpAim);
+
+        var g = new FrontsAndRivals.Data.GuardState();
+        Stats.Set(g, new[] { 30, 30, 30, 30 });
+        for (int d = 0; d < 30; d++) Stats.Add(g, Stats.DayOnDuty);
+        T.True("A month on a post builds Stamina and Stealth", g.Stamina == 60 && g.Stealth == 60 && g.Shooting == 30);
+        Stats.Add(g, Stats.Defense(true)); Stats.Add(g, Stats.Kills(4));
+        T.True("Fights and kills build aim", g.Shooting == 37 && g.Strength == 32);
+        for (int i = 0; i < 100; i++) Stats.Add(g, Stats.Promotion);
+        T.True("Skills cap at 100", g.Shooting == 100 && g.Stealth == 100);
+        int[] old = Stats.FromRank(Rank.Veteran, 12);
+        T.True("Old saves get rank-based skills", old[0] >= 56 && old[0] <= 62 && Stats.FromRank(Rank.Recruit, 3)[1] < old[1]);
+
+        var raw = G(Rank.Soldier, Weapon.Smg); raw.Shooting = 80; raw.Strength = 70;
+        T.True("A skilled guard out-guns an average one", DefenseRating.GuardPower(raw, new FrontUpgrades(), 12) > DefenseRating.GuardPower(G(Rank.Soldier, Weapon.Smg), new FrontUpgrades(), 12));
+    }
+
     /// <summary>The balance pass's target fights (Crown Kings, soldier power 12). Preparation should win, neglect should lose.</summary>
     static void BalanceTests()
     {
@@ -39,6 +73,7 @@ static class RulesTests
     public static void Run()
     {
         BalanceTests();
+        StatsTests();
         T.Section("Rules (design doc numbers)");
         var none = new FrontUpgrades();
         // Design doc worked examples

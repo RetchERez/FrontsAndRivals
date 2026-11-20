@@ -238,7 +238,7 @@ namespace FrontsAndRivals.Rules
             {
                 if (g.Front != attack.Front || g.Status == GuardStatus.Dead) continue;
                 posted.Add(g);
-                records.Add(new GuardRecord { Name = g.First, Rank = (Rank)g.Rank, Weapon = (Weapon)g.Weapon, Trait = (Trait)g.Trait, Injured = g.Status == GuardStatus.Injured });
+                records.Add(Empire.Record(g));
                 if (g.Trait == (int)Trait.Medic && g.Status == GuardStatus.Active) medic = true;
             }
             double defense = empire.Defense(attack.Front, hour);
@@ -267,7 +267,7 @@ namespace FrontsAndRivals.Rules
                 foreach (GuardState g in o.Injured) empire.GuardDown(g, "the " + frontName, false, nowMs, recoveryMs);
             }
             foreach (GuardState g in posted)
-                if (g.Status == GuardStatus.Active) { g.Xp++; g.Defenses += o.DefendersWon ? 1 : 0; Promote(g); }
+                if (g.Status == GuardStatus.Active) { g.Xp++; g.Defenses += o.DefendersWon ? 1 : 0; Stats.Add(g, Stats.Defense(o.DefendersWon)); Promote(g); }
 
             if (crew != null)
             {
@@ -347,6 +347,7 @@ namespace FrontsAndRivals.Rules
                 int need = Economy.NextRankXp((Rank)g.Rank);
                 if (need < 0 || g.Xp < need) return;
                 g.Rank++;
+                Stats.Add(g, Stats.Promotion);
             }
         }
 

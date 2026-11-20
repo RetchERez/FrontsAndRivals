@@ -6,22 +6,79 @@
       "style": "Street car crew",
       "soldierPower": 12,
       "aggression": 2.0,
-      "home": { "x": 120.00, "y": -1700.00, "z": 29.00, "h": 0.0 },
+      "home": {
+        "x": 120.0,
+        "y": -1700.0,
+        "z": 29.0,
+        "h": 0.0
+      },
       "blipColor": 51,
       "paint": 38,
-      "boss": { "first": "Darnell", "nick": "King D", "last": "Hayes", "trait": "Ruthless" },
+      "boss": {
+        "first": "Darnell",
+        "nick": "King D",
+        "last": "Hayes",
+        "trait": "Ruthless"
+      },
       "lieutenants": [
-        { "first": "Dre", "nick": "Ledger", "last": "Collins", "trait": "Showboat" },
-        { "first": "Tasha", "nick": "Switch", "last": "Monroe", "trait": "Tactician" },
-        { "first": "Luis", "nick": "Ghost", "last": "Arenas", "trait": "Cautious" }
+        {
+          "first": "Dre",
+          "nick": "Ledger",
+          "last": "Collins",
+          "trait": "Showboat"
+        },
+        {
+          "first": "Tasha",
+          "nick": "",
+          "last": "Monroe",
+          "trait": "Tactician"
+        },
+        {
+          "first": "Luis",
+          "nick": "Ghost",
+          "last": "Arenas",
+          "trait": "Cautious"
+        }
       ],
       "models": [
-        "a_m_y_vindouche_01", "a_m_y_breakdance_01", "a_m_y_skater_01", "a_m_y_stwhi_01", "a_m_y_eastsa_01",
-        "a_m_y_soucent_01", "a_m_y_soucent_03", "a_m_y_genstreet_01", "a_m_y_latino_01", "a_m_y_beachvesp_01",
-        "a_m_y_stlat_01", "a_m_y_stbla_01", "a_f_y_soucent_01", "a_f_y_eastsa_01"
+        "a_m_y_vindouche_01",
+        "a_m_y_breakdance_01",
+        "a_m_y_skater_01",
+        "a_m_y_stwhi_01",
+        "a_m_y_eastsa_01",
+        "a_m_y_soucent_01",
+        "a_m_y_soucent_03",
+        "a_m_y_genstreet_01",
+        "a_m_y_latino_01",
+        "a_m_y_beachvesp_01",
+        "a_m_y_stlat_01",
+        "a_m_y_stbla_01",
+        "a_f_y_soucent_01",
+        "a_f_y_eastsa_01",
+        "a_m_y_soucent_02",
+        "a_m_y_soucent_04",
+        "a_m_y_stbla_02",
+        "a_m_y_mexthug_01",
+        "a_m_y_downtown_01",
+        "a_m_y_eastsa_02",
+        "a_f_y_soucent_02",
+        "a_f_y_soucent_03",
+        "a_f_m_soucent_01",
+        "a_f_y_eastsa_03",
+        "a_f_m_eastsa_02",
+        "a_f_m_fatbla_01",
+        "a_m_m_fatlatin_01"
       ],
-      "vehicles": [ "sultan", "buffalo", "dominator", "gauntlet" ],
-      "weapons": [ "pistol", "microsmg" ]
+      "vehicles": [
+        "sultan",
+        "buffalo",
+        "dominator",
+        "gauntlet"
+      ],
+      "weapons": [
+        "pistol",
+        "microsmg"
+      ]
     },
     {
       "id": "IR",
@@ -29,22 +86,75 @@
       "style": "Bikers",
       "soldierPower": 16,
       "aggression": 0.5,
-      "home": { "x": 1150.00, "y": -1500.00, "z": 35.00, "h": 0.0 },
+      "home": {
+        "x": 1150.0,
+        "y": -1500.0,
+        "z": 35.0,
+        "h": 0.0
+      },
       "blipColor": 76,
       "paint": 40,
-      "boss": { "first": "Walt", "nick": "Anvil", "last": "Kessler", "trait": "Ruthless" },
+      "boss": {
+        "first": "Walt",
+        "nick": "Anvil",
+        "last": "Kessler",
+        "trait": "Ruthless"
+      },
       "lieutenants": [
-        { "first": "Ray", "nick": "Gravel", "last": "Dunn", "trait": "Cautious" },
-        { "first": "Mickey", "nick": "Torch", "last": "Boyle", "trait": "Showboat" },
-        { "first": "Hank", "nick": "Deacon", "last": "Pruitt", "trait": "Ruthless" }
+        {
+          "first": "Ray",
+          "nick": "Gravel",
+          "last": "Dunn",
+          "trait": "Cautious"
+        },
+        {
+          "first": "Mickey",
+          "nick": "Torch",
+          "last": "Boyle",
+          "trait": "Showboat"
+        },
+        {
+          "first": "Hank",
+          "nick": "",
+          "last": "Pruitt",
+          "trait": "Ruthless"
+        }
       ],
       "models": [
-        "a_m_m_hillbilly_01", "a_m_m_hillbilly_02", "a_m_y_methhead_01", "a_m_m_salton_01", "a_m_m_salton_02",
-        "a_m_m_salton_03", "a_m_m_salton_04", "a_m_y_salton_01", "a_m_m_rurmeth_01", "a_m_y_motox_01",
-        "a_m_y_motox_02", "a_m_m_farmer_01", "a_m_o_salton_01", "a_f_m_salton_01", "a_m_m_trampbeac_01"
+        "a_m_m_hillbilly_01",
+        "a_m_m_hillbilly_02",
+        "a_m_y_methhead_01",
+        "a_m_m_salton_01",
+        "a_m_m_salton_02",
+        "a_m_m_salton_03",
+        "a_m_m_salton_04",
+        "a_m_y_salton_01",
+        "a_m_m_rurmeth_01",
+        "a_m_y_motox_01",
+        "a_m_y_motox_02",
+        "a_m_m_farmer_01",
+        "a_m_o_salton_01",
+        "a_f_m_salton_01",
+        "a_m_m_trampbeac_01",
+        "a_m_m_genbiker_01",
+        "a_m_m_skidrow_01",
+        "a_m_m_tramp_01",
+        "a_f_m_genbiker_01",
+        "a_f_y_rurmeth_01",
+        "a_f_m_fatwhite_01",
+        "a_f_m_skidrow_01",
+        "a_m_m_mexcntry_01"
       ],
-      "vehicles": [ "daemon", "hexer", "gburrito" ],
-      "weapons": [ "pistol", "sawnoffshotgun", "smg" ]
+      "vehicles": [
+        "daemon",
+        "hexer",
+        "gburrito"
+      ],
+      "weapons": [
+        "pistol",
+        "sawnoffshotgun",
+        "smg"
+      ]
     },
     {
       "id": "VS",
@@ -52,22 +162,83 @@
       "style": "Professionals",
       "soldierPower": 14,
       "aggression": 1.0,
-      "home": { "x": -800.00, "y": -500.00, "z": 30.00, "h": 0.0 },
+      "home": {
+        "x": -800.0,
+        "y": -500.0,
+        "z": 30.0,
+        "h": 0.0
+      },
       "blipColor": 53,
       "paint": 54,
-      "boss": { "first": "Celeste", "nick": "", "last": "Marchand", "trait": "Tactician" },
+      "boss": {
+        "first": "Celeste",
+        "nick": "",
+        "last": "Marchand",
+        "trait": "Tactician"
+      },
       "lieutenants": [
-        { "first": "Victor", "nick": "", "last": "Sato", "trait": "Cautious" },
-        { "first": "Ines", "nick": "", "last": "Kovac", "trait": "Tactician" },
-        { "first": "Julian", "nick": "", "last": "Pryce", "trait": "Showboat" }
+        {
+          "first": "Victor",
+          "nick": "",
+          "last": "Sato",
+          "trait": "Cautious"
+        },
+        {
+          "first": "Ines",
+          "nick": "",
+          "last": "Kovac",
+          "trait": "Tactician"
+        },
+        {
+          "first": "Julian",
+          "nick": "",
+          "last": "Pryce",
+          "trait": "Showboat"
+        }
       ],
       "models": [
-        "a_m_y_business_01", "a_m_y_business_02", "a_m_y_business_03", "a_m_m_business_01", "a_m_y_bevhills_01",
-        "a_m_y_bevhills_02", "a_m_m_bevhills_01", "a_m_m_bevhills_02", "a_m_y_vinewood_01", "a_m_y_vinewood_02",
-        "a_m_y_vinewood_04", "a_f_y_business_01", "a_f_y_business_02", "a_f_y_business_04", "a_f_y_bevhills_01"
+        "a_m_y_business_01",
+        "a_m_y_business_02",
+        "a_m_y_business_03",
+        "a_m_m_business_01",
+        "a_m_y_bevhills_01",
+        "a_m_y_bevhills_02",
+        "a_m_m_bevhills_01",
+        "a_m_m_bevhills_02",
+        "a_m_y_vinewood_01",
+        "a_m_y_vinewood_02",
+        "a_m_y_vinewood_04",
+        "a_f_y_business_01",
+        "a_f_y_business_02",
+        "a_f_y_business_04",
+        "a_f_y_bevhills_01",
+        "a_m_y_vinewood_03",
+        "a_m_m_malibu_01",
+        "a_m_y_hipster_02",
+        "a_f_y_business_03",
+        "a_f_y_bevhills_02",
+        "a_f_y_bevhills_03",
+        "a_f_m_bevhills_01",
+        "a_f_m_bevhills_02",
+        "a_f_m_business_02",
+        "a_f_y_vinewood_01",
+        "a_f_y_vinewood_02",
+        "a_m_m_ktown_01",
+        "a_m_m_indian_01",
+        "a_f_m_ktown_02",
+        "a_f_y_indian_01"
       ],
-      "vehicles": [ "schafter2", "tailgater", "oracle", "washington" ],
-      "weapons": [ "pistol", "smg", "carbinerifle" ]
+      "vehicles": [
+        "schafter2",
+        "tailgater",
+        "oracle",
+        "washington"
+      ],
+      "weapons": [
+        "pistol",
+        "smg",
+        "carbinerifle"
+      ]
     }
   ]
 }

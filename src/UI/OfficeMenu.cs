@@ -224,7 +224,7 @@ namespace FrontsAndRivals.UI
             return (def != null ? def.ShortName : g.Front) + " " + (g.Post + 1);
         }
 
-        private static string Short(GuardState g) { return g.First + " \"" + g.Nick + "\""; }
+        private static string Short(GuardState g) { return g.ShortName; }
 
         private static void SetTitles(NativeMenu m, string title, string subtitle)
         {
@@ -316,7 +316,7 @@ namespace FrontsAndRivals.UI
             AddListRow(Info("Net per day", "Income minus wages.", Money(income - wages)), null, false);
             AddListRow(Info("This week, about", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
             AddListRow(Info("Last midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
-            AddListRow(Info("Fronts held", "Buy fronts for sale from the Broker, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
+            AddListRow(Info("Fronts held", "Buy fronts for sale at their door, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
             int held = e.OwnedCount();
             string heat = _config.EmpirePressure
                 ? "The bigger you get, the sooner and harder the crews come. " + HeatDetail(held)
@@ -384,7 +384,7 @@ namespace FrontsAndRivals.UI
                 if (g.Status == GuardStatus.Dead) continue;
                 living++;
                 NativeItem row = Row(Short(g) + " " + g.Last,
-                    Economy.RankName((Rank)g.Rank) + ", " + Economy.TraitName((Trait)g.Trait) + ", " + Economy.WeaponName((Weapon)g.Weapon) + ". Select to manage.",
+                    Economy.RankName((Rank)g.Rank) + ", " + Economy.TraitName((Trait)g.Trait) + ", " + Economy.WeaponName((Weapon)g.Weapon) + ", skills " + Stats.Overall(g) + ". Select to manage.",
                     PostLabel(g) + Open);
                 AddListRow(row, g, true);
             }
@@ -416,7 +416,7 @@ namespace FrontsAndRivals.UI
             foreach (GuardState offer in e.State.Offers)
             {
                 Trait t = (Trait)offer.Trait;
-                NativeItem row = Row(Short(offer) + " " + offer.Last, Economy.TraitName(t) + ". " + Economy.TraitEffect(t) + " Select to hire.",
+                NativeItem row = Row(offer.FullName, Economy.TraitName(t) + ". " + Economy.TraitEffect(t) + " Select to hire.",
                     Money(e.OfferPrice(offer)) + Open);
                 AddListRow(row, offer, true);
             }
@@ -519,9 +519,9 @@ namespace FrontsAndRivals.UI
 
             if (owner == Owners.ForSale)
             {
-                NativeItem buy = Row("Buy from the Broker", (def.Starter ? "The starter price. " : _config.FrontPriceDays + " days of its takings. ") + "It's yours the moment you pay; then post guards here.", Money(Economy.FrontPrice(def, _config.FrontPriceDays)));
-                buy.Activated += (s, a) => Safe("buy", () => BuyFront(e, def));
-                _detail.Add(buy);
+                NativeItem price = Info("For sale", (def.Starter ? "The Broker's starter price. " : _config.FrontPriceDays + " days of its takings. ")
+                    + "Go to the door and buy it in person. Set a waypoint below.", Money(Economy.FrontPrice(def, _config.FrontPriceDays)));
+                _detail.Add(price);
             }
             else if (owner == Owners.Player)
             {
@@ -613,34 +613,27 @@ namespace FrontsAndRivals.UI
             _detail.Add(row);
         }
 
-        private void BuyFront(Empire e, FrontDef def)
+        /// <summary>Shooting, Strength, Stamina and Stealth as bars, like the player's Skills screen.</summary>
+        private static NativeItem SkillsRow(GuardState g, string note)
         {
-            if (!e.CanBuy(def.Id)) return;
-            Player p = Game.Player;
-            int price = Economy.FrontPrice(def, _config.FrontPriceDays);
-            if (p.Money < price)
-            {
-                GTA.UI.Notification.Show("The Broker wants " + Money(price) + " for the " + def.Name + ".");
-                return;
-            }
-            p.Money -= price;
-            Sounds.Play(Cue.Purchase);
-            e.SetOwner(def.Id, Owners.Player);
-            Log.Write("Office: bought " + def.Id + " for " + price);
-            Notifier.Post("CHAR_DEFAULT", "The Broker", def.Name, "It's yours. Put some people on it before somebody else gets ideas.");
-            Changed(true);
+            NativeItem row = Info("Skills", "Shooting " + g.Shooting + " (aim), Strength " + g.Strength + " (power and health), Stamina " + g.Stamina
+                + " (fewer injuries), Stealth " + g.Stealth + " (fewer deaths). " + note, "Overall " + Stats.Overall(g));
+            row.Panel = new NativeStatsPanel(new NativeStatsInfo("Shooting", g.Shooting), new NativeStatsInfo("Strength", g.Strength),
+                                             new NativeStatsInfo("Stamina", g.Stamina), new NativeStatsInfo("Stealth", g.Stealth));
+            return row;
         }
 
         private void DetailGuard(Empire e, GuardState g)
         {
             Rank rank = (Rank)g.Rank;
             int next = Economy.NextRankXp(rank);
-            SetTitles(_detail, g.First + " " + g.Last, ("\"" + g.Nick + "\" · " + Economy.RankName(rank)).ToUpperInvariant());
+            SetTitles(_detail, g.First + " " + g.Last, ((string.IsNullOrEmpty(g.Nick) ? "" : "\"" + g.Nick + "\" · ") + Economy.RankName(rank)).ToUpperInvariant());
 
             NativeItem header = Info(Economy.TraitName((Trait)g.Trait), Economy.TraitEffect((Trait)g.Trait) + " Kills " + g.Kills + ", defenses survived " + g.Defenses
                 + ". " + (next > 0 ? g.Xp + " of " + next + " XP to the next rank." : "Top rank."), Economy.RankName(rank));
             header.Panel = new NativeStatsPanel(new NativeStatsInfo("Rank", Bar((int)rank + 1, 4)), new NativeStatsInfo("Experience", next > 0 ? Bar(g.Xp, next) : 100));
             _detail.Add(header);
+            _detail.Add(SkillsRow(g, "They get better the longer they work for you: every day on a post, every fight, every kill."));
 
             // Post: the reserve, or any post at a front you own (taking an occupied one swaps the two).
             var targets = new List<KeyValuePair<string, int>> { new KeyValuePair<string, int>(null, -1) };
@@ -692,12 +685,15 @@ namespace FrontsAndRivals.UI
             weapon.Enabled = price > 0;
             _detail.Add(weapon);
 
-            NativeItem letGo = Row(_letGoArmed == g.Id ? "Let go: select again to confirm" : "Let go", "They leave your roster for good. No refund.", "");
-            letGo.Activated += (s, a) => Safe("let go", () =>
+            NativeItem letGo = Row(_letGoArmed == g.Id ? "Fire " + g.First + ": select again to confirm" : "Fire",
+                "Off the payroll for good: no wage from tonight, no severance, and their skills walk out with them.", "");
+            letGo.Activated += (s, a) => Safe("fire", () =>
             {
                 if (_letGoArmed != g.Id) { _letGoArmed = g.Id; _rebuild = true; return; }
                 e.LetGo(g);
-                Log.Write("Office: let go guard " + g.Id + " " + g.FullName);
+                Sounds.Play(Cue.Purchase);
+                GTA.UI.Notification.Show(g.ShortName + " is off the payroll.");
+                Log.Write("Office: fired guard " + g.Id + " " + g.FullName);
                 _letGoArmed = 0;
                 Focus(1);
                 Changed(true);
@@ -765,8 +761,9 @@ namespace FrontsAndRivals.UI
         private void DetailRecruit(Empire e, GuardState offer)
         {
             Trait t = (Trait)offer.Trait;
-            SetTitles(_detail, offer.First + " " + offer.Last, ("\"" + offer.Nick + "\" · RECRUIT"));
+            SetTitles(_detail, offer.First + " " + offer.Last, (string.IsNullOrEmpty(offer.Nick) ? "" : "\"" + offer.Nick + "\" · ") + "RECRUIT");
             _detail.Add(Info(Economy.TraitName(t), Economy.TraitEffect(t), ""));
+            _detail.Add(SkillsRow(offer, "Where they start. Skills grow on the job; better skills cost more to hire."));
             _detail.Add(Info("Wage", "Paid every in-game midnight.", Money(Economy.Wage(Rank.Recruit)) + "/day"));
             _detail.Add(Info("Starts with", "A knife. Arm them on their page, one gun at a time: pistol, pump shotgun, SMG, carbine rifle.", "Knife"));
             int price = e.OfferPrice(offer);

@@ -103,9 +103,16 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "recoverAtMs", Order = 14)] public long RecoverAtMs;
         /// <summary>Memorial line, e.g. where they fell.</summary>
         [DataMember(Name = "fellAt", Order = 15)] public string FellAt;
+        /// <summary>Skills, 0-100, like the player's (Rules.Stats). They grow as the guard works for you.</summary>
+        [DataMember(Name = "shooting", Order = 16)] public int Shooting;
+        [DataMember(Name = "strength", Order = 17)] public int Strength;
+        [DataMember(Name = "stamina", Order = 18)] public int Stamina;
+        [DataMember(Name = "stealth", Order = 19)] public int Stealth;
 
         /// <summary>Mateo "Smoke" Alvarez</summary>
-        public string FullName { get { return First + " \"" + Nick + "\" " + Last; } }
+        public string FullName { get { return string.IsNullOrEmpty(Nick) ? First + " " + Last : First + " \"" + Nick + "\" " + Last; } }
+        /// <summary>How the Office and texts name a guard: Andre "Smoke", or Andre Brooks when there's no street name.</summary>
+        public string ShortName { get { return string.IsNullOrEmpty(Nick) ? First + " " + Last : First + " \"" + Nick + "\""; } }
         public bool IsPosted { get { return Front != null && Post >= 0; } }
     }
 }

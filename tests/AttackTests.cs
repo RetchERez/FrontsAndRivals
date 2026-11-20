@@ -129,11 +129,13 @@ static class AttackTests
         Nemesis.EnsureCrews(mc, content, rng);
         me.SetOwner("carwash_handson", Owners.Player);
         GuardState lone = me.Recruit(rng); me.Assign(lone, "carwash_handson", 0);
+        Stats.Set(lone, new[] { 50, 50, 50, 50 });
         double d = me.Defense("carwash_handson", 12);
         int wins = 0;
         for (int i = 0; i < 4000; i++)
         {
             lone.Status = GuardStatus.Active; lone.Front = "carwash_handson"; lone.Post = 0; lone.Xp = 0; lone.Rank = 0;
+            Stats.Set(lone, new[] { 50, 50, 50, 50 }); // fights teach skills; keep this guard the same for every trial
             me.SetOwner("carwash_handson", Owners.Player);
             var aa = new AttackState { Crew = "CK", Front = "carwash_handson", Leader = 0, Squad = 3, Strength = d };
             if (Attacks.Resolve(mc, content, me, aa, rng, 12, i, true, false, null, 0, 1000).DefendersWon) wins++;

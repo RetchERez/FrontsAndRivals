@@ -134,6 +134,8 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "warnEnds", Order = 6)] public long WarnEnds;
         /// <summary>Free-roam ms when the window closes and the attack auto-resolves.</summary>
         [DataMember(Name = "windowEnds", Order = 7)] public long WindowEnds;
+        /// <summary>The crew already waited 90 s for you once (saved, so a reload can't repeat it).</summary>
+        [DataMember(Name = "waited", Order = 8)] public bool Waited;
     }
 
     /// <summary>Text templates with tokens like {front} and {crew}. Built-in fallbacks if lines.json is missing.</summary>

@@ -7,11 +7,18 @@ First full release.
 - 29 real businesses as fronts across Los Santos, with guard posts placed from the game's navigation data
 - Crew territories (South LS, the east side, the west) and nightly turf moves: crews grab fronts for sale and fight each other for fronts
 - Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
-- Any front for sale can be bought (five days of its income; the starter car wash is $25,000)
+- Any front for sale can be bought in person at its door (five days of its income; the starter car wash is $25,000)
 - The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Guard skills (Shooting, Strength, Stamina, Stealth, 0-100, average 50) that grow with days on duty, fights, kills and
+  promotions; they move power x0.8-x1.2, injury and death chances x0.7-x1.3, recovery time, and live-fight aim and health.
+  Hire prices follow skills (x0.86-x1.18). Older saves get rank-based skills. Guards can be fired from their page
+- Staff at your fronts (the nearest one only, budget-safe, neutral FR_STAFF group, women and men in every trade)
+- A bigger, mixed NPC pool: guards are street people instead of uniformed security (35 men's and 18 women's looks, recruits
+  are women about 4 times in 10), each crew has 23-30 looks including women, and names come from a much bigger pool;
+  only about a third of recruits and half of new crew lieutenants go by a nickname, and full names never repeat
 - The call to come defend: every warning tells you when the hit lands and what holding the door pays (one day of the
   front's takings), with a GPS route to the front (Office setting); if you're within 1 km when the window closes, the crew
   waits 90 more seconds for you

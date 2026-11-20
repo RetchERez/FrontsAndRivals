@@ -11,8 +11,62 @@ static class FrontTests
 {
     static readonly string RepoContent = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "Content"));
 
+    static void WorkerAndNameTests()
+    {
+        T.Section("Front staff and the NPC pool");
+        T.True("Staff only with 12 slots to spare", WorkerRules.Fits(10, 0, 28) && !WorkerRules.Fits(16, 0, 28));
+        T.True("Staff leave when the budget gets tight", WorkerRules.MustYield(15, 2, 28) && !WorkerRules.MustYield(10, 2, 28));
+        T.True("Two by day at a bigger front, one at night", WorkerRules.Count(1, 12) == 2 && WorkerRules.Count(0, 12) == 1 && WorkerRules.Count(2, 23) == 1);
+        T.True("A bar gets bar staff", WorkerRules.Kind("bar_mirrorpark") == "bar" && System.Array.IndexOf(WorkerRules.Models("bar_mirrorpark"), "s_m_y_barman_01") >= 0);
+        bool mixed = true;
+        foreach (string id in new[] { "carwash_x", "autoshop_x", "cafe_x", "shop_x", "motel_x", "bar_x", "club_x", "depot_x", "jewelry_x", "other_x" })
+        {
+            bool f = false, m = false;
+            foreach (string model in WorkerRules.Models(id)) { if (model.Contains("_f_")) f = true; if (model.Contains("_m_")) m = true; }
+            if (!f || !m) mixed = false;
+        }
+        T.True("Every kind of business has women and men on staff", mixed);
+        T.True("Night staff smoke or take a call", WorkerRules.Scenario("bar_x", 0, 23) == "WORLD_HUMAN_SMOKING");
+
+        var content = new ContentDb(RepoContent, null);
+        content.Load();
+        T.True("Name pool: 70+ men, 50+ women, 80+ surnames, 50 nicknames", content.Names.MaleNames.Count >= 70 && content.Names.FemaleNames.Count >= 50
+               && content.Names.Surnames.Count >= 80 && content.Names.Nicknames.Count >= 50);
+        T.True("Guard models: 30+ men and 15 women, no uniformed security", content.Models.GuardsMale.Count >= 30 && content.Models.GuardsFemale.Count >= 15
+               && !content.Models.GuardsMale.Exists(x => x.StartsWith("s_m_")));
+        bool crewMix = true;
+        foreach (CrewDef cd in content.Crews) { if (cd.Models.Count < 20 || !cd.Models.Exists(x => x.StartsWith("a_f_"))) crewMix = false; }
+        T.True("Every crew: 20+ looks, women among them", crewMix);
+
+        var es = SaveService.NewEmpire();
+        var emp = new Empire(es, content);
+        var rng = new System.Random(7);
+        int nick = 0, n = 0;
+        for (int day = 0; day < 6; day++)
+        {
+            emp.RefreshOffers(rng, day);
+            foreach (GuardState g in es.Offers.ToList())
+            {
+                n++; if (!string.IsNullOrEmpty(g.Nick)) nick++;
+                int price; emp.Hire(g, 1000000, out price);
+            }
+        }
+        var seen = new HashSet<string>();
+        bool unique = true;
+        foreach (GuardState g in es.Guards.Concat(es.Offers)) if (!seen.Add(g.First + " " + g.Last)) unique = false;
+        T.True("Only some recruits have a street name (" + nick + " of " + n + ")", nick > 0 && nick < n * 0.7);
+        T.True("No two recruits share a full name", unique);
+        int women = 0;
+        foreach (GuardState g in es.Guards.Concat(es.Offers)) if (content.Models.GuardsFemale.Contains(g.Model)) women++;
+        int people = es.Guards.Count + es.Offers.Count;
+        T.True("Women and men among recruits (" + women + " of " + people + " women)", women > 0 && women < people);
+        var plain = new GuardState { First = "Ana", Nick = "", Last = "Diaz" };
+        T.True("No empty quotes for a guard without a nickname", plain.ShortName == "Ana Diaz" && plain.FullName == "Ana Diaz");
+    }
+
     public static void Run()
     {
+        WorkerAndNameTests();
         ContentTests();
         EmpireTests();
         StreamRuleTests();
@@ -197,6 +251,7 @@ static class FrontTests
         T.True("Dead guards don't count as living", e.LivingCount() == 1);
 
         e.Assign(g2, "carwash_handson", 2);
+        Stats.Set(g2, new[] { 50, 50, 50, 50 }); // average Stamina: the base recovery time
         e.GuardDown(g2, "x", false, 5000, 1000);
         T.True("Injury: keeps the post, status injured", g2.Status == GuardStatus.Injured && g2.Post == 2);
         T.Check("Not recovered before the time", e.Recover(5999), 0, 0);

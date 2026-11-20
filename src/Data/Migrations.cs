@@ -79,6 +79,12 @@ namespace FrontsAndRivals.Data
                 if (string.IsNullOrEmpty(g.Status)) g.Status = GuardStatus.Active;
                 if (g.Front == null) g.Post = GuardState.Reserve;
                 if (g.Id >= s.NextGuardId) s.NextGuardId = g.Id + 1;
+                // Saves from before skills: give everyone a steady, rank-based line.
+                if (g.Shooting + g.Strength + g.Stamina + g.Stealth == 0)
+                {
+                    int[] v = FrontsAndRivals.Rules.Stats.FromRank((FrontsAndRivals.Rules.Rank)g.Rank, g.Id);
+                    g.Shooting = v[0]; g.Strength = v[1]; g.Stamina = v[2]; g.Stealth = v[3];
+                }
             }
             if (s.ActiveMs < 0) s.ActiveMs = 0;
             if (s.SaveCount < 0) s.SaveCount = 0;

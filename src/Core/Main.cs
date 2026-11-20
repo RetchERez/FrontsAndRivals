@@ -33,6 +33,7 @@ namespace FrontsAndRivals.Core
         private readonly SaveService _saves;
         private readonly ContentDb _content;
         private readonly Streamer _streamer;
+        private Workers _workers;
         private readonly DevTools _dev;
         private readonly AutoPostPlacer _placer = new AutoPostPlacer();
         private readonly OfficeMenu _office;
@@ -70,8 +71,10 @@ namespace FrontsAndRivals.Core
             _scheduler = new Scheduler(OnSystemFailure);
             _content = new ContentDb(dataDir, Log.Write);
             _content.Load(); // files only, no game calls
+            Nemesis.Names = _content.Names; // new crew lieutenants draw from the same name pool
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
             _live = new LiveDefense(_registry, _streamer);
+            _workers = new Workers(_registry, _content, () => _empire);
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
             _notifier.UseSettings(NoteSettingsNow);
@@ -116,6 +119,7 @@ namespace FrontsAndRivals.Core
             }
             _scheduler.Add("Streamer", "guards", 500, StreamerTick);
             _scheduler.Add("AutoPosts", "guard posts", 1000, AutoPostsTick);
+            _scheduler.Add("Workers", "front staff", 1000, () => _workers.Update());
             _scheduler.Add("Blips", "map blips", 2000, () => _blips.Refresh(_empire, _content));
             _scheduler.Add("World", "guard recovery", 60000, WorldTick);
             _scheduler.Add("Director", "attacks", 2000, () => _director.Update());
@@ -277,8 +281,8 @@ namespace FrontsAndRivals.Core
             _empire.GuardDown(g, "the " + front.Name, permanent, ActiveNow(), InjuryRecoveryMs);
             Log.Write("Guard " + g.Id + " " + g.FullName + (permanent ? " died" : " was injured") + " at " + front.Id);
             string text = permanent
-                ? g.First + " \"" + g.Nick + "\" didn't make it out of the " + front.Name + "."
-                : g.First + " \"" + g.Nick + "\" got hurt at the " + front.Name + ". Back in two days.";
+                ? g.ShortName + " didn't make it out of the " + front.Name + "."
+                : g.ShortName + " got hurt at the " + front.Name + ". Back in two days.";
             _notifier.PostWithMugshot(body, front.Name, permanent ? "Guard down" : "Guard injured", text);
             SaveNow();
         }
@@ -314,6 +318,7 @@ namespace FrontsAndRivals.Core
                 if (_autoScout != null) _autoScout.Cancel();
                 int n = _registry.DeleteAll();
                 if (_streamer != null) _streamer.Reset();
+                if (_workers != null) _workers.Forget();
                 if (n > 0) Log.Write("Cleared " + n + " mod entities (" + why + ")");
             }
             catch (Exception ex) { Log.Error("ClearWorld", ex); }
@@ -412,10 +417,11 @@ namespace FrontsAndRivals.Core
                     told = true;
                 }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
+                _empire.DayOnDuty();
                 foreach (GuardState q in pay.Quit)
                 {
                     Log.Write("Midnight: " + q.FullName + " quit over unpaid wages");
-                    _notifier.Send(NoteKind.Staff, q.First + " \"" + q.Nick + "\"", "Unpaid", "No money, no me. I'm out.");
+                    _notifier.Send(NoteKind.Staff, q.ShortName, "Unpaid", "No money, no me. I'm out.");
                 }
                 if (pay.Income == 0 && pay.Wages == 0) continue;
                 Game.Player.Money += pay.Net;

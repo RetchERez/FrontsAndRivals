@@ -104,12 +104,13 @@ namespace FrontsAndRivals.Rules
                 GuardState g = NewGuard(rng);
                 g.Id = 0; // gets a real id when hired
                 g.Trait = (int)RecruitTraits[rng.Next(RecruitTraits.Length)];
+                Stats.Set(g, Stats.Seed((Trait)g.Trait, rng));
                 _s.Offers.Add(g);
             }
             _s.OffersDay = day;
         }
 
-        public int OfferPrice(GuardState offer) { return Economy.HirePrice((Trait)offer.Trait); }
+        public int OfferPrice(GuardState offer) { return Economy.HirePrice((Trait)offer.Trait, Stats.Overall(offer)); }
 
         /// <summary>Hires one of today's offers. The caller takes the returned price from the player's cash.</summary>
         public HireResult Hire(GuardState offer, long cash, out int price)
@@ -130,6 +131,14 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>Lets a guard go. They leave the roster for good.</summary>
+        /// <summary>A midnight on the payroll: every guard standing a post gets a little better at it.</summary>
+        public void DayOnDuty()
+        {
+            foreach (GuardState g in _s.Guards)
+                if (g.Status == GuardStatus.Active && g.IsPosted) Stats.Add(g, Stats.DayOnDuty);
+        }
+
+        /// <summary>Fired: off the roster for good, no severance.</summary>
         public void LetGo(GuardState g)
         {
             if (g != null) _s.Guards.Remove(g);
@@ -146,6 +155,14 @@ namespace FrontsAndRivals.Rules
         /// <summary>Buying only works for fronts that are for sale (the starter car wash).</summary>
         public bool CanBuy(string frontId) { return OwnerOf(frontId) == Owners.ForSale; }
 
+        /// <summary>A guard as the defense rules see them.</summary>
+        public static GuardRecord Record(GuardState g)
+        {
+            var r = new GuardRecord { Name = g.First, Rank = (Rank)g.Rank, Weapon = (Weapon)g.Weapon, Trait = (Trait)g.Trait, Injured = g.Status == GuardStatus.Injured };
+            if (Stats.HasSkills(g)) { r.Shooting = g.Shooting; r.Strength = g.Strength; r.Stamina = g.Stamina; r.Stealth = g.Stealth; }
+            return r;
+        }
+
         /// <summary>A front's defense rating right now (design doc formula, including the front's upgrades).</summary>
         public double Defense(string frontId, int hour)
         {
@@ -153,11 +170,7 @@ namespace FrontsAndRivals.Rules
             foreach (GuardState g in _s.Guards)
             {
                 if (g.Front != frontId || g.Status == GuardStatus.Dead) continue;
-                posted.Add(new GuardRecord
-                {
-                    Name = g.First, Rank = (Rank)g.Rank, Weapon = (Weapon)g.Weapon, Trait = (Trait)g.Trait,
-                    Injured = g.Status == GuardStatus.Injured
-                });
+                posted.Add(Record(g));
             }
             FrontState fs = Find(frontId);
             var up = fs == null ? new FrontUpgrades() : new FrontUpgrades { Cameras = fs.Cameras, Doors = fs.Doors, Floodlights = fs.Floodlights, Armory = fs.Armory };
@@ -197,22 +210,44 @@ namespace FrontsAndRivals.Rules
             if (LivingCount() >= MaxRoster || ReserveCount() >= MaxReserve) return null;
             GuardState g = NewGuard(rng);
             g.Id = _s.NextGuardId++;
+            Stats.Set(g, Stats.Seed((Trait)g.Trait, rng));
             _s.Guards.Add(g);
             return g;
+        }
+
+        /// <summary>About a third of recruits go by a street name; the rest are just first and last names.</summary>
+        public const double NickChance = 0.35;
+        /// <summary>Recruits are women about 4 times in 10.</summary>
+        public const double FemaleChance = 0.4;
+
+        /// <summary>Someone on the roster, in today's offers or in a crew already has this first and last name.</summary>
+        public bool NameTaken(string first, string last)
+        {
+            foreach (GuardState g in _s.Guards) if (g.First == first && g.Last == last) return true;
+            foreach (GuardState g in _s.Offers) if (g.First == first && g.Last == last) return true;
+            foreach (CrewState c in _s.Crews)
+                if (c.Members != null) foreach (CrewMember m in c.Members) if (m.First == first && m.Last == last) return true;
+            return false;
         }
 
         private GuardState NewGuard(Random rng)
         {
             NamesFile names = _content.Names;
             ModelsFile models = _content.Models;
-            bool female = models.GuardsFemale.Count > 0
-                && rng.Next(models.GuardsMale.Count + models.GuardsFemale.Count) >= models.GuardsMale.Count;
+            bool female = models.GuardsFemale.Count > 0 && (models.GuardsMale.Count == 0 || rng.NextDouble() < FemaleChance);
+            string first, last;
+            int tries = 0;
+            do
+            {
+                first = Pick(rng, female ? names.FemaleNames : names.MaleNames);
+                last = Pick(rng, names.Surnames);
+            } while (NameTaken(first, last) && ++tries < 12);
             var g = new GuardState
             {
                 Id = 0,
-                First = Pick(rng, female ? names.FemaleNames : names.MaleNames),
-                Nick = Pick(rng, names.Nicknames),
-                Last = Pick(rng, names.Surnames),
+                First = first,
+                Nick = rng.NextDouble() < NickChance ? Pick(rng, names.Nicknames) : "",
+                Last = last,
                 Model = Pick(rng, female ? models.GuardsFemale : models.GuardsMale),
                 Rank = (int)Rank.Recruit,
                 Weapon = (int)Weapon.Knife,
@@ -264,7 +299,7 @@ namespace FrontsAndRivals.Rules
             else
             {
                 g.Status = GuardStatus.Injured;
-                g.RecoverAtMs = nowActiveMs + recoveryMs;
+                g.RecoverAtMs = nowActiveMs + (long)(recoveryMs * Stats.RecoveryFactor(Stats.HasSkills(g) ? g.Stamina : Stats.Average));
                 // Injured guards keep their post and return to it by themselves.
             }
         }

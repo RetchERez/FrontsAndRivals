@@ -11,6 +11,13 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
+- Guard skills like the player's: Shooting (aim and power), Strength (power and health), Stamina (fewer injuries,
+  quicker recovery) and Stealth (fewer deaths). They grow on the job: every midnight on a post, every fight, every kill,
+  every promotion. Better recruits cost more; fire anyone from their page in the Office
+- Staff at the front you're standing near: a cashier on the phone, a janitor sweeping, a chef on a smoke break.
+  They only appear when there's ped budget to spare and leave the moment guards or a fight need it
+- A big, mixed cast: guards and crews are ordinary Los Santos street people, women and men from every part of the city,
+  with 87 men's and 65 women's first names, 95 surnames, and nicknames for only some of them
 - The call to come defend: warnings say when the hit lands and what defending it yourself pays, with a GPS route
 - Crews never die out: they recruit off the street every night and come back for what you took
 - A weapon ladder: every guard starts with a knife and is armed one gun at a time, each a big step up:
@@ -52,7 +59,7 @@ Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2
 - When a warning text arrives, you can go and fight beside your guards or leave it to them
 - Rival fronts show on the map in their crew's colour; their soldiers ignore you while you drive past, but walk up on foot, shoot nearby or hurt one of them and the whole front fights
 - Clear a rival front's soldiers, stand at the door and press **E** to claim it
-- Fronts that are for sale can be bought from the Office for five days of their takings (the car wash is the Broker's $25,000 starter)
+- Fronts that are for sale are bought in person at their door, like GTA's own properties, for five days of their takings (the car wash is the Broker's $25,000 starter)
 
 ## Settings
 

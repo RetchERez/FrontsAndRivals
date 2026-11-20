@@ -143,6 +143,31 @@ namespace FrontsAndRivals.Rules
             return events;
         }
 
+        /// <summary>The shared name pool (names.json), set when content loads. Null in tests that don't load it.</summary>
+        public static NamesFile Names;
+        public const double CrewNickChance = 0.5;
+        private static readonly string[] CrewNicks = { "Two-Step", "Lockjaw", "Keys", "Static", "Rook", "Saint", "Flick", "Grit", "Dusty", "Echo",
+            "Razor", "Blue", "Sixes", "Mute", "Cinder", "Patch", "Tex", "Wire", "Ledge", "Crow" };
+        private static readonly string[] FallbackFirsts = { "Marcus", "Kendra", "Tyrone", "Dee", "Rico", "Jada", "Wes", "Cole", "Nina", "Boone", "Silas", "Mara" };
+        private static readonly string[] FallbackLasts = { "Reyes", "Banks", "Holloway", "Pike", "Navarro", "Crane", "Mercer", "Okafor", "Lund", "Sharp" };
+
+        private static string[] Combine(List<string> a, List<string> b)
+        {
+            var all = new List<string>();
+            if (a != null) all.AddRange(a);
+            if (b != null) all.AddRange(b);
+            return all.Count > 0 ? all.ToArray() : FallbackFirsts;
+        }
+
+        public static bool NameTaken(EmpireState s, string first, string last)
+        {
+            foreach (CrewState c in s.Crews)
+                if (c.Members != null) foreach (CrewMember x in c.Members) if (x.First == first && x.Last == last) return true;
+            if (s.Guards != null) foreach (GuardState g in s.Guards) if (g.First == first && g.Last == last) return true;
+            if (s.Offers != null) foreach (GuardState g in s.Offers) if (g.First == first && g.Last == last) return true;
+            return false;
+        }
+
         /// <summary>A soldier who survived the last fight becomes a lieutenant, with a generated name.</summary>
         public static CrewMember Promote(EmpireState s, CrewDef def, CrewState crew, Random rng, string frontName)
         {
@@ -155,12 +180,16 @@ namespace FrontsAndRivals.Rules
                 Alive = true,
                 Model = def.Models[rng.Next(def.Models.Count)]
             };
-            string[] firsts = { "Marcus", "Kendra", "Tyrone", "Dee", "Rico", "Jada", "Wes", "Cole", "Nina", "Boone", "Silas", "Mara" };
-            string[] nicks = { "Two-Step", "Lockjaw", "Keys", "Static", "Rook", "Saint", "Flick", "Grit", "Dusty", "Echo" };
-            string[] lasts = { "Reyes", "Banks", "Holloway", "Pike", "Navarro", "Crane", "Mercer", "Okafor", "Lund", "Sharp" };
-            m.First = firsts[rng.Next(firsts.Length)];
-            m.Nick = def.Id == "VS" ? "" : nicks[rng.Next(nicks.Length)]; // the Velvet Syndicate don't do nicknames
-            m.Last = lasts[rng.Next(lasts.Length)];
+            string[] firsts = Names != null ? Combine(Names.MaleNames, Names.FemaleNames) : FallbackFirsts;
+            string[] lasts = Names != null && Names.Surnames != null && Names.Surnames.Count > 0 ? Names.Surnames.ToArray() : FallbackLasts;
+            int tries = 0;
+            do
+            {
+                m.First = firsts[rng.Next(firsts.Length)];
+                m.Last = lasts[rng.Next(lasts.Length)];
+            } while (NameTaken(s, m.First, m.Last) && ++tries < 12);
+            // Half go by a street name. The Velvet Syndicate never do.
+            m.Nick = def.Id == "VS" || rng.NextDouble() >= CrewNickChance ? "" : CrewNicks[rng.Next(CrewNicks.Length)];
             m.AddLog("Walked away from the " + frontName + " and got promoted.");
             crew.Members.Add(m);
             return m;

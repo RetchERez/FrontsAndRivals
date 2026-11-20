@@ -80,7 +80,10 @@ static class EconomyTests
         T.True("Not enough cash: refused", e2.Hire(offer, 100, out price) == Empire.HireResult.NotEnoughCash && s2.Guards.Count == 0);
         T.True("Enough cash: hired", e2.Hire(offer, 10000, out price) == Empire.HireResult.Ok);
         T.True("Hired guard gets a real id and waits in the reserve", offer.Id > 0 && !offer.IsPosted && s2.Guards.Contains(offer));
-        T.Check("Price matches the trait", price, Economy.HirePrice((Trait)offer.Trait), 0);
+        T.Check("Price matches the trait and skills", price, Economy.HirePrice((Trait)offer.Trait, Stats.Overall(offer)), 0);
+        T.True("Better skills cost more", Economy.HirePrice(Trait.Tough, 60) > Economy.HirePrice(Trait.Tough, 38) && Economy.HirePrice(Trait.Tough, 38) > Economy.HirePrice(Trait.Tough, 20));
+        T.Check("An average recruit costs the trait price", Economy.HirePrice(Trait.Tough, 38), 4000, 0);
+        T.True("Offers come with skills", Stats.HasSkills(offer));
         T.True("Can't hire the same offer twice", e2.Hire(offer, 10000, out price) == Empire.HireResult.Gone);
         e2.RefreshOffers(rng, 1);
         T.True("Next morning: new faces, unhired ones gone", s2.Offers.Count == Economy.RecruitsPerDay && s2.OffersDay == 1);
@@ -110,8 +113,10 @@ static class EconomyTests
         var s3 = SaveService.NewEmpire();
         var e3 = new Empire(s3, content2);
         e3.SetOwner("carwash_handson", Owners.Player);
-        e3.Assign(e3.Recruit(rng), "carwash_handson", 0);
-        e3.Assign(e3.Recruit(rng), "carwash_handson", 1);
+        GuardState r1 = e3.Recruit(rng), r2 = e3.Recruit(rng);
+        Stats.Set(r1, new[] { 50, 50, 50, 50 }); Stats.Set(r2, new[] { 50, 50, 50, 50 }); // average skills
+        e3.Assign(r1, "carwash_handson", 0);
+        e3.Assign(r2, "carwash_handson", 1);
         T.Check("Front defense: 2 knife recruits by day = 12", e3.Defense("carwash_handson", 12), 12, 0.001);
         T.Check("...and 9 at night", e3.Defense("carwash_handson", 23), 9, 0.001);
         T.Check("Daily income/wages shown in the Office", e3.DailyIncome() - e3.DailyWages(), 3400, 0);

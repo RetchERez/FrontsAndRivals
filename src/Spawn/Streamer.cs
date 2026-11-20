@@ -262,6 +262,10 @@ namespace FrontsAndRivals.Spawn
             ped.Armor = 0;
             ped.Weapons.Give(WeaponFor(g.Weapon), 250, fighting, true);
             slot.Weapon = g.Weapon;
+            // Skills show in a fight: Shooting is their aim, Strength how much they can take.
+            ped.Accuracy = Rules.Stats.Accuracy(g.Shooting);
+            ped.MaxHealth = Rules.Stats.Health(g.Strength);
+            ped.Health = ped.MaxHealth;
             Function.Call(Hash.SET_PED_CAN_BE_TARGETTED_BY_PLAYER, ped, Game.Player, false);
             Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
             if (fighting)

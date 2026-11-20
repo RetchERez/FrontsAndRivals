@@ -30,6 +30,14 @@ namespace FrontsAndRivals.Rules
             }
         }
 
+        /// <summary>Hiring price for a recruit: the trait's price, then more for better skills and less for weaker ones
+        /// (x0.86 at overall 20, x1.0 at 38, x1.18 at 60), rounded to $50.</summary>
+        public static int HirePrice(Trait t, int overallSkill)
+        {
+            double f = 0.7 + 0.008 * Math.Max(0, Math.Min(100, overallSkill));
+            return (int)(Math.Round(HirePrice(t) * f / 50.0) * 50);
+        }
+
         /// <summary>Hiring price, $2,500-$5,000 by trait; Nervous costs half.</summary>
         public static int HirePrice(Trait t)
         {

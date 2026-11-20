@@ -21,8 +21,10 @@
     <Compile Include="../src/Data/Content.cs" />
     <Compile Include="../src/World/Empire.cs" />
     <Compile Include="../src/Spawn/StreamRules.cs" />
+    <Compile Include="../src/Spawn/WorkerRules.cs" />
     <Compile Include="../src/Spawn/AutoPosts.cs" />
     <Compile Include="../src/World/Economy.cs" />
+    <Compile Include="../src/World/Stats.cs" />
     <Compile Include="../src/World/Nemesis.cs" />
     <Compile Include="../src/World/Attacks.cs" />
     <Compile Include="../src/World/Turf.cs" />
