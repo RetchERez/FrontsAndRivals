@@ -8,6 +8,30 @@ using FrontsAndRivals.Rules;
 
 static class AttackTests
 {
+    static void PressureTests()
+    {
+        T.Section("Empire-size pressure");
+        T.True("1-3 fronts: base timing", Attacks.PressureCooldownFactor(1) == 1.0 && Attacks.PressureCooldownFactor(3) == 1.0);
+        T.True("10 fronts: Normal ~35 min", Math.Abs(45 * Attacks.PressureCooldownFactor(10) - 35.2) < 0.5);
+        T.True("15 fronts: Normal ~30 min", Math.Abs(45 * Attacks.PressureCooldownFactor(15) - 30.4) < 0.5);
+        T.True("Never below 55%", Attacks.PressureCooldownFactor(29) == Attacks.PressureMinFactor);
+        T.True("Factor never rises with more fronts", Attacks.PressureCooldownFactor(12) <= Attacks.PressureCooldownFactor(11));
+        T.True("Squad bonus 0/1/2/3 at 5/6/12/20", Attacks.PressureSquadBonus(5) == 0 && Attacks.PressureSquadBonus(6) == 1
+               && Attacks.PressureSquadBonus(12) == 2 && Attacks.PressureSquadBonus(20) == 3);
+        T.True("Bonus still capped at 9", Resolver.SquadSize(3, 100, 30, 3) == 9);
+        T.True("Bonus still capped by manpower", Resolver.SquadSize(1, 0, 4, 3) == 4);
+        T.True("No bonus = old squad size", Resolver.SquadSize(2, 60, 20, 0) == Resolver.SquadSize(2, 60, 20));
+
+        var s = new EmpireState();
+        for (int i = 0; i < 15; i++) s.Fronts.Add(new FrontState { Id = "f" + i, Owner = Owners.Player });
+        long now = 100 * 60000L;
+        s.LastAttackMs = now - 32 * 60000L; // 32 min since the last attack
+        T.True("15 fronts, pressure on: 32 min is long enough on Normal", Attacks.CanPlan(s, now, now, "Normal", 0, 10, true));
+        T.True("15 fronts, pressure off: still waits 45 min", !Attacks.CanPlan(s, now, now, "Normal", 0, 10, false));
+        T.True("Exact CooldownMinutes is kept as set", !Attacks.CanPlan(s, now, now, "Normal", 40, 10, true));
+        T.True("Labels: Unknown at 0, Marked at 20", Attacks.PressureLabel(0) == "Unknown" && Attacks.PressureLabel(20) == "Marked");
+    }
+
     static ContentDb Content()
     {
         string repo = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "Content"));
@@ -46,6 +70,7 @@ static class AttackTests
         T.True("Own a front after the cooldown: can plan", Attacks.CanPlan(s, now, now, "Normal"));
         T.True("Never in the first 10 minutes after loading", !Attacks.CanPlan(s, now, 5 * 60000, "Normal"));
         T.True("Off: never", !Attacks.CanPlan(s, now, now, "Off"));
+        PressureTests();
         s.LastLossMs = now - 10 * 60000;
         T.True("Never within 30 minutes of losing a front", !Attacks.CanPlan(s, now, now, "Normal"));
         s.LastLossMs = -10000000;

@@ -58,7 +58,7 @@ attack frequency, rival turf moves, notifications, live defenses, sound effects 
 Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the file:
 
 - `OfficeHotkey` (keyboard key, e.g. `F7`) and `OfficeButton` (true, the default = hold the controller's Back/View button, or M, for half a second to open the Office)
-- Attacks: `Frequency`, `CooldownMinutes` (exact minutes between attacks), `FirstAttackDelayMinutes`, `WarningHours`, `LiveDefense`, `PoliceRespond`
+- Attacks: `Frequency`, `CooldownMinutes` (exact minutes between attacks), `FirstAttackDelayMinutes`, `WarningHours`, `LiveDefense`, `PoliceRespond`, `EmpirePressure` (the more fronts you hold, the sooner and bigger the attacks)
 - Turf: `Frequency` for how often crews grab and fight over fronts at night
 - Notifications: `Level` (All, Important, Minimal), `MinSecondsBetween` (default 20 s so messages never pile up), `Taunts`, `StreetWord`, `MidnightReport`
 - Sound: `Effects` for the game's alert and cash sounds

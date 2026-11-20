@@ -16,6 +16,7 @@ Each difference was a user decision or a simplification made to keep 1.0 finishe
 | Workers, customers and ownership cars at fronts | Not in 1.0 | Cut for scope; guards make the fronts read as held |
 | Laying low: guards walk inside | Guards on screen walk to the door, others despawn | As designed |
 | Rival fronts show once seen or tipped off | Shown when Map > ShowRivalFronts is on | Simpler and clearer |
+| Fixed attack pace however big you get | Empire pressure: shorter cooldown and bigger squads as you hold more fronts (INI EmpirePressure) | With 29 fronts the late game went quiet; pressure keeps holding a big empire a job |
 | Office: two levels, separate screens | Three side-by-side panels | User request: submenus visible at the same time |
 
 ## Needs in-game confirmation

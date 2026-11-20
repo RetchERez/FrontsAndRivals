@@ -317,8 +317,22 @@ namespace FrontsAndRivals.UI
             AddListRow(Info("This week, about", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
             AddListRow(Info("Last midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
             AddListRow(Info("Fronts held", "Buy fronts for sale from the Broker, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
+            int held = e.OwnedCount();
+            string heat = _config.EmpirePressure
+                ? "The bigger you get, the sooner and harder the crews come. " + HeatDetail(held)
+                : "Empire pressure is off in FrontsAndRivals.ini: attacks keep the same pace however big you get.";
+            AddListRow(Info("Street heat", heat, _config.EmpirePressure ? Rules.Attacks.PressureLabel(held) : "Steady"), null, false);
             AddListRow(Info("Guards", "Hired people, posted or in the reserve.", e.LivingCount() + (injured > 0 ? ", " + injured + " hurt" : "")), null, false);
             if (fallen > 0) AddListRow(Info("Fallen", "Guards who died at their post.", fallen.ToString()), null, false);
+        }
+
+        private static string HeatDetail(int held)
+        {
+            double f = Rules.Attacks.PressureCooldownFactor(held);
+            int bonus = Rules.Attacks.PressureSquadBonus(held);
+            if (f >= 1.0 && bonus == 0) return "Hold more than 3 fronts and they start paying attention.";
+            int faster = (int)Math.Round((1.0 / f - 1.0) * 100.0);
+            return "Attacks come " + faster + "% more often" + (bonus > 0 ? ", with " + bonus + " extra " + (bonus == 1 ? "attacker" : "attackers") : "") + ".";
         }
 
         private void ListFronts(Empire e)

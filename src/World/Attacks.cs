@@ -29,6 +29,43 @@ namespace FrontsAndRivals.Rules
             }
         }
 
+        // ---- Empire-size pressure: the bigger you get, the more the crews come for you ----
+        // Up to 3 fronts: the base timing. Each front past 3 makes attacks about 4% more frequent, down to 55% of the
+        // cooldown (45 min on Normal becomes ~35 at 10 fronts, ~30 at 15, 25 at 23+). Squads grow by one at 6, 12 and 20 fronts.
+        public const int PressureFreeFronts = 3;
+        public const double PressureMinFactor = 0.55;
+
+        /// <summary>Multiplier on the attack cooldown for the number of fronts you hold (1.0 = no change).</summary>
+        public static double PressureCooldownFactor(int held)
+        {
+            if (held <= PressureFreeFronts) return 1.0;
+            return Math.Max(PressureMinFactor, 1.0 / (1.0 + 0.04 * (held - PressureFreeFronts)));
+        }
+
+        /// <summary>Extra attackers per squad for the number of fronts you hold (still capped at 9).</summary>
+        public static int PressureSquadBonus(int held)
+        {
+            return held >= 20 ? 3 : held >= 12 ? 2 : held >= 6 ? 1 : 0;
+        }
+
+        /// <summary>How the street sees you, for the Office.</summary>
+        public static string PressureLabel(int held)
+        {
+            if (held == 0) return "Unknown";
+            if (held <= PressureFreeFronts) return "Noticed";
+            if (held < 6) return "Rising";
+            if (held < 12) return "Wanted";
+            if (held < 20) return "Hunted";
+            return "Marked";
+        }
+
+        public static int HeldCount(EmpireState s)
+        {
+            int n = 0;
+            foreach (FrontState f in s.Fronts) if (f.Owner == Owners.Player) n++;
+            return n;
+        }
+
         /// <summary>Can the Director plan an attack right now? (The 25% roll per minute comes after this.)</summary>
         public static bool CanPlan(EmpireState s, long nowMs, long sinceLoadMs, string frequency)
         {
@@ -39,8 +76,16 @@ namespace FrontsAndRivals.Rules
         /// <param name="firstDelayMinutes">INI FirstAttackDelayMinutes.</param>
         public static bool CanPlan(EmpireState s, long nowMs, long sinceLoadMs, string frequency, int cooldownMinutes, int firstDelayMinutes)
         {
+            return CanPlan(s, nowMs, sinceLoadMs, frequency, cooldownMinutes, firstDelayMinutes, false);
+        }
+
+        /// <param name="pressure">Empire-size pressure on: the Frequency cooldown shrinks as you hold more fronts.
+        /// An exact CooldownMinutes from the INI is always kept as set.</param>
+        public static bool CanPlan(EmpireState s, long nowMs, long sinceLoadMs, string frequency, int cooldownMinutes, int firstDelayMinutes, bool pressure)
+        {
             long cooldown = CooldownMs(frequency);
             if (cooldown >= 0 && cooldownMinutes > 0) cooldown = cooldownMinutes * Minute;
+            else if (cooldown > 0 && pressure) cooldown = (long)(cooldown * PressureCooldownFactor(HeldCount(s)));
             if (cooldown < 0 || s.Attack != null) return false;
             if (sinceLoadMs < firstDelayMinutes * Minute) return false;
             if (nowMs - s.LastAttackMs < cooldown) return false;
@@ -116,7 +161,9 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>Plans a complete attack, or returns null if nobody can attack anything right now.</summary>
-        public static AttackState Plan(EmpireState s, ContentDb content, Empire empire, Random rng, int warningBaseHours, int hour, long nowMs)
+        /// <param name="squadBonus">Extra attackers from empire-size pressure (PressureSquadBonus).</param>
+        public static AttackState Plan(EmpireState s, ContentDb content, Empire empire, Random rng, int warningBaseHours, int hour, long nowMs,
+                                       int squadBonus = 0)
         {
             CrewState crew = PickCrew(s, content, rng);
             if (crew == null) return null;
@@ -125,13 +172,13 @@ namespace FrontsAndRivals.Rules
             if (leader == null) return null;
 
             // Estimate strength against a mid-tier front to score targets, then size the real squad for the chosen one.
-            int estSquad = Resolver.SquadSize(1, crew.Grudge, crew.Manpower);
+            int estSquad = Resolver.SquadSize(1, crew.Grudge, crew.Manpower, squadBonus);
             double estA = Resolver.AttackStrength(estSquad, def.SoldierPower, Nemesis.LeaderBonus(leader), leader.LeaderTrait == LeaderTrait.Ruthless, crew.Grudge);
             FrontState target = PickFront(s, content, empire, crew, leader, estA, hour, nowMs, rng);
             if (target == null) return null;
             FrontDef fd = content.Front(target.Id);
 
-            int squad = Resolver.SquadSize(fd.Tier, crew.Grudge, crew.Manpower);
+            int squad = Resolver.SquadSize(fd.Tier, crew.Grudge, crew.Manpower, squadBonus);
             if (squad < 1) return null;
             double a = Resolver.AttackStrength(squad, def.SoldierPower, Nemesis.LeaderBonus(leader), leader.LeaderTrait == LeaderTrait.Ruthless, crew.Grudge);
             bool lookout = false;

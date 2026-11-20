@@ -70,6 +70,7 @@ namespace FrontsAndRivals.Core
         public bool PoliceRespond = true;
         /// <summary>False: attacks always resolve on their own, even when you're there.</summary>
         public bool LiveDefense = true;
+        public bool EmpirePressure = true; // more fronts held: attacks come sooner and bigger
         /// <summary>Minutes between attacks. 0 = use Frequency (Low 75, Normal 45, High 25).</summary>
         public int CooldownMinutes = 0;
         /// <summary>No attacks in the first minutes after loading a game.</summary>
@@ -130,6 +131,7 @@ namespace FrontsAndRivals.Core
             c.WarningHours = Int(ini, "Attacks", "WarningHours", c.WarningHours, 1, 24, warn);
             c.PoliceRespond = Bool(ini, "Attacks", "PoliceRespond", c.PoliceRespond, warn);
             c.LiveDefense = Bool(ini, "Attacks", "LiveDefense", c.LiveDefense, warn);
+            c.EmpirePressure = Bool(ini, "Attacks", "EmpirePressure", c.EmpirePressure, warn);
             c.CooldownMinutes = Int(ini, "Attacks", "CooldownMinutes", c.CooldownMinutes, 0, 600, warn);
             c.FirstAttackDelayMinutes = Int(ini, "Attacks", "FirstAttackDelayMinutes", c.FirstAttackDelayMinutes, 0, 120, warn);
             c.TurfFrequency = Enum(ini, "Turf", "Frequency", c.TurfFrequency, warn);

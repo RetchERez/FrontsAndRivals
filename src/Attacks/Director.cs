@@ -77,7 +77,7 @@ namespace FrontsAndRivals.Attacks
                 {
                     _nextPlanRoll = now + Rules.Attacks.Minute;
                     bool can = force ? s.Attack == null
-                             : Rules.Attacks.CanPlan(s, now, _sinceLoad(), Frequency, _config.CooldownMinutes, _config.FirstAttackDelayMinutes);
+                             : Rules.Attacks.CanPlan(s, now, _sinceLoad(), Frequency, _config.CooldownMinutes, _config.FirstAttackDelayMinutes, _config.EmpirePressure);
                     if (can && (force || _rng().NextDouble() < Rules.Attacks.PlanChancePerMinute)) Plan(e, hour, now, force);
                     _forceRequested = false;
                 }
@@ -148,7 +148,8 @@ namespace FrontsAndRivals.Attacks
         private void Plan(Empire e, int hour, long now, bool force)
         {
             EmpireState s = e.State;
-            AttackState a = Rules.Attacks.Plan(s, _content, e, _rng(), _config.WarningHours, hour, now);
+            int bonus = _config.EmpirePressure ? Rules.Attacks.PressureSquadBonus(Rules.Attacks.HeldCount(s)) : 0;
+            AttackState a = Rules.Attacks.Plan(s, _content, e, _rng(), _config.WarningHours, hour, now, bonus);
             if (a == null) { if (force) DevNotice("No crew can attack right now (do you own a front?)."); return; }
             if (force) { a.WarnEnds = now + 30000; a.WindowEnds = a.WarnEnds + Rules.Attacks.WindowMs; }
             s.Attack = a;
