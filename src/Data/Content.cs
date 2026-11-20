@@ -1,4 +1,4 @@
-﻿// Fronts & Rivals: content as data (fronts.json, names.json, models.json in scripts/FrontsAndRivals/).
+// Fronts & Rivals: content as data (fronts.json, names.json, models.json in scripts/FrontsAndRivals/).
 // Balance and text live here so they can change without recompiling. Pure: no game calls, unit-tested.
 using System;
 using System.Collections.Generic;
@@ -203,7 +203,7 @@ namespace FrontsAndRivals.Data
         {
             return new List<FrontDef>
             {
-                Def("carwash_littleseoul", "Little Seoul Car Wash", "Little Seoul", 1, 0, 4000, Owners.ForSale),
+                Def("carwash_handson", "Hands On Car Wash", "Strawberry", 1, 0, 4000, Owners.ForSale),
                 Def("laundromat_rancho", "Rancho Laundromat", "Rancho", 2, 0, 5000, Owners.Velvet),
                 Def("pawnshop_strawberry", "Strawberry Pawn Shop", "Strawberry", 3, 1, 6000, Owners.CrownKings),
                 Def("bar_mirrorpark", "Mirror Park Bar", "Mirror Park", 4, 1, 7000, Owners.Velvet),

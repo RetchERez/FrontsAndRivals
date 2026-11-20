@@ -1,13 +1,13 @@
 [
   {
-    "id": "carwash_littleseoul",
-    "name": "Little Seoul Car Wash",
-    "area": "Little Seoul",
+    "id": "carwash_handson",
+    "name": "Hands On Car Wash",
+    "area": "Strawberry",
     "number": 1,
     "tier": 0,
     "income": 4000,
     "startOwner": "forsale",
-    "door": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "door": { "x": 25.20, "y": -1391.98, "z": 28.91, "h": 0.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
     "posts": [],
     "convoySpawns": []
