@@ -41,6 +41,7 @@ static class Program
         RulesTests.Run();
         CoreTests.Run();
         SaveTests.Run();
+        FrontTests.Run();
         Console.WriteLine();
         Console.WriteLine(T.Failures == 0 ? "ALL PASS" : T.Failures + " FAILURES");
         return T.Failures;

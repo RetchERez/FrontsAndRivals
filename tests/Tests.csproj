@@ -18,5 +18,8 @@
     <Compile Include="../src/Data/SaveService.cs" />
     <Compile Include="../src/Spawn/Markers.cs" />
     <Compile Include="../src/Dev/DevFormat.cs" />
+    <Compile Include="../src/Data/Content.cs" />
+    <Compile Include="../src/World/Empire.cs" />
+    <Compile Include="../src/Spawn/StreamRules.cs" />
   </ItemGroup>
 </Project>

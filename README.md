@@ -3,7 +3,7 @@
 A single-player script mod for Grand Theft Auto V. Not affiliated with or endorsed by Rockstar Games.
 Design doc v1.0: https://claude.ai/artifact/KAYesFun6qhyBrRT8d5BBr
 
-Status: milestone 1 (skeleton). Nothing spawns on its own yet.
+Status: milestone 2 (one front, guards streamed). Fronts are scouted in-game with the dev tools.
 
 ## Requirements (install these yourself; the mod never bundles them)
 - Disable BattlEye for Story Mode (Rockstar Games Launcher setting, or the `-nobattleye` launch argument)
@@ -28,5 +28,8 @@ Delete `FrontsAndRivals.dll`, `FrontsAndRivals.pdb`, `FrontsAndRivals.ini` and t
 - In game, SHVDN's console (F4) reloads scripts with `Reload()`. Every reload doubles as a cleanup test.
 - Set `DevTools=true` in `scripts\FrontsAndRivals.ini`: F9 copies your position for fronts.json,
   F10 opens the dev menu, and an entity counter shows at the top of the screen.
+- Content lives in `scripts\FrontsAndRivals\`: `fronts.json` (written by F10 > Scout fronts, never overwritten
+  by a build), `names.json` and `models.json` (updated by every build from `src\Content\`).
+  After scouting, copy the scouted `fronts.json` back into `src\Content\` and commit it.
 
 Compiling proves every API name, type and signature exists. It does not prove in-game behaviour.

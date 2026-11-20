@@ -1,0 +1,21 @@
+{
+  "maleNames": [
+    "Mateo", "Andre", "Curtis", "Rafael", "Darius", "Omar", "Tyrell", "Hector", "Bryce", "Elijah",
+    "Dante", "Kofi", "Jamal", "Ivan", "Tomas", "Leon", "Ruben", "Malik", "Paulo", "Corey",
+    "Esteban", "Victor", "Desmond", "Reggie", "Arturo", "Jalen", "Isaiah", "Nico", "Felix", "Quentin"
+  ],
+  "femaleNames": [
+    "Nadia", "Keisha", "Marisol", "Rosa", "Shay", "Yara", "Imani", "Lucia", "Tanya", "Monique",
+    "Alma", "Brianna", "Celia", "Dominique", "Esme"
+  ],
+  "nicknames": [
+    "Smoke", "Brick", "Slim", "Dice", "Loco", "Tank", "Spider", "Preach", "Ghost Eye", "Lucky",
+    "Hammer", "Sleepy", "Junior", "Taco", "Static", "Biscuit", "Domino", "Shorty", "Wheels", "Cash",
+    "Mouse", "Snake", "Tiny", "Breeze", "Clutch", "Deuce", "Fuse", "Gravy", "Hops", "Ace"
+  ],
+  "surnames": [
+    "Alvarez", "Brooks", "Carter", "Delgado", "Ellis", "Fuentes", "Grant", "Herrera", "Ibarra", "Jenkins",
+    "Kim", "Lopez", "Mendoza", "Nash", "Ortega", "Price", "Quinn", "Ramos", "Sutton", "Torres",
+    "Underwood", "Vargas", "Wallace", "Young", "Zamora", "Booker", "Castillo", "Dorsey", "Espinoza", "Fowler"
+  ]
+}

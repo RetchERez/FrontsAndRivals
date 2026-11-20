@@ -46,6 +46,12 @@ namespace FrontsAndRivals.Spawn
             _vehicles.Add(vehicle);
         }
 
+        public bool Owns(Ped ped)
+        {
+            for (int i = 0; i < _peds.Count; i++) if (_peds[i] == ped) return true;
+            return false;
+        }
+
         /// <summary>Drops entries whose entity no longer exists (deleted by another mod or the game).
         /// A vanished ped is "not spawned", never "dead".</summary>
         public void Prune()

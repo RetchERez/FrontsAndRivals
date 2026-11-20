@@ -41,6 +41,12 @@ namespace FrontsAndRivals.Dev
         private readonly List<PendingSpawn> _pending = new List<PendingSpawn>();
         private bool _showCounter = true;
 
+        /// <summary>Other dev panels (ScoutMenu) hang off this pool and menu.</summary>
+        public ObjectPool Pool { get { return _pool; } }
+        public NativeMenu Menu { get { return _menu; } }
+        /// <summary>Extra text for the counter line, e.g. streaming stats.</summary>
+        public Func<string> ExtraStatus;
+
         public DevTools(Registry registry, Director director, Action saveNow, Func<PauseReason> gate)
         {
             _registry = registry;
@@ -79,7 +85,7 @@ namespace FrontsAndRivals.Dev
             _menu.Add(item);
         }
 
-        private static void Notify(string text)
+        public static void Notify(string text)
         {
             GTA.UI.Notification.Show("Fronts & Rivals dev: " + text);
         }
@@ -114,7 +120,8 @@ namespace FrontsAndRivals.Dev
         {
             _counter.Caption = "FR dev   peds " + _registry.PedCount + "/" + Registry.MaxPeds
                              + "   vehicles " + _registry.VehicleCount + "/" + Registry.MaxVehicles
-                             + "   gate " + (gate == PauseReason.None ? "open" : gate.ToString());
+                             + "   gate " + (gate == PauseReason.None ? "open" : gate.ToString())
+                             + (ExtraStatus != null ? "   " + ExtraStatus() : "");
         }
 
         /// <summary>From the Streamer job (gate open): finishes test spawns whose model has loaded.</summary>

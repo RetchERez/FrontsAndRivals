@@ -1,0 +1,80 @@
+[
+  {
+    "id": "carwash_davis",
+    "name": "Davis Car Wash",
+    "area": "Davis",
+    "number": 1,
+    "tier": 0,
+    "income": 4000,
+    "startOwner": "forsale",
+    "door": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "posts": [],
+    "convoySpawns": []
+  },
+  {
+    "id": "laundromat_ktown",
+    "name": "Little Seoul Laundromat",
+    "area": "Little Seoul",
+    "number": 2,
+    "tier": 0,
+    "income": 5000,
+    "startOwner": "VS",
+    "door": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "posts": [],
+    "convoySpawns": []
+  },
+  {
+    "id": "pawnshop_strawberry",
+    "name": "Strawberry Pawn Shop",
+    "area": "Strawberry",
+    "number": 3,
+    "tier": 1,
+    "income": 6000,
+    "startOwner": "CK",
+    "door": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "posts": [],
+    "convoySpawns": []
+  },
+  {
+    "id": "bar_mirrorpark",
+    "name": "Mirror Park Bar",
+    "area": "Mirror Park",
+    "number": 4,
+    "tier": 1,
+    "income": 7000,
+    "startOwner": "VS",
+    "door": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "posts": [],
+    "convoySpawns": []
+  },
+  {
+    "id": "chopshop_lamesa",
+    "name": "La Mesa Chop Shop",
+    "area": "La Mesa",
+    "number": 5,
+    "tier": 2,
+    "income": 9000,
+    "startOwner": "CK",
+    "door": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "posts": [],
+    "convoySpawns": []
+  },
+  {
+    "id": "truckdepot_elysian",
+    "name": "Elysian Island Truck Depot",
+    "area": "Elysian Island",
+    "number": 6,
+    "tier": 2,
+    "income": 12000,
+    "startOwner": "IR",
+    "door": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
+    "posts": [],
+    "convoySpawns": []
+  }
+]

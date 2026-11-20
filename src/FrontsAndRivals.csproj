@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FrontsAndRivals.ini" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Content\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!--
@@ -36,6 +37,12 @@
     <!-- The INI is copied only if there isn't one yet, so your in-game settings (DevTools=true etc.) survive rebuilds. -->
     <Copy SourceFiles="$(TargetDir)FrontsAndRivals.ini" DestinationFolder="$(GtaVDir)\scripts"
           Condition="!Exists('$(GtaVDir)\scripts\FrontsAndRivals.ini')" />
+    <!-- Content: names/models always update; fronts.json only if missing, because in-game scouting writes it. -->
+    <MakeDir Directories="$(GtaVDir)\scripts\FrontsAndRivals" />
+    <Copy SourceFiles="$(TargetDir)Content\names.json;$(TargetDir)Content\models.json"
+          DestinationFolder="$(GtaVDir)\scripts\FrontsAndRivals" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)Content\fronts.json" DestinationFolder="$(GtaVDir)\scripts\FrontsAndRivals"
+          Condition="!Exists('$(GtaVDir)\scripts\FrontsAndRivals\fronts.json')" />
     <Message Importance="high" Text="Deployed FrontsAndRivals to $(GtaVDir)\scripts" />
   </Target>
 </Project>
