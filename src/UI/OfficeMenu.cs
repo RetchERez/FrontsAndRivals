@@ -49,6 +49,7 @@ namespace FrontsAndRivals.UI
         private int _focus;            // 0 sections, 1 list, 2 detail
         private bool _open;
         private bool _closingAll;
+        private bool _hidingDetail; // hiding the detail panel in code must not count as Backspace
         private Section _section = Section.Overview;
 
         // What the list rows stand for, so the detail panel knows what to show.
@@ -127,7 +128,7 @@ namespace FrontsAndRivals.UI
         /// <summary>Backspace: one panel left, or close from the left panel.</summary>
         private void OnBack(int panel, CancelEventArgs e)
         {
-            if (_closingAll || !_open) return;
+            if (_closingAll || _hidingDetail || !_open) return;
             if (panel == 0) { e.Cancel = true; CloseAll(); return; }
             e.Cancel = true;
             if (panel == _focus) Focus(panel - 1);
@@ -458,7 +459,9 @@ namespace FrontsAndRivals.UI
             _detail.Clear();
             object key = _list.SelectedIndex >= 0 && _list.SelectedIndex < _listKeys.Count ? _listKeys[_list.SelectedIndex] : null;
             bool show = e != null && key != null;
-            _detail.Visible = _open && show;
+            _hidingDetail = true;
+            try { _detail.Visible = _open && show; }
+            finally { _hidingDetail = false; }
             if (!show) { if (_focus == 2) Focus(1); return; }
 
             if (key is FrontDef) DetailFront(e, (FrontDef)key);

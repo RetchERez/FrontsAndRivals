@@ -39,6 +39,10 @@ namespace FrontsAndRivals.Attacks
 
         private const float DoorRadius = 20f, GuardRadius = 25f, AbortRange = 500f, ArriveRange = 30f, LeaderGoneRange = 180f;
         private const int LoadTimeoutMs = 8000, StuckMs = 8000, MaxDriveMs = 90000, PoliceAfterMs = 90000;
+        private const int FightTimeoutMs = 6 * 60000;   // a fight that runs this long ends and the rest is auto-resolved
+        private const int PushEveryMs = 4000;           // re-send attackers who aren't near the door
+        private const float PushRange = 45f;            // closer than this to the door: they fight on their own
+        private const int LeaderFleeMaxMs = 30000;      // a fleeing leader still nearby after this long has got away
 
         private readonly Registry _registry;
         private readonly Streamer _streamer;
@@ -58,7 +62,9 @@ namespace FrontsAndRivals.Attacks
         private float _spawnHeading;
 
         private readonly List<Model> _models = new List<Model>();
-        private int _loadStarted, _started, _lastIntegrityTick, _stuckSince;
+        private int _loadStarted, _started, _lastIntegrityTick, _lastPush, _leaderFleeStart;
+        private readonly Dictionary<Vehicle, int> _stuckSince = new Dictionary<Vehicle, int>();
+        private readonly List<Blip> _pedBlips = new List<Blip>();
         private readonly List<Vehicle> _cars = new List<Vehicle>();
         private readonly List<Ped> _attackers = new List<Ped>();
         private readonly HashSet<Ped> _counted = new HashSet<Ped>();
@@ -91,6 +97,7 @@ namespace FrontsAndRivals.Attacks
             _leaderMember = leader;
             _police = police;
             _door = new Vector3(front.Door.X, front.Door.Y, front.Door.Z);
+            ClearLeftovers();
             ResetResult();
             if (!FindSpawn()) { Log.Write("LiveDefense: no road spawn found near " + front.Id); return false; }
 
@@ -107,11 +114,28 @@ namespace FrontsAndRivals.Attacks
             return true;
         }
 
+        /// <summary>Deletes whatever is left of the previous fight (bodies, survivors, wrecks).</summary>
+        private void ClearLeftovers()
+        {
+            foreach (Ped p in _attackers) if (p != null && p.Exists()) _registry.Despawn(p);
+            foreach (Vehicle v in _cars) if (v != null && v.Exists()) _registry.Despawn(v);
+            _attackers.Clear();
+            _cars.Clear();
+            ReleaseModels();
+        }
+
+        private void ReleaseModels()
+        {
+            foreach (Model m in _models) m.MarkAsNoLongerNeeded();
+            _models.Clear();
+        }
+
         private void ResetResult()
         {
             _result.Finished = false; _result.DefendersWon = false; _result.AttackersLost = 0; _result.AttackersLeft = 0;
             _result.LeaderKilled = false; _result.LeaderEscaped = false; _result.KillsByGuard.Clear();
             _cars.Clear(); _attackers.Clear(); _counted.Clear(); _leader = null; _leaderFleeing = false; _incident = 0; _integrity = 100f;
+            _stuckSince.Clear(); _lastPush = 0; _leaderFleeStart = 0;
         }
 
         /// <summary>A road ~400 m from the door, on the side away from you, so the convoy arrives unseen.</summary>
@@ -175,6 +199,9 @@ namespace FrontsAndRivals.Attacks
             _integrityBar.Progress = _integrity;
 
             if (_stage == Stage.Driving) UpdateDriving();
+            PushToDoor();
+            UpdatePedBlips();
+            if (Game.GameTime - _started > FightTimeoutMs) return Abort("ran too long");
             if (_police && _incident == 0 && Game.GameTime - _started > PoliceAfterMs) CallPolice();
             UpdateLeader(alive);
             UpdateIntegrity();
@@ -192,7 +219,7 @@ namespace FrontsAndRivals.Attacks
             int placed = 0;
             for (int c = 0; c < cars && placed < squad; c++)
             {
-                if (!_registry.CanSpawnVehicle) break;
+                if (!_registry.CanSpawnVehicle || !_registry.CanSpawnPed) break;
                 Model vm = _models[carModel + c];
                 if (!vm.IsLoaded) continue;
                 Vector3 pos = _spawn + new Vector3(0f, 0f, 0.5f) - HeadingVector(_spawnHeading) * (9f * c);
@@ -227,8 +254,7 @@ namespace FrontsAndRivals.Attacks
                 Ped driver = v.Driver;
                 if (driver != null) driver.Task.DriveTo(v, _door, ArriveRange * 0.5f, 22f, DrivingStyle.Rushed);
             }
-            foreach (Model m in _models) m.MarkAsNoLongerNeeded();
-            _stuckSince = 0;
+            ReleaseModels();
             Log.Write("LiveDefense: convoy of " + _cars.Count + " cars, " + _attackers.Count + " attackers");
         }
 
@@ -251,9 +277,10 @@ namespace FrontsAndRivals.Attacks
                 allOut = false;
                 bool arrived = v.Position.DistanceTo(_door) < ArriveRange;
                 bool slow = v.Speed < 1.5f;
-                if (slow && _stuckSince == 0) _stuckSince = Game.GameTime;
-                if (!slow) _stuckSince = 0;
-                bool stuck = _stuckSince != 0 && Game.GameTime - _stuckSince > StuckMs;
+                int since;
+                if (!slow) _stuckSince.Remove(v);
+                else if (!_stuckSince.TryGetValue(v, out since)) _stuckSince[v] = Game.GameTime;
+                bool stuck = _stuckSince.TryGetValue(v, out since) && Game.GameTime - since > StuckMs;
                 if (arrived || stuck || Game.GameTime - _started > MaxDriveMs) Unload(v);
             }
             if (allOut) _stage = Stage.Fighting;
@@ -266,8 +293,47 @@ namespace FrontsAndRivals.Attacks
                 if (!p.Exists() || p.IsDead || p.CurrentVehicle != v) continue;
                 p.Task.ClearAll();
                 p.Task.LeaveVehicle(v, false);
-                p.Task.FightAgainstHatedTargets(80f);
                 p.AlwaysKeepTask = true;
+            }
+        }
+
+        /// <summary>Attackers on foot head for the door; once close, they fight whoever they hate (you and your guards).</summary>
+        private void PushToDoor()
+        {
+            if (Game.GameTime - _lastPush < PushEveryMs) return;
+            _lastPush = Game.GameTime;
+            foreach (Ped p in _attackers)
+            {
+                if (p == null || !p.Exists() || p.IsDead || p == _leader && _leaderFleeing) continue;
+                if (p.IsInVehicle()) continue;
+                if (p.Position.DistanceTo(_door) > PushRange)
+                {
+                    if (!p.IsInCombat) p.Task.GoTo(_door, -1);
+                }
+                else if (!p.IsInCombat)
+                {
+                    p.Task.FightAgainstHatedTargets(80f);
+                }
+            }
+        }
+
+        /// <summary>Small red blips on attackers on foot within 200 m, so nobody has to hunt blind.</summary>
+        private void UpdatePedBlips()
+        {
+            for (int i = _pedBlips.Count; i < _attackers.Count; i++) _pedBlips.Add(null);
+            for (int i = 0; i < _attackers.Count; i++)
+            {
+                Ped p = _attackers[i];
+                bool show = p != null && p.Exists() && !p.IsDead && !p.IsInVehicle() && p.Position.DistanceTo(_door) < 200f;
+                if (show && _pedBlips[i] == null)
+                {
+                    Blip b = p.AddBlip();
+                    b.Color = BlipColor.Red;
+                    b.Scale = 0.7f;
+                    b.Name = _crew.Name;
+                    _pedBlips[i] = b;
+                }
+                else if (!show && _pedBlips[i] != null) { if (_pedBlips[i].Exists()) _pedBlips[i].Delete(); _pedBlips[i] = null; }
             }
         }
 
@@ -312,11 +378,12 @@ namespace FrontsAndRivals.Attacks
             if (!_leaderFleeing && alive <= Math.Max(1, (int)Math.Floor(_attack.Squad * 0.3)) && _attack.Squad > 1)
             {
                 _leaderFleeing = true;
+                _leaderFleeStart = Game.GameTime;
                 _leader.Task.ClearAll();
                 _leader.Task.FleeFrom(Game.Player.Character, -1);
                 Log.Write("LiveDefense: leader is running");
             }
-            if (_leaderFleeing && _leader.Position.DistanceTo(_door) > LeaderGoneRange)
+            if (_leaderFleeing && (_leader.Position.DistanceTo(_door) > LeaderGoneRange || Game.GameTime - _leaderFleeStart > LeaderFleeMaxMs))
             {
                 _result.LeaderEscaped = true;
                 _counted.Add(_leader);
@@ -388,7 +455,8 @@ namespace FrontsAndRivals.Attacks
             if (_stage == Stage.Over) return null;
             CountCasualties();
             _result.Finished = false;
-            _result.AttackersLeft = AliveAttackers();
+            // Nobody spawned yet (still loading, or the convoy failed): the whole squad is still out there.
+            _result.AttackersLeft = _attackers.Count == 0 ? _attack.Squad : AliveAttackers();
             Log.Write("LiveDefense: aborted (" + why + "), " + _result.AttackersLeft + " attackers left to auto-resolve");
             End(false);
             return _result;
@@ -398,8 +466,11 @@ namespace FrontsAndRivals.Attacks
         {
             _stage = Stage.Over;
             _bars.Visible = false;
+            ReleaseModels();
             foreach (Blip b in _blips) if (b != null && b.Exists()) b.Delete();
             _blips.Clear();
+            foreach (Blip b in _pedBlips) if (b != null && b.Exists()) b.Delete();
+            _pedBlips.Clear();
             if (_incident != 0) { Function.Call(Hash.DELETE_INCIDENT, _incident); _incident = 0; }
             // Survivors leave; bodies and wrecks are cleaned up as the front streams out (registry owns them all).
             foreach (Ped p in _attackers)
@@ -443,6 +514,9 @@ namespace FrontsAndRivals.Attacks
         public void ForceClear()
         {
             _bars.Visible = false;
+            ReleaseModels();
+            foreach (Blip b in _pedBlips) if (b != null && b.Exists()) b.Delete();
+            _pedBlips.Clear();
             foreach (Blip b in _blips) if (b != null && b.Exists()) b.Delete();
             _blips.Clear();
             if (_incident != 0) { Function.Call(Hash.DELETE_INCIDENT, _incident); _incident = 0; }

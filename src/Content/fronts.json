@@ -105,12 +105,7 @@
     "starter": false,
     "door": { "x": 130.90, "y": -1771.80, "z": 29.70, "h": 320.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
-    "posts": [
-      { "x": 134.09, "y": -1765.10, "z": 30.13, "h": 334.6, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 135.16, "y": -1769.08, "z": 30.13, "h": 302.6, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": 140.13, "y": -1771.42, "z": 30.13, "h": 272.4, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 131.95, "y": -1761.65, "z": 30.00, "h": 354.1, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
-    ],
+    "posts": [],
     "convoySpawns": []
   },
   {
@@ -125,10 +120,7 @@
     "starter": false,
     "door": { "x": 487.00, "y": -1878.30, "z": 26.20, "h": 272.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
-    "posts": [
-      { "x": 491.17, "y": -1879.02, "z": 27.13, "h": 260.2, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 492.47, "y": -1882.60, "z": 27.00, "h": 231.8, "scenario": "WORLD_HUMAN_SMOKING" }
-    ],
+    "posts": [],
     "convoySpawns": []
   },
   {
@@ -203,10 +195,7 @@
     "starter": false,
     "door": { "x": 867.80, "y": -1639.70, "z": 30.20, "h": 103.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
-    "posts": [
-      { "x": 859.67, "y": -1640.60, "z": 31.25, "h": 96.3, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 859.42, "y": -1636.68, "z": 31.38, "h": 70.2, "scenario": "WORLD_HUMAN_SMOKING" }
-    ],
+    "posts": [],
     "convoySpawns": []
   },
   {
@@ -221,12 +210,7 @@
     "starter": false,
     "door": { "x": 1217.94, "y": -416.80, "z": 67.78, "h": 78.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
-    "posts": [
-      { "x": 1215.16, "y": -417.70, "z": 68.50, "h": 107.9, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 1216.81, "y": -412.41, "z": 68.75, "h": 14.4, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": 1212.32, "y": -423.68, "z": 68.38, "h": 140.7, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 1218.44, "y": -409.30, "z": 68.75, "h": 356.2, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
-    ],
+    "posts": [],
     "convoySpawns": []
   },
   {

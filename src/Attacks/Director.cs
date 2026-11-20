@@ -86,7 +86,14 @@ namespace FrontsAndRivals.Attacks
 
             AttackState a = s.Attack;
             FrontDef front = _content.Front(a.Front);
-            if (front == null || !e.PlayerOwns(a.Front)) { Log.Write("Director: target " + a.Front + " no longer yours, attack called off"); s.Attack = null; _changed(); return; }
+            if (front == null || !e.PlayerOwns(a.Front))
+            {
+                Log.Write("Director: target " + a.Front + " no longer yours, attack called off");
+                if (_live.Active) { _live.Abort("called off"); _live.ForceClear(); }
+                s.Attack = null;
+                _changed();
+                return;
+            }
 
             if (a.Phase == AttackPhase.Warning && now >= a.WarnEnds)
             {

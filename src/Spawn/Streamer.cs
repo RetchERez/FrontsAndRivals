@@ -51,6 +51,7 @@ namespace FrontsAndRivals.Spawn
             public bool CrewSpawnedThisVisit;
             public bool ClearedReported;
             public bool Alerted;          // crew soldiers have noticed you and are fighting
+            public int CrewCount = -1;    // soldiers this visit, fixed when the front streams in
 
             public StreamedFront(FrontDef def, string owner)
             {
@@ -183,6 +184,7 @@ namespace FrontsAndRivals.Spawn
                     f.CrewSpawnedThisVisit = false;
                     f.ClearedReported = false;
                     f.Alerted = false;
+                    f.CrewCount = -1;
                     StreamIns++;
                 }
                 else if (!want && f.Streamed)
@@ -284,10 +286,22 @@ namespace FrontsAndRivals.Spawn
             CrewDef crew = _content.Crew(f.Owner);
             CrewState cs = Nemesis.Crew(_empire.State, f.Owner);
             if (crew == null || cs == null) return;
-            FrontState fs = _empire.Find(f.Def.Id);
-            int count = Math.Min(f.Def.Posts.Count, 2 + f.Def.Tier);
-            if (fs != null && fs.WeakUntilDay >= _empire.State.Day) count = Math.Max(1, count - 1);
-            if (cs.Manpower <= 0) count = 0;
+            // Fixed for the whole visit, so kills lowering manpower never stop the front's soldiers being tracked.
+            if (f.CrewCount < 0)
+            {
+                FrontState fs = _empire.Find(f.Def.Id);
+                int c = Math.Min(f.Def.Posts.Count, 2 + f.Def.Tier);
+                if (fs != null && fs.WeakUntilDay >= _empire.State.Day) c = Math.Max(1, c - 1);
+                f.CrewCount = Math.Min(c, Math.Max(0, cs.Manpower));
+            }
+            int count = f.CrewCount;
+            // An empty crew front (no soldiers to spare) can be claimed as soon as you walk up.
+            if (count == 0 && !f.ClearedReported && f.Distance < 60f)
+            {
+                f.ClearedReported = true;
+                if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true);
+                return;
+            }
 
             int alive = 0, killed = 0;
             for (int post = 0; post < count; post++)

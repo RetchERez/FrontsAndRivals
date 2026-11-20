@@ -55,12 +55,14 @@ namespace FrontsAndRivals.Spawn
         public int Place(FrontDef def, bool replace)
         {
             var chosen = new List<PostDef>();
-            var reasons = new int[4]; // 0 no navmesh spot, 1 on a road, 2 too near/far/high, 3 too close to another post
+            var reasons = new int[6]; // 0 no navmesh spot, 1 on a road, 2 too near/far/high, 3 too close to another post,
+                                      // 4 a wall or fence between it and the door, 5 no solid ground or something overhead
             // First pass: pavement only (guards on the forecourt). Second pass: any outdoor ground.
             Fill(def, chosen, FlagPavement | FlagNotInterior | FlagNotWater, reasons);
             if (chosen.Count < AutoPosts.Wanted) Fill(def, chosen, FlagNotInterior | FlagNotWater, reasons);
-            LastReport = chosen.Count + " placed; rejected: " + reasons[0] + " no ground, " + reasons[1] + " road, "
-                       + reasons[2] + " distance/height, " + reasons[3] + " spacing";
+            LastReport = chosen.Count + " placed; rejected: " + reasons[0] + " no walkable spot, " + reasons[1] + " road, "
+                       + reasons[2] + " distance/height, " + reasons[3] + " spacing, " + reasons[4] + " out of sight of the door, "
+                       + reasons[5] + " bad ground/overhead";
             if (chosen.Count == 0) return def.Posts.Count;
             if (replace || chosen.Count >= def.Posts.Count)
             {
@@ -82,8 +84,37 @@ namespace FrontsAndRivals.Spawn
                 if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, spot.X, spot.Y, spot.Z, 0)) { reasons[1]++; continue; }
                 if (!AutoPosts.Accept(def.Door, new List<PostDef>(), spot.X, spot.Y, spot.Z)) { reasons[2]++; continue; }
                 if (!AutoPosts.Accept(def.Door, chosen, spot.X, spot.Y, spot.Z)) { reasons[3]++; continue; }
+                if (!CanSeeDoor(def.Door, spot)) { reasons[4]++; continue; }
+                if (!GoodFooting(spot)) { reasons[5]++; continue; }
                 chosen.Add(AutoPosts.MakePost(def.Door, chosen.Count, spot.X, spot.Y, spot.Z));
             }
+        }
+
+        private const IntersectFlags Solid = IntersectFlags.Map | IntersectFlags.Objects | IntersectFlags.Glass;
+
+        /// <summary>A guard must be able to see the door: no wall, fence or prop between them at chest height.
+        /// The ray starts 1 m out from the door so the building's own wall doesn't count.</summary>
+        private static bool CanSeeDoor(Spot door, Vector3 ground)
+        {
+            var doorPos = new Vector3(door.X, door.Y, door.Z);
+            Vector3 flat = new Vector3(ground.X - door.X, ground.Y - door.Y, 0f);
+            float len = flat.Length();
+            if (len < 1.2f) return true;
+            flat.Normalize();
+            Vector3 from = doorPos + flat * 1.0f + new Vector3(0f, 0f, 0.5f);
+            Vector3 to = ground + new Vector3(0f, 0f, 1.2f);
+            RaycastResult r = GTA.World.Raycast(from, to, Solid, Game.Player.Character);
+            return !r.DidHit || r.HitPosition.DistanceTo(to) < 0.5f;
+        }
+
+        /// <summary>Solid ground right under the spot (not floating over a drop), and 2 m of clear headroom
+        /// (not tucked under stairs, an awning edge or a low overhang).</summary>
+        private static bool GoodFooting(Vector3 ground)
+        {
+            float g = GTA.World.GetGroundHeight(new Vector3(ground.X, ground.Y, ground.Z + 1.5f));
+            if (g == 0f || System.Math.Abs(g - ground.Z) > 1.0f) return false;
+            RaycastResult up = GTA.World.Raycast(ground + new Vector3(0f, 0f, 0.3f), ground + new Vector3(0f, 0f, 2.2f), Solid, Game.Player.Character);
+            return !up.DidHit;
         }
 
         /// <summary>Forget retry timers (dev tools: "Re-place posts").</summary>
