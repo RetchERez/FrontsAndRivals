@@ -7,6 +7,17 @@ static class SaveTests
 {
     public static void Run()
     {
+        T.Section("Migration: schema 1 weapons onto the ladder");
+        var old = new EmpireState { SchemaVersion = 1 };
+        old.Guards = new System.Collections.Generic.List<GuardState> {
+            new GuardState { Id = 1, Weapon = 0 }, new GuardState { Id = 2, Weapon = 1 }, new GuardState { Id = 3, Weapon = 2 } };
+        T.True("Schema 1 upgrades", Migrations.Upgrade(old) && old.SchemaVersion == EmpireState.CurrentSchema);
+        T.True("Pistol, SMG and rifle guards keep their guns", old.Guards[0].Weapon == 1 && old.Guards[1].Weapon == 4 && old.Guards[2].Weapon == 6);
+        var cur = new EmpireState { SchemaVersion = 2 };
+        cur.Guards = new System.Collections.Generic.List<GuardState> { new GuardState { Id = 1, Weapon = 0 } };
+        Migrations.Upgrade(cur);
+        T.True("A current save's knife stays a knife", cur.Guards[0].Weapon == 0);
+
         T.Section("SaveService (crash-safe save)");
         string dir = Path.Combine(Path.GetTempPath(), "fr_save_test_" + Guid.NewGuid().ToString("N"));
         try
@@ -33,7 +44,7 @@ static class SaveTests
             T.Check("Round trip: grudge", back.State.Grudge["CK"], 40, 0);
             T.True("Round trip: 64-bit RNG state exact", back.State.RngState == 0xDEADBEEFCAFEUL);
             T.Check("Round trip: active time", back.State.ActiveMs, 123456, 0);
-            T.True("Uses schemaVersion field name", File.ReadAllText(saves.MainPath).Contains("\"schemaVersion\":1"));
+            T.True("Uses schemaVersion field name", File.ReadAllText(saves.MainPath).Contains("\"schemaVersion\":" + EmpireState.CurrentSchema));
 
             // Backups rotate: after 4 more saves we have bak1..bak3 and no temp file.
             for (int i = 0; i < 4; i++) saves.Save(s);

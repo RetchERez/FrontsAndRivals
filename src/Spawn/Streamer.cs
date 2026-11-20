@@ -271,9 +271,13 @@ namespace FrontsAndRivals.Spawn
         {
             switch ((Rules.Weapon)weapon)
             {
+                case Rules.Weapon.Knife: return WeaponHash.Knife;
+                case Rules.Weapon.Pistol: return WeaponHash.Pistol;
+                case Rules.Weapon.Shotgun: return WeaponHash.PumpShotgun;
+                case Rules.Weapon.MicroSmg: return WeaponHash.MicroSMG;
                 case Rules.Weapon.Smg: return WeaponHash.SMG;
-                case Rules.Weapon.Rifle: return WeaponHash.CarbineRifle;
-                default: return WeaponHash.Pistol;
+                case Rules.Weapon.AssaultRifle: return WeaponHash.AssaultRifle;
+                default: return WeaponHash.CarbineRifle;
             }
         }
 

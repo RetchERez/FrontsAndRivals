@@ -10,7 +10,9 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - Three crews holding their own turf: the Crown Kings in South LS, Ironside MC on the east side, the Velvet Syndicate out west; five fronts start for sale
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
-- Guards with traits, ranks, experience, weapons and permanent death; a memorial for the fallen
+- Guards with traits, ranks, experience and permanent death; a memorial for the fallen
+- A weapon ladder: every guard starts with a knife and is armed one gun at a time at Story Mode Ammu-Nation prices:
+  pistol $350, pump shotgun $550, micro SMG $850, SMG $1,300, assault rifle $1,400, carbine rifle $2,100
 - Three original crews (Crown Kings, Ironside MC, Velvet Syndicate), each with a named boss and three lieutenants
 - Attacks with a warning text first; within 300 m they become a live defense with convoys, timer bars and a door to hold
 - Take rival fronts by clearing their guards and claiming the door

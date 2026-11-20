@@ -8,8 +8,6 @@ namespace FrontsAndRivals.Rules
 {
     public static class Economy
     {
-        public const int SmgPrice = 3000;    // x1.2 power
-        public const int RiflePrice = 8000;  // x1.4 power
         public const int StarterFrontPrice = 25000; // the Broker's starter price for the car wash
 
         /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise six days of its income.</summary>
@@ -76,7 +74,42 @@ namespace FrontsAndRivals.Rules
 
         public static string RankName(Rank r) { return r.ToString(); }
 
-        public static string WeaponName(Weapon w) { return w == Weapon.Smg ? "SMG" : w.ToString(); }
+        public static string WeaponName(Weapon w)
+        {
+            switch (w)
+            {
+                case Weapon.Knife: return "Knife";
+                case Weapon.Pistol: return "Pistol";
+                case Weapon.Shotgun: return "Pump Shotgun";
+                case Weapon.MicroSmg: return "Micro SMG";
+                case Weapon.Smg: return "SMG";
+                case Weapon.AssaultRifle: return "Assault Rifle";
+                default: return "Carbine Rifle";
+            }
+        }
+
+        /// <summary>"a pistol", "an SMG", "an assault rifle".</summary>
+        public static string WithArticle(Weapon w)
+        {
+            string name = w == Weapon.Smg || w == Weapon.MicroSmg ? WeaponName(w).Replace("Micro", "micro") : WeaponName(w).ToLowerInvariant();
+            return ("aeiouAEIOU".IndexOf(name[0]) >= 0 || name.StartsWith("SMG") ? "an " : "a ") + name;
+        }
+
+        /// <summary>What each gun costs at Ammu-Nation in Story Mode (GTABase's Story Mode prices).
+        /// The knife comes with every hire.</summary>
+        public static int WeaponPrice(Weapon w)
+        {
+            switch (w)
+            {
+                case Weapon.Knife: return 100;
+                case Weapon.Pistol: return 350;
+                case Weapon.Shotgun: return 550;
+                case Weapon.MicroSmg: return 850;
+                case Weapon.Smg: return 1300;
+                case Weapon.AssaultRifle: return 1400;
+                default: return 2100; // carbine rifle
+            }
+        }
 
         /// <summary>XP needed for the next rank, or -1 at Lieutenant.</summary>
         public static int NextRankXp(Rank r)
@@ -90,12 +123,18 @@ namespace FrontsAndRivals.Rules
             }
         }
 
-        /// <summary>Price to raise a guard's weapon to the next tier, or -1 if they already have a rifle.</summary>
+        /// <summary>Price of the next gun up the ladder (its Ammu-Nation price), or -1 at the carbine rifle.</summary>
         public static int UpgradePrice(Weapon current)
         {
-            if (current == Weapon.Pistol) return SmgPrice;
-            if (current == Weapon.Smg) return RiflePrice;
-            return -1;
+            return current >= DefenseRating.TopWeapon ? -1 : WeaponPrice(current + 1);
+        }
+
+        /// <summary>Total to take one guard from a knife to the carbine rifle.</summary>
+        public static int FullLadderPrice()
+        {
+            int sum = 0;
+            for (Weapon w = Weapon.Knife; w < DefenseRating.TopWeapon; w++) sum += UpgradePrice(w);
+            return sum;
         }
 
         public sealed class Payout

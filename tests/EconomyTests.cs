@@ -18,9 +18,20 @@ static class EconomyTests
             if (t == Trait.Nervous ? p != 1250 : (p < 2500 || p > 5000)) inRange = false;
         }
         T.True("Hire prices $2,500-$5,000, Nervous half price", inRange);
-        T.Check("Pistol -> SMG costs $3,000", Economy.UpgradePrice(Weapon.Pistol), 3000, 0);
-        T.Check("SMG -> rifle costs $8,000", Economy.UpgradePrice(Weapon.Smg), 8000, 0);
-        T.Check("Rifle can't be upgraded", Economy.UpgradePrice(Weapon.Rifle), -1, 0);
+        T.Check("Knife -> pistol costs a pistol ($350)", Economy.UpgradePrice(Weapon.Knife), 350, 0);
+        T.Check("Pistol -> pump shotgun $550", Economy.UpgradePrice(Weapon.Pistol), 550, 0);
+        T.Check("Shotgun -> micro SMG $850", Economy.UpgradePrice(Weapon.Shotgun), 850, 0);
+        T.Check("Micro SMG -> SMG $1,300", Economy.UpgradePrice(Weapon.MicroSmg), 1300, 0);
+        T.Check("SMG -> assault rifle $1,400", Economy.UpgradePrice(Weapon.Smg), 1400, 0);
+        T.Check("Assault rifle -> carbine rifle $2,100", Economy.UpgradePrice(Weapon.AssaultRifle), 2100, 0);
+        T.Check("Carbine rifle can't be upgraded", Economy.UpgradePrice(Weapon.CarbineRifle), -1, 0);
+        T.True("Articles read right", Economy.WithArticle(Weapon.Smg) == "an SMG" && Economy.WithArticle(Weapon.AssaultRifle) == "an assault rifle" && Economy.WithArticle(Weapon.MicroSmg) == "a micro SMG" && Economy.WithArticle(Weapon.Shotgun) == "a pump shotgun");
+        T.Check("Knife to carbine: $6,550 a guard", Economy.FullLadderPrice(), 6550, 0);
+        bool rising = true;
+        for (Weapon w = Weapon.Knife; w < DefenseRating.TopWeapon; w++) if (DefenseRating.WeaponPower(w + 1) <= DefenseRating.WeaponPower(w)) rising = false;
+        T.True("Every step up the ladder is stronger", rising);
+        T.Check("Armory: knife fights like a pistol", DefenseRating.WeaponMultiplier(Weapon.Knife, true), 1.0, 0.001);
+        T.Check("Armory: carbine +10%", DefenseRating.WeaponMultiplier(Weapon.CarbineRifle, true), 1.54, 0.001);
 
         var content = new ContentDb(Path.Combine(Path.GetTempPath(), "fr_none_" + Guid.NewGuid().ToString("N")), null);
         content.Load();
@@ -77,10 +88,11 @@ static class EconomyTests
         T.True("Next morning: 3 new faces, unhired ones gone", s2.Offers.Count == 3 && s2.OffersDay == 1);
 
         GuardState g = s2.Guards[0];
+        T.True("New hire carries a knife", g.Weapon == (int)Weapon.Knife);
         e2.UpgradeWeapon(g);
-        T.True("Weapon upgrade: pistol -> SMG", g.Weapon == (int)Weapon.Smg && e2.WeaponUpgradePrice(g) == Economy.RiflePrice);
-        e2.UpgradeWeapon(g); e2.UpgradeWeapon(g);
-        T.True("Rifle is the top tier", g.Weapon == (int)Weapon.Rifle && e2.WeaponUpgradePrice(g) == -1);
+        T.True("Weapon upgrade: knife -> pistol, next is the shotgun", g.Weapon == (int)Weapon.Pistol && e2.WeaponUpgradePrice(g) == 550);
+        for (int i = 0; i < 10; i++) e2.UpgradeWeapon(g);
+        T.True("Carbine rifle is the top tier", g.Weapon == (int)Weapon.CarbineRifle && e2.WeaponUpgradePrice(g) == -1);
         e2.LetGo(g);
         T.True("Let go: off the roster", !s2.Guards.Contains(g));
 
@@ -97,8 +109,8 @@ static class EconomyTests
         e3.SetOwner("carwash_handson", Owners.Player);
         e3.Assign(e3.Recruit(rng), "carwash_handson", 0);
         e3.Assign(e3.Recruit(rng), "carwash_handson", 1);
-        T.Check("Front defense: 2 recruits by day = 20", e3.Defense("carwash_handson", 12), 20, 0.001);
-        T.Check("...and 15 at night", e3.Defense("carwash_handson", 23), 15, 0.001);
+        T.Check("Front defense: 2 knife recruits by day = 12", e3.Defense("carwash_handson", 12), 12, 0.001);
+        T.Check("...and 9 at night", e3.Defense("carwash_handson", 23), 9, 0.001);
         T.Check("Daily income/wages shown in the Office", e3.DailyIncome() - e3.DailyWages(), 3000, 0);
     }
 }

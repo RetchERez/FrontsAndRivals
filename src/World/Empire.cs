@@ -140,7 +140,7 @@ namespace FrontsAndRivals.Rules
 
         public void UpgradeWeapon(GuardState g)
         {
-            if (g != null && g.Weapon < (int)Weapon.Rifle) g.Weapon++;
+            if (g != null && g.Weapon < (int)DefenseRating.TopWeapon) g.Weapon++;
         }
 
         /// <summary>Buying only works for fronts that are for sale (the starter car wash).</summary>
@@ -215,7 +215,7 @@ namespace FrontsAndRivals.Rules
                 Last = Pick(rng, names.Surnames),
                 Model = Pick(rng, female ? models.GuardsFemale : models.GuardsMale),
                 Rank = (int)Rank.Recruit,
-                Weapon = (int)Weapon.Pistol,
+                Weapon = (int)Weapon.Knife,
                 Trait = (int)Trait.None,
                 Status = GuardStatus.Active,
                 Front = null,

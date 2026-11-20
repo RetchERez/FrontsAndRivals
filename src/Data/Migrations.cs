@@ -10,9 +10,25 @@ namespace FrontsAndRivals.Data
         {
             if (s.SchemaVersion > EmpireState.CurrentSchema) return false;
             if (s.SchemaVersion < 1) s.SchemaVersion = 1;
-            // Future: if (s.SchemaVersion == 1) { ...; s.SchemaVersion = 2; }
+            if (s.SchemaVersion == 1)
+            {
+                // Schema 1 weapons were 0 pistol, 1 SMG, 2 rifle. Keep everyone's gun: pistol 1, SMG 4, carbine rifle 6.
+                if (s.Guards != null) foreach (GuardState g in s.Guards) g.Weapon = MapV1Weapon(g.Weapon);
+                if (s.Offers != null) foreach (GuardState g in s.Offers) g.Weapon = MapV1Weapon(g.Weapon);
+                s.SchemaVersion = 2;
+            }
             Normalize(s);
             return true;
+        }
+
+        public static int MapV1Weapon(int old)
+        {
+            switch (old)
+            {
+                case 1: return 4;  // SMG
+                case 2: return 6;  // carbine rifle
+                default: return 1; // pistol
+            }
         }
 
         /// <summary>Fills anything a hand-edited or partial file left out.</summary>

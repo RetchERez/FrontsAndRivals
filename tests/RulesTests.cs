@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using FrontsAndRivals.Rules;
 
@@ -17,7 +17,7 @@ static class RulesTests
         var cams = new FrontUpgrades{Cameras=true};
         Check("Pawn shop mid-game", DefenseRating.Compute(new List<GuardRecord>{G(Rank.Soldier,Weapon.Smg),G(Rank.Soldier,Weapon.Smg),G(Rank.Soldier,Weapon.Smg),G(Rank.Soldier,Weapon.Smg)}, cams, 12), 84.48);
         var late = new FrontUpgrades{Cameras=true, Doors=true, Floodlights=true};
-        Check("Chop shop late game (night)", DefenseRating.Compute(new List<GuardRecord>{G(Rank.Lieutenant,Weapon.Rifle),G(Rank.Veteran,Weapon.Smg),G(Rank.Veteran,Weapon.Smg),G(Rank.Veteran,Weapon.Smg)}, late, 23), 177.14);
+        Check("Chop shop late game (night)", DefenseRating.Compute(new List<GuardRecord>{G(Rank.Lieutenant,Weapon.CarbineRifle),G(Rank.Veteran,Weapon.Smg),G(Rank.Veteran,Weapon.Smg),G(Rank.Veteran,Weapon.Smg)}, late, 23), 177.14);
         // Win-chance table
         Check("P at D=0.5A", Resolver.WinChance(50,100), 0.20, 0.001);
         Check("P at D=A", Resolver.WinChance(100,100), 0.50, 0.001);

@@ -162,7 +162,7 @@ static class FrontTests
 
         GuardState g1 = e.Recruit(rng);
         T.True("Recruit has a full name and a model", g1 != null && g1.First != null && g1.Nick != null && g1.Last != null && g1.Model != null);
-        T.True("Recruit starts as a pistol Recruit in the reserve", g1.Rank == (int)Rank.Recruit && g1.Weapon == (int)Weapon.Pistol && !g1.IsPosted);
+        T.True("Recruit starts as a knife-carrying Recruit in the reserve", g1.Rank == (int)Rank.Recruit && g1.Weapon == (int)Weapon.Knife && !g1.IsPosted);
         T.True("Female models get female names",
             content.Models.GuardsFemale.Contains(g1.Model) ? content.Names.FemaleNames.Contains(g1.First) : content.Names.MaleNames.Contains(g1.First));
 

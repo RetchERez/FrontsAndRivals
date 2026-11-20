@@ -7,7 +7,9 @@ using System.Collections.Generic;
 namespace FrontsAndRivals.Rules
 {
     public enum Rank { Recruit, Soldier, Veteran, Lieutenant }
-    public enum Weapon { Pistol, Smg, Rifle }
+    /// <summary>The guard weapon ladder, bottom to top. Guards start with a knife and are upgraded one gun at a time.
+    /// Saved as an int: schema 1 used 0 Pistol, 1 SMG, 2 Rifle (Migrations maps them).</summary>
+    public enum Weapon { Knife, Pistol, Shotgun, MicroSmg, Smg, AssaultRifle, CarbineRifle }
     public enum Trait { None, Sharpshooter, Tough, Hothead, NightOwl, Lookout, Medic, Loyal, Nervous }
 
     public sealed class GuardRecord
@@ -24,7 +26,7 @@ namespace FrontsAndRivals.Rules
         public bool Cameras;      // +10% defense
         public bool Doors;        // +15 defense
         public bool Floodlights;  // removes night penalty
-        public bool Armory;       // +1 weapon tier (rifle: +10%)
+        public bool Armory;       // +1 weapon tier (top tier: +10%)
     }
 
     public static class DefenseRating
@@ -40,15 +42,29 @@ namespace FrontsAndRivals.Rules
             }
         }
 
+        public const Weapon TopWeapon = Weapon.CarbineRifle;
+
+        /// <summary>Power by weapon: knife x0.6, pistol x1.0, pump shotgun x1.1, micro SMG x1.15, SMG x1.2,
+        /// assault rifle x1.3, carbine rifle x1.4.</summary>
+        public static double WeaponPower(Weapon w)
+        {
+            switch (w)
+            {
+                case Weapon.Knife: return 0.6;
+                case Weapon.Pistol: return 1.0;
+                case Weapon.Shotgun: return 1.1;
+                case Weapon.MicroSmg: return 1.15;
+                case Weapon.Smg: return 1.2;
+                case Weapon.AssaultRifle: return 1.3;
+                default: return 1.4; // carbine rifle
+            }
+        }
+
+        /// <summary>The Armory makes every guard fight one weapon tier higher; at the top tier it's +10%.</summary>
         public static double WeaponMultiplier(Weapon w, bool armory)
         {
-            if (armory)
-            {
-                if (w == Weapon.Pistol) return 1.2;      // pistol -> SMG
-                if (w == Weapon.Smg) return 1.4;         // SMG -> rifle
-                return 1.4 * 1.1;                        // rifle stays rifle, +10%
-            }
-            return w == Weapon.Pistol ? 1.0 : w == Weapon.Smg ? 1.2 : 1.4;
+            if (!armory) return WeaponPower(w);
+            return w >= TopWeapon ? WeaponPower(TopWeapon) * 1.1 : WeaponPower(w + 1);
         }
 
         public static double TraitMultiplier(Trait t)

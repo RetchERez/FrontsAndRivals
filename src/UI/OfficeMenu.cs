@@ -584,7 +584,7 @@ namespace FrontsAndRivals.UI
             AddUpgrade(fs, "Cameras", 15000, "+10% defense, and attack warnings arrive an hour earlier.", fs.Cameras, () => fs.Cameras = true);
             AddUpgrade(fs, "Reinforced doors", 25000, "+15 defense.", fs.Doors, () => fs.Doors = true);
             AddUpgrade(fs, "Floodlights", 10000, "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
-            AddUpgrade(fs, "Armory", 30000, "Guards here fight one weapon tier higher (rifles get +10%).", fs.Armory, () => fs.Armory = true);
+            AddUpgrade(fs, "Armory", 30000, "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
         }
 
         private void AddUpgrade(FrontState fs, string name, int price, string effect, bool owned, Action install)
@@ -659,9 +659,16 @@ namespace FrontsAndRivals.UI
 
             int price = e.WeaponUpgradePrice(g);
             Weapon w = (Weapon)g.Weapon;
-            NativeItem weapon = Row(price > 0 ? "Buy " + (w == Weapon.Pistol ? "an SMG" : "a rifle") : "Weapon: rifle",
-                price > 0 ? "Carries a " + Economy.WeaponName(w) + " now. The " + (w == Weapon.Pistol ? "SMG is x1.2" : "rifle is x1.4") + " power."
-                          : "Already carries a rifle, the best tier.", price > 0 ? Money(price) : "Best");
+            NativeItem weapon;
+            if (price > 0)
+            {
+                Weapon nextGun = w + 1;
+                weapon = Row("Buy " + Economy.WithArticle(nextGun),
+                    "Carries " + Economy.WithArticle(w) + " (x" + DefenseRating.WeaponPower(w).ToString("0.0#") + " power). "
+                    + Economy.WeaponName(nextGun) + ": x" + DefenseRating.WeaponPower(nextGun).ToString("0.0#")
+                    + ", at the Ammu-Nation price. Step " + (int)nextGun + " of " + (int)DefenseRating.TopWeapon + ".", Money(price));
+            }
+            else weapon = Row("Weapon: carbine rifle", "The best gun on the ladder (x1.4 power).", "Best");
             weapon.Activated += (s, a) => Safe("weapon", () =>
             {
                 int cost = e.WeaponUpgradePrice(g);
@@ -751,7 +758,7 @@ namespace FrontsAndRivals.UI
             SetTitles(_detail, offer.First + " " + offer.Last, ("\"" + offer.Nick + "\" · RECRUIT"));
             _detail.Add(Info(Economy.TraitName(t), Economy.TraitEffect(t), ""));
             _detail.Add(Info("Wage", "Paid every in-game midnight.", Money(Economy.Wage(Rank.Recruit)) + "/day"));
-            _detail.Add(Info("Starts with", "A pistol. Buy better weapons on the guard's page.", "Pistol"));
+            _detail.Add(Info("Starts with", "A knife. Arm them on their page, one gun at a time: pistol, pump shotgun, micro SMG, SMG, assault rifle, carbine rifle.", "Knife"));
             int price = e.OfferPrice(offer);
             NativeItem hire = Row("Hire for " + Money(price), "They join your reserve and wait for a post.", Money(price));
             hire.Activated += (s, a) => Safe("hire", () => Hire(e, offer));

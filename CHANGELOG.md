@@ -9,7 +9,9 @@ First full release.
 - Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
 - Any front for sale can be bought (six days of its income; the starter car wash is $25,000)
 - The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
-- Guards: hiring from the Broker's daily recruits, traits, ranks and experience, weapon upgrades, permanent death, memorial
+- Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
+- Weapon ladder: guards start with a knife and step up through six guns at Story Mode Ammu-Nation prices
+  (pistol, pump shotgun, micro SMG, SMG, assault rifle, carbine rifle); older saves keep each guard's gun
 - Fronts: buying the starter car wash, four upgrades (cameras, reinforced doors, floodlights, armory), defense and income bars
 - Rival crews: Crown Kings, Ironside MC and Velvet Syndicate, each with a named boss and three lieutenants
 - Attacks: cooldown by frequency, warning texts and taunts, attack window, auto-resolve, live defenses with convoys, timer bars,
