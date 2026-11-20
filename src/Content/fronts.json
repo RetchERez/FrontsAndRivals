@@ -2,6 +2,7 @@
   {
     "id": "carwash_handson",
     "name": "Hands On Car Wash",
+    "short": "Car Wash",
     "area": "Strawberry",
     "number": 1,
     "tier": 0,
@@ -19,6 +20,7 @@
   {
     "id": "liquor_brewersdrop",
     "name": "Brewer's Drop Liquor",
+    "short": "Liquor Store",
     "area": "Strawberry",
     "number": 2,
     "tier": 0,
@@ -32,6 +34,7 @@
   {
     "id": "jewelry_discountjewels",
     "name": "Discount Jewels",
+    "short": "Jewelers",
     "area": "Davis",
     "number": 3,
     "tier": 1,
@@ -50,6 +53,7 @@
   {
     "id": "bar_mirrorpark",
     "name": "Mirror Park Tavern",
+    "short": "Tavern",
     "area": "Mirror Park",
     "number": 4,
     "tier": 1,
@@ -68,6 +72,7 @@
   {
     "id": "autoshop_atomic",
     "name": "Atomic Service Center",
+    "short": "Auto Shop",
     "area": "Rancho",
     "number": 5,
     "tier": 2,
@@ -84,6 +89,7 @@
   {
     "id": "depot_fridgit",
     "name": "Fridgit Cold Storage",
+    "short": "Cold Storage",
     "area": "La Mesa",
     "number": 6,
     "tier": 2,

@@ -19,6 +19,7 @@ using GTA.Math;
 using LemonUI;
 using LemonUI.Elements;
 using LemonUI.Menus;
+using LemonUI.Scaleform;
 using FrontsAndRivals.Core;
 using FrontsAndRivals.Data;
 using FrontsAndRivals.Rules;
@@ -31,7 +32,6 @@ namespace FrontsAndRivals.UI
         private const int Rows = 8;
         private const float SectionsWidth = 380f, ListWidth = 500f, DetailWidth = 500f, Gap = 12f;
         private const string Open = "  ›";
-        private static readonly Color Accent = Color.FromArgb(255, 22, 112, 74); // the green of your front blips
 
         private enum Section { Overview, Fronts, Guards, Hire, Rivals, Settings }
 
@@ -83,10 +83,12 @@ namespace FrontsAndRivals.UI
             m.Width = width;
             m.Offset = new PointF(x, 0f);
             m.MaxItems = Rows;
-            var banner = new ScaledRectangle(PointF.Empty, new SizeF(width, 107f));
-            banner.Color = Accent;
-            m.Banner = banner;
+            // The game's own Interaction Menu banner texture, titled in GTA's menu font (Chalet), like Rockstar's menus.
+            m.Banner = new ScaledTexture(PointF.Empty, new SizeF(width, 107f), "commonmenu", "interaction_bgd");
+            m.BannerText.Font = GTA.UI.Font.ChaletLondon;
+            m.BannerText.Scale = 0.85f;
             m.RotateCamera = false;
+            m.MouseBehavior = MenuMouseBehavior.Disabled; // keyboard and controller only, like the Interaction Menu
             Pool.Add(m);
             return m;
         }
@@ -132,11 +134,14 @@ namespace FrontsAndRivals.UI
         private void Focus(int panel)
         {
             _focus = panel;
-            for (int i = 0; i < _panels.Length; i++)
-            {
-                _panels[i].AcceptsInput = i == panel;
-            }
+            for (int i = 0; i < _panels.Length; i++) _panels[i].AcceptsInput = i == panel;
             _letGoArmed = 0;
+            // Bottom-right control hints say exactly what each key does in this panel.
+            NativeMenu m = _panels[panel];
+            m.Buttons.Clear();
+            m.Buttons.Add(new InstructionalButton(panel == 2 ? "Select" : "Open", Control.FrontendAccept));
+            m.Buttons.Add(new InstructionalButton(panel == 0 ? "Close" : "Back", Control.FrontendCancel));
+            if (panel > 0) m.Buttons.Add(new InstructionalButton("Change", Control.FrontendRight));
         }
 
         /// <summary>Every tick, also while paused, so the menu never freezes.</summary>
@@ -213,7 +218,7 @@ namespace FrontsAndRivals.UI
             if (g.Status == GuardStatus.Injured) return "Injured";
             if (!g.IsPosted) return "Reserve";
             FrontDef def = _content.Front(g.Front);
-            return (def != null ? def.Name : g.Front) + " " + (g.Post + 1);
+            return (def != null ? def.ShortName : g.Front) + " " + (g.Post + 1);
         }
 
         private static string Short(GuardState g) { return g.First + " \"" + g.Nick + "\""; }
@@ -536,7 +541,7 @@ namespace FrontsAndRivals.UI
                     GuardState there = e.AtPost(def.Id, post);
                     if (g.Front == def.Id && g.Post == post) selected = labels.Count;
                     targets.Add(new KeyValuePair<string, int>(def.Id, post));
-                    labels.Add(def.Name + " " + (post + 1) + (there != null && there != g ? " (swap " + there.First + ")" : ""));
+                    labels.Add(def.ShortName + " " + (post + 1) + (there != null && there != g ? " (swap " + there.First + ")" : ""));
                 }
             }
             var postItem = new NativeListItem<string>("Post", "Where this guard stands. Left and right to change. Picking an occupied post swaps the two.", labels.ToArray());

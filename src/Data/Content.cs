@@ -56,6 +56,10 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "ownerSpot", Order = 8)] public Spot OwnerSpot;
         [DataMember(Name = "posts", Order = 9)] public List<PostDef> Posts;
         [DataMember(Name = "convoySpawns", Order = 10)] public List<Spot> ConvoySpawns;
+        /// <summary>Short label for tight spots in menus, e.g. "Car Wash".</summary>
+        [DataMember(Name = "short", Order = 11)] public string Short;
+
+        public string ShortName { get { return string.IsNullOrEmpty(Short) ? Name : Short; } }
 
         /// <summary>A front can be streamed once it has a door and at least one post.</summary>
         public bool IsScouted { get { return Door != null && Door.IsSet && Posts != null && Posts.Count > 0; } }
@@ -216,9 +220,23 @@ namespace FrontsAndRivals.Data
         private static FrontDef Def(string id, string name, string area, int number, int tier, int income, string owner,
                                     float x, float y, float z, float h)
         {
-            var f = new FrontDef { Id = id, Name = name, Area = area, Number = number, Tier = tier, Income = income, StartOwner = owner, Door = Spot.At(x, y, z, h) };
+            var f = new FrontDef { Id = id, Name = name, Short = ShortFor(id), Area = area, Number = number, Tier = tier, Income = income, StartOwner = owner, Door = Spot.At(x, y, z, h) };
             f.Normalize();
             return f;
+        }
+
+        private static string ShortFor(string id)
+        {
+            switch (id)
+            {
+                case "carwash_handson": return "Car Wash";
+                case "liquor_brewersdrop": return "Liquor Store";
+                case "jewelry_discountjewels": return "Jewelers";
+                case "bar_mirrorpark": return "Tavern";
+                case "autoshop_atomic": return "Auto Shop";
+                case "depot_fridgit": return "Cold Storage";
+                default: return null;
+            }
         }
 
         public static NamesFile DefaultNames()
@@ -253,7 +271,7 @@ namespace FrontsAndRivals.Data
             {
                 FrontDef f = fronts[i];
                 sb.Append("  {\r\n");
-                Field(sb, "id", Str(f.Id)); Field(sb, "name", Str(f.Name)); Field(sb, "area", Str(f.Area));
+                Field(sb, "id", Str(f.Id)); Field(sb, "name", Str(f.Name)); Field(sb, "short", Str(f.ShortName)); Field(sb, "area", Str(f.Area));
                 Field(sb, "number", Int(f.Number)); Field(sb, "tier", Int(f.Tier)); Field(sb, "income", Int(f.Income));
                 Field(sb, "startOwner", Str(f.StartOwner));
                 Field(sb, "door", SpotJson(f.Door)); Field(sb, "ownerSpot", SpotJson(f.OwnerSpot));
