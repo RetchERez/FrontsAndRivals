@@ -47,6 +47,9 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "notifyLevel", Order = 26)] public string NotifyLevel;
         [DataMember(Name = "liveDefenseOff", Order = 27)] public bool LiveDefenseOff;
         [DataMember(Name = "soundOff", Order = 28)] public bool SoundOff;
+        [DataMember(Name = "guardsRecover", Order = 29)] public bool GuardsRecover; // Office: deaths become injuries
+        [DataMember(Name = "routeOff", Order = 30)] public bool RouteOff;           // Office: no GPS route to attacks
+        [DataMember(Name = "ruledAll", Order = 31)] public bool RuledAll;           // held every front at least once
     }
 
     [DataContract]

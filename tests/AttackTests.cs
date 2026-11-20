@@ -196,7 +196,11 @@ static class AttackTests
         dck.Manpower = 10; dck.Grudge = 20; dck.LastContactDay = 0; ds.Day = 1;
         int ckHeld = ds.Fronts.FindAll(x => x.Owner == "CK").Count;
         Nemesis.Daily(ds, 1);
-        T.Check("Manpower grows by 1 per front the crew holds", dck.Manpower, 10 + ckHeld, 0);
+        T.Check("Manpower grows by 2 plus 1 per front the crew holds", dck.Manpower, 10 + 2 + ckHeld, 0);
+        T.True("A crew with no fronts recruits 4 a night to fight back", Nemesis.StreetRecruits(0) == 4 && Nemesis.StreetRecruits(3) == 5);
+        T.Check("Defending in person pays a day of takings", Economy.DefendBonus(7000, 1.0), 7000, 0);
+        T.Check("...scaled by the income multiplier", Economy.DefendBonus(7000, 0.5), 3500, 0);
+        T.True("The crew waits for you once if you're under 1 km away", Attacks.OnTheWayRange == 1000f && Attacks.OnTheWayMs == 90000);
         T.Check("No contact today: grudge -5", dck.Grudge, 15, 0);
         dck.Manpower = 19; Nemesis.Daily(ds, 2);
         T.Check("Manpower caps at 20", dck.Manpower, 20, 0);

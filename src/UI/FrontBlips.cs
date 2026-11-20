@@ -1,6 +1,7 @@
 // Fronts & Rivals: map blips. Business icon for every front:
 //   yours: green, short range on the minimap        threatened (warning text sent): yellow, flashing
 //   under attack: red, flashing, with a red radius ring     rival-held: the crew's colour (Map > ShowRivalFronts)
+// A threatened or attacked front also gets a GPS route, unless Office > Settings > Route to attacks is off.
 // States never rely on colour alone: threatened and under attack also flash, and under attack gets the ring.
 using System.Collections.Generic;
 using GTA;
@@ -44,7 +45,8 @@ namespace FrontsAndRivals.UI
                 b.Sprite = BlipSprite.Business;
                 b.Name = def.Name;
                 b.IsShortRange = want == "yours" || want.StartsWith("crew");
-                switch (want)
+                bool route = want.EndsWith("+route");
+                switch (route ? want.Substring(0, want.Length - 6) : want)
                 {
                     case "yours": b.Color = BlipColor.Green; break;
                     case "threat": b.Color = BlipColor.Yellow; b.IsFlashing = true; break;
@@ -61,6 +63,7 @@ namespace FrontsAndRivals.UI
                         b.Name = def.Name + (crew != null ? " (" + crew.Name + ")" : "");
                         break;
                 }
+                if (route) b.ShowRoute = true;
                 en.Blip = b;
             }
         }
@@ -72,7 +75,7 @@ namespace FrontsAndRivals.UI
             {
                 if (empire.State.HideBlips) return null;
                 if (attack != null && attack.Front == def.Id)
-                    return attack.Phase == AttackPhase.Warning ? "threat" : "attack";
+                    return (attack.Phase == AttackPhase.Warning ? "threat" : "attack") + (empire.State.RouteOff ? "" : "+route");
                 return "yours";
             }
             if (empire.State.HideBlips) return null;

@@ -126,6 +126,12 @@ namespace FrontsAndRivals.Rules
             return current >= DefenseRating.TopWeapon ? -1 : WeaponPrice(current + 1);
         }
 
+        /// <summary>The Broker's bonus for holding a front yourself in a live defense: one day of its takings.</summary>
+        public static int DefendBonus(int income, double incomeMultiplier)
+        {
+            return (int)Math.Round(Math.Max(0, income) * Math.Max(0.0, incomeMultiplier));
+        }
+
         /// <summary>Total to take one guard from a knife to the carbine rifle.</summary>
         public static int FullLadderPrice()
         {

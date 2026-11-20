@@ -273,7 +273,7 @@ namespace FrontsAndRivals.Core
         /// <summary>A streamed guard died in the world. Permanent death unless PermanentDeath=false.</summary>
         private void OnGuardDown(GuardState g, Ped body, FrontDef front)
         {
-            bool permanent = _config.PermanentDeath;
+            bool permanent = _empire.PermanentDeath(_config.PermanentDeath);
             _empire.GuardDown(g, "the " + front.Name, permanent, ActiveNow(), InjuryRecoveryMs);
             Log.Write("Guard " + g.Id + " " + g.FullName + (permanent ? " died" : " was injured") + " at " + front.Id);
             string text = permanent

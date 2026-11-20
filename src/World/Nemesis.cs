@@ -183,7 +183,11 @@ namespace FrontsAndRivals.Rules
             return Ev("rebuilt", "crew", def.Name, "leader", boss.DisplayName);
         }
 
-        /// <summary>One in-game midnight for the crews: manpower regrows by 1 per front they hold (max 20);
+        /// <summary>New soldiers a crew finds each midnight: 2 off the street plus 1 per front it holds.
+        /// A crew with no fronts recruits hard (4 a night) to fight its way back, so the city never goes quiet.</summary>
+        public static int StreetRecruits(int frontsHeld) { return frontsHeld <= 0 ? 4 : 2 + frontsHeld; }
+
+        /// <summary>One in-game midnight for the crews: manpower regrows (StreetRecruits, max 20);
         /// grudge decays by 5 for crews that had no contact today.</summary>
         public static void Daily(EmpireState s, int day)
         {
@@ -191,7 +195,7 @@ namespace FrontsAndRivals.Rules
             {
                 int held = 0;
                 foreach (FrontState f in s.Fronts) if (f.Owner == c.Id) held++;
-                c.Manpower = Math.Min(MaxManpower, c.Manpower + held);
+                c.Manpower = Math.Min(MaxManpower, c.Manpower + StreetRecruits(held));
                 if (c.LastContactDay < day) AddGrudge(c, -GrudgeDailyDecay);
             }
         }

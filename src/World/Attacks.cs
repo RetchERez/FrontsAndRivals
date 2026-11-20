@@ -16,6 +16,8 @@ namespace FrontsAndRivals.Rules
         public const long WindowMs = 3 * Minute;                   // the attack window lasts 3 real minutes
         public const double PlanChancePerMinute = 0.25;
         public const float LiveRange = 300f;                       // inside this during the window: live defense
+        public const float OnTheWayRange = 1000f;                  // this close when the window closes: the crew waits for you
+        public const long OnTheWayMs = 90000;                      // ...once, for 90 more seconds
 
         /// <summary>Cooldown in ms for a frequency name, or -1 when attacks are off.</summary>
         public static long CooldownMs(string frequency)

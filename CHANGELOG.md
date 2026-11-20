@@ -12,6 +12,13 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- The call to come defend: every warning tells you when the hit lands and what holding the door pays (one day of the
+  front's takings), with a GPS route to the front (Office setting); if you're within 1 km when the window closes, the crew
+  waits 90 more seconds for you
+- Guards switch to a newly bought gun on the spot
+- The endgame: crews recruit off the street every night (4 a night with no fronts), so they always come back for what you took;
+  holding every front in the city gets its own moment
+- Permanent death can be switched off in the Office (deaths become two-day injuries)
 - Balance pass: a prepared front is now favoured (about 55-70%) and a neglected one loses; attack leaders add less
   (lieutenant +10, boss +30), wages are $300-$1,200, fronts cost five days of income, reinforced doors give +20 for $20,000,
   the Broker sends 4 recruits a day, the roster holds 60, and empire pressure never brings attacks closer than 20 minutes

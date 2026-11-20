@@ -247,6 +247,9 @@ namespace FrontsAndRivals.Rules
             g.Post = GuardState.Reserve;
         }
 
+        /// <summary>Is permanent death on? The INI must allow it and the Office's switch must not have turned it off.</summary>
+        public bool PermanentDeath(bool iniPermanentDeath) { return iniPermanentDeath && !State.GuardsRecover; }
+
         /// <summary>Permanent death (or an injury when PermanentDeath=false). The guard leaves the post either way.</summary>
         public void GuardDown(GuardState g, string where, bool permanentDeath, long nowActiveMs, long recoveryMs)
         {

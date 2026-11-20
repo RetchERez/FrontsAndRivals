@@ -87,6 +87,11 @@ static class EconomyTests
 
         GuardState g = s2.Guards[0];
         T.True("New hire carries a knife", g.Weapon == (int)Weapon.Knife);
+        T.True("Permanent death: INI on and Office on", e2.PermanentDeath(true));
+        s2.GuardsRecover = true;
+        T.True("Office switch turns it off", !e2.PermanentDeath(true));
+        s2.GuardsRecover = false;
+        T.True("INI off can't be overridden on", !e2.PermanentDeath(false));
         e2.UpgradeWeapon(g);
         T.True("Weapon upgrade: knife -> pistol, next is the shotgun", g.Weapon == (int)Weapon.Pistol && e2.WeaponUpgradePrice(g) == 1500);
         for (int i = 0; i < 10; i++) e2.UpgradeWeapon(g);

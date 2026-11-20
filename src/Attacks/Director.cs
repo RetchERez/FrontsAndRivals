@@ -56,6 +56,7 @@ namespace FrontsAndRivals.Attacks
         public bool ForceRequested { get { return _forceRequested; } }
 
         private EmpireState State { get { return _empire().State; } }
+        private AttackState _waited; // the attack that already waited for you once
 
         private string Frequency { get { string f = State.Frequency; return string.IsNullOrEmpty(f) ? _config.Frequency.ToString() : f; } }
 
@@ -108,6 +109,15 @@ namespace FrontsAndRivals.Attacks
                 bool liveOn = _config.LiveDefense && !State.LiveDefenseOff;
                 bool near = liveOn && front.IsScouted && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.LiveRange;
                 if (near && _liveFailed != a && StartLive(e, a, front)) return;
+                if (now >= a.WindowEnds && liveOn && _waited != a && front.IsScouted
+                    && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.OnTheWayRange)
+                {
+                    // You're on your way: the crew gathers outside a little longer, once.
+                    _waited = a;
+                    a.WindowEnds = now + Rules.Attacks.OnTheWayMs;
+                    CrewDef waiting = _content.Crew(a.Crew);
+                    GTA.UI.Screen.ShowSubtitle("The ~r~" + (waiting != null ? waiting.Name : "crew") + "~s~ are gathering outside the " + front.ShortName + ". Get there.", 6000);
+                }
                 if (now >= a.WindowEnds) FinishAuto(e, a, front, hour, now, null, 0);
             }
             else if (a.Phase == AttackPhase.Live && !_live.Active)
@@ -161,6 +171,15 @@ namespace FrontsAndRivals.Attacks
             var tokens = Tokens(crew, front, leader, null);
             _notifierPost(NoteKind.AttackWarning, "Street word", front.ShortName, _content.Lines.Pick(_rng(), "warning", tokens));
             Sounds.Play(Cue.AttackWarning);
+            if (_config.LiveDefense && !s.LiveDefenseOff)
+            {
+                // The call to come defend: when, where, and what it pays to be there.
+                int hitHour = (hour + (int)Math.Max(1, (a.WarnEnds - now) / Rules.Attacks.GameHourMs)) % 24;
+                int defendBonus = Economy.DefendBonus(front.Income, _config.IncomeMultiplier);
+                _notifierPost(NoteKind.AttackWarning, "The Office", "Get to the " + front.ShortName,
+                    "They hit around " + hitHour.ToString("00") + ":00. Be there and hold the door yourself: the Broker pays $" + defendBonus.ToString("N0") + " for it."
+                    + (s.RouteOff ? "" : " Route's on your GPS."));
+            }
             if (leader.LeaderTrait == LeaderTrait.Showboat)
                 _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(_rng(), "taunt", tokens));
             Nemesis.Crew(s, a.Crew).LastMove = "Planning a hit on your " + front.ShortName;
@@ -233,7 +252,7 @@ namespace FrontsAndRivals.Attacks
             var guards = new List<GuardState>();
             foreach (GuardState g in s.Guards) if (g.Front == a.Front && g.Status == GuardStatus.Active) guards.Add(g);
 
-            Rules.Attacks.Outcome o = Rules.Attacks.Resolve(s, _content, e, a, _rng(), hour, now, _config.PermanentDeath, _config.ProtectedMode,
+            Rules.Attacks.Outcome o = Rules.Attacks.Resolve(s, _content, e, a, _rng(), hour, now, e.PermanentDeath(_config.PermanentDeath), _config.ProtectedMode,
                 won, r.AttackersLost, InjuryRecoveryMs);
             // Live rewards: 2 XP per surviving guard (Resolve already gave 1).
             if (won) foreach (GuardState g in guards) if (g.Status == GuardStatus.Active) { g.Xp++; Rules.Attacks.Promote(g); }
@@ -270,7 +289,7 @@ namespace FrontsAndRivals.Attacks
             CrewState cs = Nemesis.Crew(s, a.Crew);
             CrewDef crew = _content.Crew(a.Crew);
             CrewMember leader = cs != null ? cs.Member(a.Leader) : null;
-            Rules.Attacks.Outcome o = Rules.Attacks.Resolve(s, _content, e, a, _rng(), hour, now, _config.PermanentDeath, _config.ProtectedMode, live, lost, InjuryRecoveryMs);
+            Rules.Attacks.Outcome o = Rules.Attacks.Resolve(s, _content, e, a, _rng(), hour, now, e.PermanentDeath(_config.PermanentDeath), _config.ProtectedMode, live, lost, InjuryRecoveryMs);
             Report(e, a, front, crew, leader, o, false);
         }
 
@@ -285,7 +304,13 @@ namespace FrontsAndRivals.Attacks
             if (o.DefendersWon)
             {
                 _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " held", _content.Lines.Pick(rng, "held", tokens));
-                if (wasThere) _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ".");
+                if (wasThere)
+                {
+                    int bonus = Economy.DefendBonus(front.Income, _config.IncomeMultiplier);
+                    Game.Player.Money += bonus;
+                    _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ". The Broker pays you $" + bonus.ToString("N0") + ".");
+                    Log.Write("Director: defended in person, bonus $" + bonus);
+                }
                 Sounds.Play(Cue.FrontDefended);
                 if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat && leader.Alive)
                     _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(rng, "tauntAfterLoss", tokens));
@@ -384,7 +409,14 @@ namespace FrontsAndRivals.Attacks
             CrewDef crew = _content.Crew(_claimCrew);
             Rules.Attacks.TakeFront(e.State, e, fs, _claimCrew);
             _claimFront = null;
-            _banners.Show("FRONT TAKEN", "The " + front.Name + " is yours.");
+            if (!e.State.RuledAll && Rules.Attacks.HeldCount(e.State) >= _content.Fronts.Count)
+            {
+                // The endgame moment. The crews still recruit off the street and will try to take it back.
+                e.State.RuledAll = true;
+                _banners.Show("LOS SANTOS IS YOURS", "Every front in the city answers to you. The crews won't stay gone.");
+                Log.Write("Director: player holds every front");
+            }
+            else _banners.Show("FRONT TAKEN", "The " + front.Name + " is yours.");
             Sounds.Play(Cue.FrontTaken);
             _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
             Log.Write("Director: player took " + front.Id + " from " + crew.Name);

@@ -28,6 +28,7 @@ namespace FrontsAndRivals.Spawn
         private sealed class Slot
         {
             public int GuardId;          // your guard's id, or -1 for a crew soldier, 0 for none
+            public int Weapon = -1;      // the Rules.Weapon this ped was handed
             public Ped Ped;
             public Ped Body;             // a dead body, removed when the front streams out
             public bool Pending;
@@ -235,6 +236,13 @@ namespace FrontsAndRivals.Spawn
                         _registry.Despawn(slot.Ped);
                         slot.Ped = null;
                     }
+                    else if (g != null && slot.Weapon != g.Weapon)
+                    {
+                        // A new gun was bought in the Office: hand it over on the spot, no respawn.
+                        slot.Ped.Weapons.RemoveAll();
+                        slot.Ped.Weapons.Give(WeaponFor(g.Weapon), 250, f.Def.Id == LiveFrontId, true);
+                        slot.Weapon = g.Weapon;
+                    }
                 }
 
                 if (slot.Ped != null || wantId == 0) { CancelPending(slot); continue; }
@@ -253,6 +261,7 @@ namespace FrontsAndRivals.Spawn
             slot.GuardId = g.Id;
             ped.Armor = 0;
             ped.Weapons.Give(WeaponFor(g.Weapon), 250, fighting, true);
+            slot.Weapon = g.Weapon;
             Function.Call(Hash.SET_PED_CAN_BE_TARGETTED_BY_PLAYER, ped, Game.Player, false);
             Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
             if (fighting)

@@ -11,6 +11,8 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
+- The call to come defend: warnings say when the hit lands and what defending it yourself pays, with a GPS route
+- Crews never die out: they recruit off the street every night and come back for what you took
 - A weapon ladder: every guard starts with a knife and is armed one gun at a time, each a big step up:
   pistol $750 (x1.0), pump shotgun $1,500 (x1.3), SMG $3,000 (x1.6), carbine rifle $6,000 (x2.0); the knife is x0.6
 - Three original crews (Crown Kings, Ironside MC, Velvet Syndicate), each with a named boss and three lieutenants

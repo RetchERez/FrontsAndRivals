@@ -262,7 +262,7 @@ namespace FrontsAndRivals.UI
             int maxGrudge = 0;
             foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
             AddSection("Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge + Open);
-            AddSection("Settings", "Attacks, turf moves, notifications, sound and map blips.", Open.Trim());
+            AddSection("Settings", "Attacks, turf moves, notifications, sound, routes, permanent death and map blips.", Open.Trim());
         }
 
         private NativeItem AddSection(string title, string description, string badge)
@@ -455,6 +455,16 @@ namespace FrontsAndRivals.UI
             sfx.Enabled = _config.SoundEffects;
             sfx.CheckboxChanged += (s, a) => { e.State.SoundOff = !sfx.Checked; Changed(false); if (sfx.Checked) Sounds.Play(Cue.Purchase); };
             AddListRow(sfx, null, false);
+
+            var route = new NativeCheckboxItem("Route to attacks", "When a warning comes in, your GPS shows the way to the threatened front.", !e.State.RouteOff);
+            route.CheckboxChanged += (s, a) => { e.State.RouteOff = !route.Checked; Changed(true); };
+            AddListRow(route, null, false);
+
+            var death = new NativeCheckboxItem("Permanent death", "On: a guard killed at their post is gone for good. Off: they're hurt and back in two days.",
+                e.PermanentDeath(_config.PermanentDeath));
+            death.Enabled = _config.PermanentDeath && !_config.ProtectedMode;
+            death.CheckboxChanged += (s, a) => { e.State.GuardsRecover = !death.Checked; Changed(false); };
+            AddListRow(death, null, false);
 
             var blips = new NativeCheckboxItem("Map blips", "Show fronts on the map and minimap.", !e.State.HideBlips);
             blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
