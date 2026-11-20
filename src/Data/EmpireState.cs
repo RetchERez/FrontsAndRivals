@@ -22,6 +22,17 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "fronts", Order = 7)] public List<FrontState> Fronts = new List<FrontState>();
         [DataMember(Name = "guards", Order = 8)] public List<GuardState> Guards = new List<GuardState>();
         [DataMember(Name = "nextGuardId", Order = 9)] public int NextGuardId = 1;
+        /// <summary>In-game days counted since the empire started.</summary>
+        [DataMember(Name = "day", Order = 10)] public int Day;
+        /// <summary>Game calendar date (yyyy-MM-dd) when midnights were last processed.</summary>
+        [DataMember(Name = "lastGameDate", Order = 11)] public string LastGameDate;
+        /// <summary>Today's recruits from the Broker (not on the roster until hired).</summary>
+        [DataMember(Name = "offers", Order = 12)] public List<GuardState> Offers = new List<GuardState>();
+        [DataMember(Name = "offersDay", Order = 13)] public int OffersDay = -1;
+        /// <summary>Settings screen: attack frequency override (null = use the INI) and map blips.</summary>
+        [DataMember(Name = "frequency", Order = 14)] public string Frequency;
+        [DataMember(Name = "hideBlips", Order = 15)] public bool HideBlips;
+        [DataMember(Name = "lastIncome", Order = 16)] public int LastNet;
     }
 
     [DataContract]

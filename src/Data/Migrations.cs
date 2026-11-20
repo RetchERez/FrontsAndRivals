@@ -23,6 +23,7 @@ namespace FrontsAndRivals.Data
             if (s.Fronts == null) s.Fronts = new List<FrontState>();
             if (s.Guards == null) s.Guards = new List<GuardState>();
             if (s.NextGuardId < 1) s.NextGuardId = 1;
+            if (s.Offers == null) { s.Offers = new List<GuardState>(); s.OffersDay = -1; }
             foreach (GuardState g in s.Guards)
             {
                 if (string.IsNullOrEmpty(g.Status)) g.Status = GuardStatus.Active;

@@ -87,17 +87,127 @@ namespace FrontsAndRivals.Rules
             return null;
         }
 
+        public enum HireResult { Ok, NotEnoughCash, RosterFull, ReserveFull, Gone }
+
+        /// <summary>Every trait a recruit can roll (every recruit has exactly one).</summary>
+        public static readonly Trait[] RecruitTraits =
+        {
+            Trait.Sharpshooter, Trait.Tough, Trait.Hothead, Trait.NightOwl, Trait.Lookout, Trait.Medic, Trait.Loyal, Trait.Nervous
+        };
+
+        /// <summary>The Broker's offers for the day: new faces each day, unhired ones are gone.</summary>
+        public void RefreshOffers(Random rng, int day)
+        {
+            _s.Offers.Clear();
+            for (int i = 0; i < Economy.RecruitsPerDay; i++)
+            {
+                GuardState g = NewGuard(rng);
+                g.Id = 0; // gets a real id when hired
+                g.Trait = (int)RecruitTraits[rng.Next(RecruitTraits.Length)];
+                _s.Offers.Add(g);
+            }
+            _s.OffersDay = day;
+        }
+
+        public int OfferPrice(GuardState offer) { return Economy.HirePrice((Trait)offer.Trait); }
+
+        /// <summary>Hires one of today's offers. The caller takes the returned price from the player's cash.</summary>
+        public HireResult Hire(GuardState offer, long cash, out int price)
+        {
+            price = 0;
+            if (offer == null || !_s.Offers.Contains(offer)) return HireResult.Gone;
+            price = OfferPrice(offer);
+            if (cash < price) return HireResult.NotEnoughCash;
+            if (LivingCount() >= MaxRoster) return HireResult.RosterFull;
+            if (ReserveCount() >= MaxReserve) return HireResult.ReserveFull;
+            _s.Offers.Remove(offer);
+            offer.Id = _s.NextGuardId++;
+            offer.Front = null;
+            offer.Post = GuardState.Reserve;
+            offer.Status = GuardStatus.Active;
+            _s.Guards.Add(offer);
+            return HireResult.Ok;
+        }
+
+        /// <summary>Lets a guard go. They leave the roster for good.</summary>
+        public void LetGo(GuardState g)
+        {
+            if (g != null) _s.Guards.Remove(g);
+        }
+
+        /// <summary>Price of the next weapon tier for this guard, or -1 if they already carry a rifle.</summary>
+        public int WeaponUpgradePrice(GuardState g) { return g == null ? -1 : Economy.UpgradePrice((Weapon)g.Weapon); }
+
+        public void UpgradeWeapon(GuardState g)
+        {
+            if (g != null && g.Weapon < (int)Weapon.Rifle) g.Weapon++;
+        }
+
+        /// <summary>Buying only works for fronts that are for sale (the starter car wash).</summary>
+        public bool CanBuy(string frontId) { return OwnerOf(frontId) == Owners.ForSale; }
+
+        /// <summary>A front's defense rating right now (design doc formula). Upgrades arrive in milestone 8.</summary>
+        public double Defense(string frontId, int hour)
+        {
+            var posted = new List<GuardRecord>();
+            foreach (GuardState g in _s.Guards)
+            {
+                if (g.Front != frontId || g.Status == GuardStatus.Dead) continue;
+                posted.Add(new GuardRecord
+                {
+                    Name = g.First, Rank = (Rank)g.Rank, Weapon = (Weapon)g.Weapon, Trait = (Trait)g.Trait,
+                    Injured = g.Status == GuardStatus.Injured
+                });
+            }
+            return DefenseRating.Compute(posted, new FrontUpgrades(), hour);
+        }
+
+        public int OwnedCount()
+        {
+            int n = 0;
+            foreach (FrontState f in _s.Fronts) if (f.Owner == Owners.Player) n++;
+            return n;
+        }
+
+        /// <summary>Daily income from owned fronts, before multipliers.</summary>
+        public int DailyIncome()
+        {
+            int n = 0;
+            foreach (FrontState f in _s.Fronts)
+            {
+                if (f.Owner != Owners.Player) continue;
+                FrontDef def = _content.Front(f.Id);
+                if (def != null) n += def.Income;
+            }
+            return n;
+        }
+
+        public int DailyWages()
+        {
+            int n = 0;
+            foreach (GuardState g in _s.Guards) if (g.Status != GuardStatus.Dead) n += Economy.Wage((Rank)g.Rank);
+            return n;
+        }
+
         /// <summary>A new recruit with a name and a face. Returns null if the roster or reserve is full.</summary>
         public GuardState Recruit(Random rng)
         {
             if (LivingCount() >= MaxRoster || ReserveCount() >= MaxReserve) return null;
+            GuardState g = NewGuard(rng);
+            g.Id = _s.NextGuardId++;
+            _s.Guards.Add(g);
+            return g;
+        }
+
+        private GuardState NewGuard(Random rng)
+        {
             NamesFile names = _content.Names;
             ModelsFile models = _content.Models;
             bool female = models.GuardsFemale.Count > 0
                 && rng.Next(models.GuardsMale.Count + models.GuardsFemale.Count) >= models.GuardsMale.Count;
             var g = new GuardState
             {
-                Id = _s.NextGuardId++,
+                Id = 0,
                 First = Pick(rng, female ? names.FemaleNames : names.MaleNames),
                 Nick = Pick(rng, names.Nicknames),
                 Last = Pick(rng, names.Surnames),
@@ -109,7 +219,6 @@ namespace FrontsAndRivals.Rules
                 Front = null,
                 Post = GuardState.Reserve
             };
-            _s.Guards.Add(g);
             return g;
         }
 

@@ -32,6 +32,9 @@ namespace FrontsAndRivals.Core
         private readonly Streamer _streamer;
         private readonly DevTools _dev;
         private readonly AutoPostPlacer _placer = new AutoPostPlacer();
+        private readonly OfficeMenu _office;
+        private readonly object _phone; // PhoneContact, held as object so a missing iFruitAddon2.dll can't break Main
+        private readonly Keys _officeKey = Keys.None;
         private readonly AutoScout _autoScout;
         private readonly FailureWindow _tickFailures = new FailureWindow();
 
@@ -64,6 +67,18 @@ namespace FrontsAndRivals.Core
             _content = new ContentDb(dataDir, Log.Write);
             _content.Load(); // files only, no game calls
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
+            _office = new OfficeMenu(_content, () => _empire, () => _rng, WorldChanged, SaveNow);
+
+            try { _phone = PhoneHost.TryCreate(() => _office.Open()); Log.Write("Phone contact \"The Office\" added"); }
+            catch (Exception ex) { _phone = null; Log.Write("Phone contact unavailable (is iFruitAddon2 installed?): " + ex.GetType().Name + ": " + ex.Message); }
+
+            Keys key;
+            if (!string.IsNullOrEmpty(_config.OfficeHotkey) && !_config.OfficeHotkey.Equals("None", StringComparison.OrdinalIgnoreCase))
+            {
+                if (Enum.TryParse(_config.OfficeHotkey, true, out key)) { _officeKey = key; Log.Write("Office hotkey: " + key); }
+                else Log.Write("Config: OfficeHotkey '" + _config.OfficeHotkey + "' is not a key name, no hotkey");
+            }
+            KeyDown += OnKeyDown;
 
             if (_config.DevTools)
             {
@@ -72,12 +87,14 @@ namespace FrontsAndRivals.Core
                 new ScoutMenu(_dev, _content, () => _empire, () => _rng, WorldChanged, () => _gate, _placer, _autoScout);
                 _dev.ExtraStatus = () => "streams in " + _streamer.StreamIns + " / out " + _streamer.StreamOuts
                                        + "   leftovers " + _streamer.Leftovers;
-                KeyDown += OnKeyDown;
                 Log.Write("DevTools on: F9 copies position, F10 opens the dev menu");
             }
 
             // Each system at its own rate (design doc: Background systems).
             _scheduler.Add("Notifier", "notifications", 0, () => _notifier.Update(), runWhilePaused: true);
+            _scheduler.Add("Office", "the Office menu", 0, () => _office.Process(), runWhilePaused: true);
+            if (_phone != null) _scheduler.Add("Phone", "the phone contact", 0, () => PhoneHost.Update(_phone), runWhilePaused: true);
+            _scheduler.Add("Clock", "income and recruits", 2000, ClockTick);
             if (_dev != null)
             {
                 _scheduler.Add("DevUI", "dev tools", 0, () => _dev.Draw(_gate), runWhilePaused: true);
@@ -270,9 +287,53 @@ namespace FrontsAndRivals.Core
 
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
-            if (_shutDown || _dev == null) return;
-            try { _dev.OnKeyDown(e.KeyCode); }
-            catch (Exception ex) { Log.Error("DevTools key", ex); }
+            if (_shutDown) return;
+            try
+            {
+                if (_officeKey != Keys.None && e.KeyCode == _officeKey) _office.Toggle();
+                else if (_dev != null) _dev.OnKeyDown(e.KeyCode);
+            }
+            catch (Exception ex) { Log.Error("Key " + e.KeyCode, ex); }
+        }
+
+        /// <summary>Every 2 s of free roam: process in-game midnights (wages, then income, one feed message)
+        /// and the Broker's morning recruits. Skipped midnights (sleep, switches) pay up to 3.</summary>
+        private void ClockTick()
+        {
+            if (_empire == null) return;
+            DateTime date = GTA.World.CurrentDate;
+            int nights = GameCalendar.MidnightsSince(_state.LastGameDate, date);
+            bool first = _state.LastGameDate == null;
+            _state.LastGameDate = GameCalendar.Stamp(date);
+            bool changed = first;
+
+            for (int i = 0; i < nights; i++)
+            {
+                _state.Day++;
+                Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
+                foreach (GuardState q in pay.Quit)
+                {
+                    Log.Write("Midnight: " + q.FullName + " quit over unpaid wages");
+                    Notifier.Post("CHAR_DEFAULT", q.First + " \"" + q.Nick + "\"", "Unpaid", "No money, no me. I'm out.");
+                }
+                if (pay.Income == 0 && pay.Wages == 0) continue;
+                Game.Player.Money += pay.Net;
+                _state.LastNet = pay.Net;
+                Log.Write("Midnight day " + _state.Day + ": income " + pay.Income + ", wages " + pay.Wages + ", net " + pay.Net);
+                Notifier.Post("CHAR_DEFAULT", "The Office", "Midnight take",
+                    "Fronts brought in $" + pay.Income.ToString("N0") + ". Wages $" + pay.Wages.ToString("N0") + ". Net " + (pay.Net < 0 ? "-$" : "$") + Math.Abs(pay.Net).ToString("N0") + ".");
+                changed = true;
+            }
+            if (nights > 0) WorldChanged(); // quitters leave their posts
+
+            // The Broker's recruits: a fresh set each morning from 06:00, and right away on a brand-new empire.
+            if (_state.OffersDay < 0 || (_state.OffersDay != _state.Day && GTA.World.CurrentTimeOfDay.Hours >= 6))
+            {
+                _empire.RefreshOffers(_rng, _state.Day);
+                Log.Write("Broker: " + _state.Offers.Count + " new recruits for day " + _state.Day);
+                changed = true;
+            }
+            if (changed) SaveNow();
         }
 
         private void OnAborted(object sender, EventArgs e)

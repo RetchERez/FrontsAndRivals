@@ -19,7 +19,7 @@ namespace FrontsAndRivals.UI
             if (empire == null) return;
             foreach (FrontDef def in content.Fronts)
             {
-                bool show = def.Door.IsSet && empire.PlayerOwns(def.Id);
+                bool show = def.Door.IsSet && empire.PlayerOwns(def.Id) && !empire.State.HideBlips;
                 Blip blip;
                 bool has = _blips.TryGetValue(def.Id, out blip) && blip != null && blip.Exists();
                 if (show && !has)

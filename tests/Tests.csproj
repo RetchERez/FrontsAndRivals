@@ -22,5 +22,6 @@
     <Compile Include="../src/World/Empire.cs" />
     <Compile Include="../src/Spawn/StreamRules.cs" />
     <Compile Include="../src/Spawn/AutoPosts.cs" />
+    <Compile Include="../src/World/Economy.cs" />
   </ItemGroup>
 </Project>
