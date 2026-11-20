@@ -13,7 +13,8 @@ First full release.
 - Fronts: buying the starter car wash, four upgrades (cameras, reinforced doors, floodlights, armory), defense and income bars
 - Rival crews: Crown Kings, Ironside MC and Velvet Syndicate, each with a named boss and three lieutenants
 - Attacks: cooldown by frequency, warning texts and taunts, attack window, auto-resolve, live defenses with convoys, timer bars,
-  door integrity, a fleeing leader, police response, red blips on attackers on foot, a 6-minute cap, and a hand-off to auto-resolve\n  if you die, leave or a mission starts (the whole squad is resolved if the convoy never arrived)
+  door integrity, a fleeing leader, police response, red blips on attackers on foot, a 6-minute cap, and a hand-off to auto-resolve
+  if you die, leave or a mission starts (the whole squad is resolved if the convoy never arrived)
 - Guard posts: on walkable outdoor ground, off roads, same floor as the door, in sight of the door, on solid ground with clear headroom
 - Taking fronts: clear a crew front's soldiers and claim the door
 - Nemesis loop: rep, scars, return texts, promotions, boss succession, collapse and rebuild
