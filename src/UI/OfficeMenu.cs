@@ -38,6 +38,7 @@ namespace FrontsAndRivals.UI
         public readonly ObjectPool Pool = new ObjectPool();
 
         private readonly ContentDb _content;
+        private readonly Config _config;
         private readonly Func<Empire> _empire;
         private readonly Func<Random> _rng;
         private readonly Action _changed; // empire changed: streamer + blips + save
@@ -55,9 +56,10 @@ namespace FrontsAndRivals.UI
         private int _letGoArmed;
         private bool _rebuild;
 
-        public OfficeMenu(ContentDb content, Func<Empire> empire, Func<Random> rng, Action changed, Action save)
+        public OfficeMenu(ContentDb content, Config config, Func<Empire> empire, Func<Random> rng, Action changed, Action save)
         {
             _content = content;
+            _config = config;
             _empire = empire;
             _rng = rng;
             _changed = changed;
@@ -409,13 +411,37 @@ namespace FrontsAndRivals.UI
         {
             SetTitles(_list, "Settings", "HOW FRONTS & RIVALS BEHAVES");
             string[] freq = { "Off", "Low", "Normal", "High" };
-            var f = new NativeListItem<string>("Attack frequency", "How often rival crews come for your fronts. Left and right to change. Off stops attacks.", freq);
+            var f = new NativeListItem<string>("Attack frequency", "How often crews come for your fronts: Low every ~75 min, Normal ~45, High ~25. Off stops attacks.", freq);
             int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
             f.SelectedIndex = at < 0 ? 2 : at;
             f.ItemChanged += (s, a) => { e.State.Frequency = f.SelectedItem; Changed(false); };
             AddListRow(f, null, false);
 
-            var blips = new NativeCheckboxItem("Map blips", "Show your fronts on the map and minimap.", !e.State.HideBlips);
+            string turfAt = e.State.TurfFrequency ?? _config.TurfFrequency.ToString();
+            var turf = new NativeListItem<string>("Rival turf moves", "How often crews grab fronts for sale and fight each other at night. Off freezes the map.", freq);
+            int ta = Array.IndexOf(freq, turfAt);
+            turf.SelectedIndex = ta < 0 ? 2 : ta;
+            turf.ItemChanged += (s, a) => { e.State.TurfFrequency = turf.SelectedItem; Changed(false); };
+            AddListRow(turf, null, false);
+
+            string[] levels = { "All", "Important", "Minimal" };
+            var notes = new NativeListItem<string>("Notifications", "All: everything. Important: no taunts or street gossip. Minimal: attacks and fronts changing hands only.", levels);
+            int la = Array.IndexOf(levels, e.State.NotifyLevel ?? _config.NotifyLevel.ToString());
+            notes.SelectedIndex = la < 0 ? 0 : la;
+            notes.ItemChanged += (s, a) => { e.State.NotifyLevel = notes.SelectedItem; Changed(false); };
+            AddListRow(notes, null, false);
+
+            var live = new NativeCheckboxItem("Live defenses", "On: attacks become fights when you're within 300 m. Off: they always resolve on their own.", _config.LiveDefense && !e.State.LiveDefenseOff);
+            live.Enabled = _config.LiveDefense;
+            live.CheckboxChanged += (s, a) => { e.State.LiveDefenseOff = !live.Checked; Changed(false); };
+            AddListRow(live, null, false);
+
+            var sfx = new NativeCheckboxItem("Sound effects", "The game's own alert and cash sounds for attacks, purchases and the midnight take.", _config.SoundEffects && !e.State.SoundOff);
+            sfx.Enabled = _config.SoundEffects;
+            sfx.CheckboxChanged += (s, a) => { e.State.SoundOff = !sfx.Checked; Changed(false); if (sfx.Checked) Sounds.Play(Cue.Purchase); };
+            AddListRow(sfx, null, false);
+
+            var blips = new NativeCheckboxItem("Map blips", "Show fronts on the map and minimap.", !e.State.HideBlips);
             blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
             AddListRow(blips, null, false);
 
@@ -459,7 +485,7 @@ namespace FrontsAndRivals.UI
 
             if (owner == Owners.ForSale)
             {
-                NativeItem buy = Row("Buy from the Broker", (def.Starter ? "The starter price. " : "Six days of its takings. ") + "It's yours the moment you pay; then post guards here.", Money(Economy.FrontPrice(def)));
+                NativeItem buy = Row("Buy from the Broker", (def.Starter ? "The starter price. " : _config.FrontPriceDays + " days of its takings. ") + "It's yours the moment you pay; then post guards here.", Money(Economy.FrontPrice(def, _config.FrontPriceDays)));
                 buy.Activated += (s, a) => Safe("buy", () => BuyFront(e, def));
                 _detail.Add(buy);
             }
@@ -545,6 +571,7 @@ namespace FrontsAndRivals.UI
             {
                 if (Game.Player.Money < price) { GTA.UI.Notification.Show("You need " + Money(price) + " for " + name.ToLowerInvariant() + "."); return; }
                 Game.Player.Money -= price;
+                Sounds.Play(Cue.Purchase);
                 install();
                 Log.Write("Office: bought " + name + " at " + fs.Id);
                 Changed(true);
@@ -556,13 +583,14 @@ namespace FrontsAndRivals.UI
         {
             if (!e.CanBuy(def.Id)) return;
             Player p = Game.Player;
-            int price = Economy.FrontPrice(def);
+            int price = Economy.FrontPrice(def, _config.FrontPriceDays);
             if (p.Money < price)
             {
                 GTA.UI.Notification.Show("The Broker wants " + Money(price) + " for the " + def.Name + ".");
                 return;
             }
             p.Money -= price;
+            Sounds.Play(Cue.Purchase);
             e.SetOwner(def.Id, Owners.Player);
             Log.Write("Office: bought " + def.Id + " for " + price);
             Notifier.Post("CHAR_DEFAULT", "The Broker", def.Name, "It's yours. Put some people on it before somebody else gets ideas.");
@@ -616,6 +644,7 @@ namespace FrontsAndRivals.UI
                 if (cost <= 0) return;
                 if (Game.Player.Money < cost) { GTA.UI.Notification.Show("You need " + Money(cost) + " for that."); return; }
                 Game.Player.Money -= cost;
+                Sounds.Play(Cue.Purchase);
                 e.UpgradeWeapon(g);
                 Changed(true);
             });
@@ -713,6 +742,7 @@ namespace FrontsAndRivals.UI
             {
                 case Empire.HireResult.Ok:
                     Game.Player.Money -= price;
+                    Sounds.Play(Cue.Purchase);
                     Log.Write("Office: hired " + offer.FullName + " for " + price);
                     GTA.UI.Notification.Show("Hired " + Short(offer) + ". Post them from Fronts.");
                     Focus(1);

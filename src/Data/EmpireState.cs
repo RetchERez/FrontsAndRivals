@@ -42,6 +42,11 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "nextMemberId", Order = 22)] public int NextMemberId = 1;
         [DataMember(Name = "introSent", Order = 23)] public bool IntroSent;
         [DataMember(Name = "memorial", Order = 24)] public List<string> Memorial = new List<string>();
+        // Office Settings overrides (null/false = use the INI)
+        [DataMember(Name = "turfFrequency", Order = 25)] public string TurfFrequency;
+        [DataMember(Name = "notifyLevel", Order = 26)] public string NotifyLevel;
+        [DataMember(Name = "liveDefenseOff", Order = 27)] public bool LiveDefenseOff;
+        [DataMember(Name = "soundOff", Order = 28)] public bool SoundOff;
     }
 
     [DataContract]

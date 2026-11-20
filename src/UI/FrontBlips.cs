@@ -21,6 +21,7 @@ namespace FrontsAndRivals.UI
 
         private readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
         public bool ShowRivalFronts = true;
+        public bool ShowForSaleFronts = true;
 
         public void Refresh(Empire empire, ContentDb content)
         {
@@ -74,8 +75,9 @@ namespace FrontsAndRivals.UI
                     return attack.Phase == AttackPhase.Warning ? "threat" : "attack";
                 return "yours";
             }
-            if (empire.State.HideBlips || !ShowRivalFronts) return null;
-            if (owner == Owners.ForSale) return "forsale";
+            if (empire.State.HideBlips) return null;
+            if (owner == Owners.ForSale) return ShowForSaleFronts ? "forsale" : null;
+            if (!ShowRivalFronts) return null;
             return "crew:" + owner;
         }
 

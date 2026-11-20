@@ -326,7 +326,9 @@ namespace FrontsAndRivals.Spawn
             }
         }
 
-        private const float AlertOnFootRange = 35f, AlertShotRange = 80f;
+        /// <summary>INI Rivals.AlertRange: walking this close to a rival front's door on foot sets its soldiers on you.</summary>
+        public float AlertOnFootRange = 35f;
+        private const float AlertShotRange = 80f;
 
         /// <summary>Crew soldiers stay calm while you drive past. They turn on you when you walk up to their door,
         /// shoot nearby, or hurt one of them (or one of them was killed).</summary>

@@ -22,14 +22,28 @@ namespace FrontsAndRivals.Rules
             public bool Success;
         }
 
+        /// <summary>Chance per crew per night for a frequency name (Off/Low/Normal/High).</summary>
+        public static double ChanceFor(string frequency)
+        {
+            switch ((frequency ?? "Normal").ToLowerInvariant())
+            {
+                case "off": return 0;
+                case "low": return 0.10;
+                case "high": return 0.40;
+                default: return MoveChance;
+            }
+        }
+
+        public static List<Move> Nightly(EmpireState s, ContentDb content, Random rng) { return Nightly(s, content, rng, MoveChance); }
+
         /// <summary>One night of crews pushing for territory. Returns every move, successful or not.</summary>
-        public static List<Move> Nightly(EmpireState s, ContentDb content, Random rng)
+        public static List<Move> Nightly(EmpireState s, ContentDb content, Random rng, double moveChance)
         {
             var moves = new List<Move>();
             foreach (CrewState crew in s.Crews)
             {
                 if (Nemesis.IsQuiet(crew, s.Day) || crew.Manpower < MinManpowerToMove) continue;
-                if (rng.NextDouble() >= MoveChance) continue;
+                if (moveChance <= 0 || rng.NextDouble() >= moveChance) continue;
                 CrewDef def = content.Crew(crew.Id);
                 if (def == null) continue;
 

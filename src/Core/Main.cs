@@ -73,7 +73,11 @@ namespace FrontsAndRivals.Core
             _live = new LiveDefense(_registry, _streamer);
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
-            _office = new OfficeMenu(_content, () => _empire, () => _rng, EmpireChanged, SaveNow);
+            _notifier.UseSettings(NoteSettingsNow);
+            Sounds.Enabled = () => _config.SoundEffects && (_state == null || !_state.SoundOff);
+            _streamer.AlertOnFootRange = _config.RivalAlertRange;
+            _blips.ShowForSaleFronts = _config.ShowForSaleFronts;
+            _office = new OfficeMenu(_content, _config, () => _empire, () => _rng, EmpireChanged, SaveNow);
 
             try { _phone = PhoneHost.TryCreate(() => _office.OpenOffice()); Log.Write("Phone contact \"The Office\" added"); }
             catch (Exception ex) { _phone = null; Log.Write("Phone contact unavailable (is iFruitAddon2 installed?): " + ex.GetType().Name + ": " + ex.Message); }
@@ -101,7 +105,7 @@ namespace FrontsAndRivals.Core
             _scheduler.Add("Office", "the Office menu", 0, () => _office.Process(), runWhilePaused: true);
             if (_phone != null) _scheduler.Add("Phone", "the phone contact", 0, () => PhoneHost.Update(_phone), runWhilePaused: true);
             _scheduler.Add("Banners", "banners", 0, () => { _banners.Process(); _live.Draw(); }, runWhilePaused: true);
-            _scheduler.Add("Prompts", "prompts", 0, () => _director.UpdateFrame());
+            _scheduler.Add("Prompts", "prompts", 0, PromptsTick);
             _scheduler.Add("Clock", "income and recruits", 2000, ClockTick);
             if (_dev != null)
             {
@@ -120,6 +124,30 @@ namespace FrontsAndRivals.Core
         }
 
         private long ActiveNow() { return _activeBase + _scheduler.ActiveMs; }
+
+        /// <summary>Every tick with the gate open: the claim prompt, and the controller's Office button.</summary>
+        private void PromptsTick()
+        {
+            _director.UpdateFrame();
+            // Interaction Menu button (Back/View on a pad, M on keyboard). Story Mode doesn't use it.
+            if (_config.OfficeButton && Game.IsControlJustReleased(GTA.Control.InteractionMenu)) _office.Toggle();
+        }
+
+        /// <summary>Notification settings: the INI, with the Office's Notifications choice on top.</summary>
+        private NoteSettings NoteSettingsNow()
+        {
+            var n = new NoteSettings
+            {
+                Level = _config.NotifyLevel,
+                MinSecondsBetween = _config.MinSecondsBetweenTexts,
+                Taunts = _config.Taunts,
+                StreetWord = _config.StreetWord,
+                MidnightReport = _config.MidnightReport
+            };
+            NoteLevel level;
+            if (_state != null && !string.IsNullOrEmpty(_state.NotifyLevel) && Enum.TryParse(_state.NotifyLevel, true, out level)) n.Level = level;
+            return n;
+        }
 
         private void LogVersions()
         {
@@ -189,6 +217,7 @@ namespace FrontsAndRivals.Core
                 }
 
                 bool open = gate == PauseReason.None;
+                _notifier.Hold = !open;
                 if (open && !_started) Start();
                 _scheduler.Update(Game.GameTime, open);
             }
@@ -354,11 +383,12 @@ namespace FrontsAndRivals.Core
                 foreach (CrewState crew in _state.Crews)
                 {
                     Nemesis.Event rebuilt = Nemesis.Rebuild(_state, _content, crew, _rng, _state.Day);
-                    if (rebuilt != null) Notifier.Post("CHAR_DEFAULT", "Street word", "Back in business", _content.Lines.Pick(_rng, rebuilt.Moment, rebuilt.Tokens));
+                    if (rebuilt != null) _notifier.Send(NoteKind.Nemesis, "Street word", "Back in business", _content.Lines.Pick(_rng, rebuilt.Moment, rebuilt.Tokens));
                 }
                 // The city moves on its own: crews grab fronts for sale and take each other's. One text a night at most.
                 bool told = false;
-                foreach (Turf.Move move in Turf.Nightly(_state, _content, _rng))
+                string turfFreq = string.IsNullOrEmpty(_state.TurfFrequency) ? _config.TurfFrequency.ToString() : _state.TurfFrequency;
+                foreach (Turf.Move move in Turf.Nightly(_state, _content, _rng, Turf.ChanceFor(turfFreq)))
                 {
                     if (!move.Success) continue;
                     CrewDef mover = _content.Crew(move.Crew);
@@ -370,20 +400,21 @@ namespace FrontsAndRivals.Core
                         { "crew", mover.Name }, { "front", where.ShortName }, { "area", where.Area },
                         { "rival", move.FromCrew != null ? _content.Crew(move.FromCrew).Name : "" }
                     };
-                    Notifier.Post("CHAR_DEFAULT", "Street word", where.Area, _content.Lines.Pick(_rng, move.FromCrew != null ? "turfWar" : "turfGrab", t));
+                    _notifier.Send(NoteKind.StreetWord, "Street word", where.Area, _content.Lines.Pick(_rng, move.FromCrew != null ? "turfWar" : "turfGrab", t));
                     told = true;
                 }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
                 foreach (GuardState q in pay.Quit)
                 {
                     Log.Write("Midnight: " + q.FullName + " quit over unpaid wages");
-                    Notifier.Post("CHAR_DEFAULT", q.First + " \"" + q.Nick + "\"", "Unpaid", "No money, no me. I'm out.");
+                    _notifier.Send(NoteKind.Staff, q.First + " \"" + q.Nick + "\"", "Unpaid", "No money, no me. I'm out.");
                 }
                 if (pay.Income == 0 && pay.Wages == 0) continue;
                 Game.Player.Money += pay.Net;
                 _state.LastNet = pay.Net;
                 Log.Write("Midnight day " + _state.Day + ": income " + pay.Income + ", wages " + pay.Wages + ", net " + pay.Net);
-                Notifier.Post("CHAR_DEFAULT", "The Office", "Midnight take",
+                if (pay.Net > 0) Sounds.Play(Cue.MidnightTake);
+                _notifier.Send(NoteKind.Midnight, "The Office", "Midnight take",
                     "Fronts brought in $" + pay.Income.ToString("N0") + ". Wages $" + pay.Wages.ToString("N0") + ". Net " + (pay.Net < 0 ? "-$" : "$") + Math.Abs(pay.Net).ToString("N0") + ".");
                 changed = true;
             }
@@ -393,7 +424,7 @@ namespace FrontsAndRivals.Core
             if (!_state.IntroSent && _scheduler.ActiveMs > 10 * 60000L && _empire.OwnedCount() == 0)
             {
                 _state.IntroSent = true;
-                Notifier.Post("CHAR_DEFAULT", "The Broker", "Business", _content.Lines.Pick(_rng, "brokerIntro", null));
+                _notifier.Send(NoteKind.Broker, "The Broker", "Business", _content.Lines.Pick(_rng, "brokerIntro", null));
                 changed = true;
             }
 

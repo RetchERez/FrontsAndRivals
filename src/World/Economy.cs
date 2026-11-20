@@ -13,7 +13,9 @@ namespace FrontsAndRivals.Rules
         public const int StarterFrontPrice = 25000; // the Broker's starter price for the car wash
 
         /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise six days of its income.</summary>
-        public static int FrontPrice(FrontDef def) { return def.Starter ? StarterFrontPrice : def.Income * 6; }
+        public static int FrontPrice(FrontDef def) { return FrontPrice(def, 6); }
+
+        public static int FrontPrice(FrontDef def, int days) { return def.Starter ? StarterFrontPrice : def.Income * Math.Max(1, days); }
         public const int RecruitsPerDay = 3;
         public const int MaxNightsPaidOnSkip = 3; // sleeping across midnights pays at most 3
 

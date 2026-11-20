@@ -16,6 +16,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - Take rival fronts by clearing their guards and claiming the door
 - A nemesis loop: leaders who escape come back with scars and text you about it; dead lieutenants are replaced by promoted survivors
 - Midnight payouts with wages, front upgrades, and a protected mode for a lower-stakes game
+- The game's own alert and cash sounds, a message queue that never spams, and full controller support
 - Nothing to collect and no upkeep; good guards win without you
 
 ## Requirements
@@ -51,14 +52,24 @@ Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2
 
 ## Settings
 
-Edit `scripts\FrontsAndRivals.ini`. Highlights:
+Most players never need to touch these. The everyday ones are in the game under **The Office > Settings**:
+attack frequency, rival turf moves, notifications, live defenses, sound effects and map blips.
 
-- `OfficeHotkey`: a key that opens the Office, e.g. `F7` (off by default)
-- `Frequency`: attack frequency, Off, Low, Normal or High (also in the Office's Settings)
-- `ProtectedMode`: fronts can't be lost; a failed defense costs one night's income and deaths become injuries
-- `PermanentDeath`: set to false to turn guard deaths into injuries
-- `PoliceRespond`: police chase the attacking crews during live defenses
-- `SkipIntro`: start with the car wash and two guards (for reinstalls)
+Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the file:
+
+- `OfficeHotkey` (keyboard key, e.g. `F7`) and `OfficeButton` (true = the controller's Interaction Menu button opens the Office)
+- Attacks: `Frequency`, `CooldownMinutes` (exact minutes between attacks), `FirstAttackDelayMinutes`, `WarningHours`, `LiveDefense`, `PoliceRespond`
+- Turf: `Frequency` for how often crews grab and fight over fronts at night
+- Notifications: `Level` (All, Important, Minimal), `MinSecondsBetween` (default 20 s so messages never pile up), `Taunts`, `StreetWord`, `MidnightReport`
+- Sound: `Effects` for the game's alert and cash sounds
+- Economy: income and wage multipliers, `FrontPriceDays`
+- Guards: `PermanentDeath`, `ProtectedMode` (fronts can't be lost)
+- Rivals: `AlertRange` for how close you can walk to a rival front before its soldiers fight
+- Map: `ShowRivalFronts`, `ShowForSaleFronts`
+
+## Controller
+
+Everything works on a gamepad: open your phone and call The Office, or set `OfficeButton=true` to use the Interaction Menu button (Back/View). In the Office, the D-pad moves, **A** opens or selects, **B** goes back, and left/right on the D-pad changes a post or a setting. The claim prompt at a rival front's door shows your controller's button.
 
 ## Uninstall
 

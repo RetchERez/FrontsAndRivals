@@ -60,14 +60,38 @@ namespace FrontsAndRivals.Core
         // [General]
         public bool Enabled = true;
         public string OfficeHotkey = "None";
+        /// <summary>Controller: the Interaction Menu button (Back/View, M on keyboard) opens the Office.</summary>
+        public bool OfficeButton = false;
+        // [Sound]
+        public bool SoundEffects = true;
         // [Attacks]
         public AttackFrequency Frequency = AttackFrequency.Normal;
         public int WarningHours = 3;
         public bool PoliceRespond = true;
+        /// <summary>False: attacks always resolve on their own, even when you're there.</summary>
+        public bool LiveDefense = true;
+        /// <summary>Minutes between attacks. 0 = use Frequency (Low 75, Normal 45, High 25).</summary>
+        public int CooldownMinutes = 0;
+        /// <summary>No attacks in the first minutes after loading a game.</summary>
+        public int FirstAttackDelayMinutes = 10;
+        // [Turf]
+        public AttackFrequency TurfFrequency = AttackFrequency.Normal;
+        // [Notifications]
+        public NoteLevel NotifyLevel = NoteLevel.All;
+        public int MinSecondsBetweenTexts = 20;
+        public bool Taunts = true;
+        public bool StreetWord = true;
+        public bool MidnightReport = true;
+        // [Rivals]
+        public int RivalAlertRange = 35;
+        // [Map] (ShowRivalFronts below)
+        public bool ShowForSaleFronts = true;
         public bool ArrivalCamera = true;
         // [Economy]
         public double IncomeMultiplier = 1.0;
         public double WageMultiplier = 1.0;
+        /// <summary>A front for sale costs this many days of its income (the starter car wash is always $25,000).</summary>
+        public int FrontPriceDays = 6;
         // [Guards]
         public bool PermanentDeath = true;
         /// <summary>Fronts can't be lost: a failed defense damages the front (no income at the next midnight) and deaths become injuries.</summary>
@@ -100,9 +124,23 @@ namespace FrontsAndRivals.Core
             var c = new Config();
             c.Enabled = Bool(ini, "General", "Enabled", c.Enabled, warn);
             c.OfficeHotkey = ini.Get("General", "OfficeHotkey") ?? c.OfficeHotkey;
+            c.OfficeButton = Bool(ini, "General", "OfficeButton", c.OfficeButton, warn);
+            c.SoundEffects = Bool(ini, "Sound", "Effects", c.SoundEffects, warn);
             c.Frequency = Enum(ini, "Attacks", "Frequency", c.Frequency, warn);
             c.WarningHours = Int(ini, "Attacks", "WarningHours", c.WarningHours, 1, 24, warn);
             c.PoliceRespond = Bool(ini, "Attacks", "PoliceRespond", c.PoliceRespond, warn);
+            c.LiveDefense = Bool(ini, "Attacks", "LiveDefense", c.LiveDefense, warn);
+            c.CooldownMinutes = Int(ini, "Attacks", "CooldownMinutes", c.CooldownMinutes, 0, 600, warn);
+            c.FirstAttackDelayMinutes = Int(ini, "Attacks", "FirstAttackDelayMinutes", c.FirstAttackDelayMinutes, 0, 120, warn);
+            c.TurfFrequency = Enum(ini, "Turf", "Frequency", c.TurfFrequency, warn);
+            c.NotifyLevel = Enum(ini, "Notifications", "Level", c.NotifyLevel, warn);
+            c.MinSecondsBetweenTexts = Int(ini, "Notifications", "MinSecondsBetween", c.MinSecondsBetweenTexts, 0, 600, warn);
+            c.Taunts = Bool(ini, "Notifications", "Taunts", c.Taunts, warn);
+            c.StreetWord = Bool(ini, "Notifications", "StreetWord", c.StreetWord, warn);
+            c.MidnightReport = Bool(ini, "Notifications", "MidnightReport", c.MidnightReport, warn);
+            c.RivalAlertRange = Int(ini, "Rivals", "AlertRange", c.RivalAlertRange, 5, 150, warn);
+            c.ShowForSaleFronts = Bool(ini, "Map", "ShowForSaleFronts", c.ShowForSaleFronts, warn);
+            c.FrontPriceDays = Int(ini, "Economy", "FrontPriceDays", c.FrontPriceDays, 1, 60, warn);
             c.ArrivalCamera = Bool(ini, "Attacks", "ArrivalCamera", c.ArrivalCamera, warn);
             c.IncomeMultiplier = Double(ini, "Economy", "IncomeMultiplier", c.IncomeMultiplier, 0, 100, warn);
             c.WageMultiplier = Double(ini, "Economy", "WageMultiplier", c.WageMultiplier, 0, 100, warn);

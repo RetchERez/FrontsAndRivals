@@ -20,7 +20,13 @@ First full release.
 - Map: front blips with threatened and under-attack states, rival fronts in crew colours
 - Stability: pause during missions, entity budget (28 peds, 8 vehicles), full cleanup, crash-safe saves with backups,
   every system self-disables after three errors in a minute
-- Options: protected mode, permanent death, attack frequency, police response, skip intro, Office hotkey
+- Notifications go through one queue: a minimum gap (20 s default), important messages first, stale gossip dropped,
+  and a level (All, Important, Minimal) with switches for taunts, street word and the midnight report
+- Sound effects from the game's own HUD sound sets (attack warning and start, purchases, midnight take, banners), with an on/off setting
+- Controller support: the Interaction Menu button can open the Office (OfficeButton), and every menu and prompt works on a gamepad
+- Options: attack frequency or exact cooldown, first-attack delay, warning hours, live defenses on/off, police response,
+  turf frequency, rival alert range, front price, income and wage multipliers, permanent death, protected mode, map blips,
+  skip intro, Office hotkey; the everyday ones are also in the Office's Settings
 
 ## Development milestones
 

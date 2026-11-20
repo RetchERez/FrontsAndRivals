@@ -76,7 +76,8 @@ namespace FrontsAndRivals.Attacks
                 if (force || now >= _nextPlanRoll)
                 {
                     _nextPlanRoll = now + Rules.Attacks.Minute;
-                    bool can = force ? s.Attack == null : Rules.Attacks.CanPlan(s, now, _sinceLoad(), Frequency);
+                    bool can = force ? s.Attack == null
+                             : Rules.Attacks.CanPlan(s, now, _sinceLoad(), Frequency, _config.CooldownMinutes, _config.FirstAttackDelayMinutes);
                     if (can && (force || _rng().NextDouble() < Rules.Attacks.PlanChancePerMinute)) Plan(e, hour, now, force);
                     _forceRequested = false;
                 }
@@ -90,13 +91,15 @@ namespace FrontsAndRivals.Attacks
             if (a.Phase == AttackPhase.Warning && now >= a.WarnEnds)
             {
                 a.Phase = AttackPhase.Window;
+                Sounds.Play(Cue.AttackStarted);
                 Log.Write("Director: window open at " + a.Front);
                 _changed();
             }
             if (a.Phase == AttackPhase.Window)
             {
                 Vector3 p = Game.Player.Character.Position;
-                bool near = front.IsScouted && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.LiveRange;
+                bool liveOn = _config.LiveDefense && !State.LiveDefenseOff;
+                bool near = liveOn && front.IsScouted && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.LiveRange;
                 if (near && _liveFailed != a && StartLive(e, a, front)) return;
                 if (now >= a.WindowEnds) FinishAuto(e, a, front, hour, now, null, 0);
             }
@@ -148,9 +151,10 @@ namespace FrontsAndRivals.Attacks
             Log.Write("Director: " + crew.Name + " led by " + leader.DisplayName + " will hit " + a.Front + " (squad " + a.Squad + ", A " + a.Strength.ToString("0") + ")");
 
             var tokens = Tokens(crew, front, leader, null);
-            _notifierPost("Street word", front.ShortName, _content.Lines.Pick(_rng(), "warning", tokens));
+            _notifierPost(NoteKind.AttackWarning, "Street word", front.ShortName, _content.Lines.Pick(_rng(), "warning", tokens));
+            Sounds.Play(Cue.AttackWarning);
             if (leader.LeaderTrait == LeaderTrait.Showboat)
-                _notifierPost(leader.DisplayName, crew.Name, _content.Lines.Pick(_rng(), "taunt", tokens));
+                _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(_rng(), "taunt", tokens));
             Nemesis.Crew(s, a.Crew).LastMove = "Planning a hit on your " + front.ShortName;
             _changed();
         }
@@ -202,7 +206,7 @@ namespace FrontsAndRivals.Attacks
                     foreach (Nemesis.Event ev in Nemesis.OnMemberDied(s, _content, Nemesis.Crew(s, a.Crew), leader, front.ShortName, _rng(), s.Day))
                     {
                         string line = _content.Lines.Pick(_rng(), ev.Moment, ev.Tokens);
-                        if (!string.IsNullOrEmpty(line)) _notifierPost(crew.Name, Title(ev.Moment), line);
+                        if (!string.IsNullOrEmpty(line)) _notifierPost(KindFor(ev.Moment), crew.Name, Title(ev.Moment), line);
                     }
                 }
                 Nemesis.Crew(s, a.Crew).Manpower = Math.Max(0, Nemesis.Crew(s, a.Crew).Manpower - r.AttackersLost);
@@ -234,6 +238,7 @@ namespace FrontsAndRivals.Attacks
                     leader.AddLog("Killed at the " + front.ShortName + ".");
                     o.Events.AddRange(Nemesis.OnMemberDied(s, _content, cs, leader, front.ShortName, _rng(), s.Day));
                     _banners.Show("NEMESIS KILLED", leader.DisplayName + " won't be back.");
+                    Sounds.Play(Cue.NemesisKilled);
                 }
                 else if (won && leader.Alive)
                 {
@@ -271,28 +276,30 @@ namespace FrontsAndRivals.Attacks
 
             if (o.DefendersWon)
             {
-                _notifierPost("The Office", front.ShortName + " held", _content.Lines.Pick(rng, "held", tokens));
+                _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " held", _content.Lines.Pick(rng, "held", tokens));
                 if (wasThere) _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ".");
+                Sounds.Play(Cue.FrontDefended);
                 if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat && leader.Alive)
-                    _notifierPost(leader.DisplayName, crew.Name, _content.Lines.Pick(rng, "tauntAfterLoss", tokens));
+                    _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(rng, "tauntAfterLoss", tokens));
             }
             else if (o.FrontDamaged)
             {
-                _notifierPost("The Office", front.ShortName + " damaged", _content.Lines.Pick(rng, "damaged", tokens));
+                _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " damaged", _content.Lines.Pick(rng, "damaged", tokens));
             }
             else
             {
-                _notifierPost("The Office", front.ShortName + " lost", _content.Lines.Pick(rng, "lost", tokens));
+                _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " lost", _content.Lines.Pick(rng, "lost", tokens));
                 _banners.Show("FRONT LOST", "The " + crew.Name + " took the " + front.ShortName + ".");
+                Sounds.Play(Cue.FrontLost);
                 if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
-                    _notifierPost(leader.DisplayName, crew.Name, _content.Lines.Pick(rng, "tauntAfterWin", tokens));
+                    _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(rng, "tauntAfterWin", tokens));
             }
             foreach (GuardState g in o.Dead)
-                _notifierPost("The Office", "Guard down", _content.Lines.Pick(rng, "guardDied", Tokens(crew, front, leader, g.First + " \"" + g.Nick + "\"")));
+                _notifierPost(NoteKind.GuardDeath, "The Office", "Guard down", _content.Lines.Pick(rng, "guardDied", Tokens(crew, front, leader, g.First + " \"" + g.Nick + "\"")));
             foreach (Nemesis.Event ev in o.Events)
             {
                 string line = _content.Lines.Pick(rng, ev.Moment, Merge(tokens, ev.Tokens));
-                if (!string.IsNullOrEmpty(line)) _notifierPost(crew.Name, Title(ev.Moment), line);
+                if (!string.IsNullOrEmpty(line)) _notifierPost(KindFor(ev.Moment), crew.Name, Title(ev.Moment), line);
             }
             Log.Write("Director: " + a.Front + " " + (o.DefendersWon ? "held" : o.FrontDamaged ? "damaged" : "lost") + ", dead " + o.Dead.Count + ", injured " + o.Injured.Count
                       + ", attackers lost " + o.AttackersLost + (o.LeaderDied ? ", leader died" : o.LeaderEscaped ? ", leader escaped" : ""));
@@ -329,7 +336,7 @@ namespace FrontsAndRivals.Attacks
                         { "scar", m.Scars.Count > 0 ? m.Scars[m.Scars.Count - 1] : "hurt me" },
                         { "front", m.Scars.Count > 0 ? m.Scars[m.Scars.Count - 1].Replace("put me down at the ", "").Replace("ran from the ", "") : "that night" }
                     };
-                    _notifierPost(m.DisplayName, crew != null ? crew.Name : cs.Id, _content.Lines.Pick(_rng(), "nemesisReturns", t));
+                    _notifierPost(NoteKind.Nemesis, m.DisplayName, crew != null ? crew.Name : cs.Id, _content.Lines.Pick(_rng(), "nemesisReturns", t));
                     Log.Write("Nemesis: " + m.DisplayName + " is back");
                 }
         }
@@ -370,7 +377,8 @@ namespace FrontsAndRivals.Attacks
             Rules.Attacks.TakeFront(e.State, e, fs, _claimCrew);
             _claimFront = null;
             _banners.Show("FRONT TAKEN", "The " + front.Name + " is yours.");
-            _notifierPost("The Broker", front.ShortName, _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
+            Sounds.Play(Cue.FrontTaken);
+            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
             Log.Write("Director: player took " + front.Id + " from " + crew.Name);
             _changed();
         }
@@ -396,11 +404,12 @@ namespace FrontsAndRivals.Attacks
             return d;
         }
 
-        private void _notifierPost(string sender, string subject, string message)
+        private void _notifierPost(NoteKind kind, string sender, string subject, string message)
         {
-            if (string.IsNullOrEmpty(message)) return;
-            Notifier.Post("CHAR_DEFAULT", sender, subject, message);
+            _notifier.Send(kind, sender, subject, message);
         }
+
+        private static NoteKind KindFor(string moment) { return moment == "counterStrike" ? NoteKind.StreetWord : NoteKind.Nemesis; }
 
         private static void DevNotice(string text) { GTA.UI.Notification.Show("Fronts & Rivals dev: " + text); }
     }

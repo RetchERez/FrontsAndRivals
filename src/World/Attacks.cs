@@ -32,9 +32,17 @@ namespace FrontsAndRivals.Rules
         /// <summary>Can the Director plan an attack right now? (The 25% roll per minute comes after this.)</summary>
         public static bool CanPlan(EmpireState s, long nowMs, long sinceLoadMs, string frequency)
         {
+            return CanPlan(s, nowMs, sinceLoadMs, frequency, 0, (int)(FirstAttackDelayMs / Minute));
+        }
+
+        /// <param name="cooldownMinutes">INI CooldownMinutes; 0 = use the frequency's cooldown. Off still means off.</param>
+        /// <param name="firstDelayMinutes">INI FirstAttackDelayMinutes.</param>
+        public static bool CanPlan(EmpireState s, long nowMs, long sinceLoadMs, string frequency, int cooldownMinutes, int firstDelayMinutes)
+        {
             long cooldown = CooldownMs(frequency);
+            if (cooldown >= 0 && cooldownMinutes > 0) cooldown = cooldownMinutes * Minute;
             if (cooldown < 0 || s.Attack != null) return false;
-            if (sinceLoadMs < FirstAttackDelayMs) return false;
+            if (sinceLoadMs < firstDelayMinutes * Minute) return false;
             if (nowMs - s.LastAttackMs < cooldown) return false;
             if (nowMs - s.LastLossMs < AfterLossDelayMs) return false;
             foreach (FrontState f in s.Fronts) if (f.Owner == Owners.Player) return true;
