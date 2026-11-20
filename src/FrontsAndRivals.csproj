@@ -7,6 +7,8 @@
     <Nullable>disable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Version>0.1.0</Version>
+    <!-- Keep SHVDN/LemonUI/iFruitAddon2 DLLs out of bin: players install them, we never ship them. -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
@@ -29,8 +31,11 @@
   <Target Name="DeployToGta" AfterTargets="Build" Condition="'$(GtaVDir)' != ''">
     <Error Condition="!Exists('$(GtaVDir)')" Text="GtaVDir does not exist: $(GtaVDir). Fix it in Directory.Build.props.user." />
     <MakeDir Directories="$(GtaVDir)\scripts" />
-    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb;$(TargetDir)FrontsAndRivals.ini"
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb"
           DestinationFolder="$(GtaVDir)\scripts" SkipUnchangedFiles="true" />
+    <!-- The INI is copied only if there isn't one yet, so your in-game settings (DevTools=true etc.) survive rebuilds. -->
+    <Copy SourceFiles="$(TargetDir)FrontsAndRivals.ini" DestinationFolder="$(GtaVDir)\scripts"
+          Condition="!Exists('$(GtaVDir)\scripts\FrontsAndRivals.ini')" />
     <Message Importance="high" Text="Deployed FrontsAndRivals to $(GtaVDir)\scripts" />
   </Target>
 </Project>

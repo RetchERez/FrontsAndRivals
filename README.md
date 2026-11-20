@@ -1,15 +1,32 @@
-# Fronts & Rivals - verified code examples (v1.0 design doc)
+# Fronts & Rivals
 
-These files compile against the real libraries:
-- ScriptHookVDotNet3 3.6.0 (NuGet), LemonUI.SHVDN3 2.2.0, iFruitAddon2 3.1.1, .NET Framework 4.8.
-- Build: `cd src && dotnet build -c Release`  ->  FrontsAndRivals.dll
+A single-player script mod for Grand Theft Auto V. Not affiliated with or endorsed by Rockstar Games.
+Design doc v1.0: https://claude.ai/artifact/KAYesFun6qhyBrRT8d5BBr
 
-`tests/` runs the pure rules (defense rating, win chance, squad size, attack strength,
-10,000-fight Monte Carlo) against every number in the design doc: `cd tests && dotnet run`.
+Status: milestone 1 (skeleton). Nothing spawns on its own yet.
 
-Compiling proves every API name, type and signature exists. It does NOT prove in-game
-behaviour (AI driving, scenario placement, relationship reactions): test those in GTA V.
+## Requirements (install these yourself; the mod never bundles them)
+- Disable BattlEye for Story Mode (Rockstar Games Launcher setting, or the `-nobattleye` launch argument)
+- ScriptHookV for your game build
+- ScriptHookVDotNet: a nightly build (v3.6.0-nightly.89 or later) on Legacy, or SHVDN Enhanced on Enhanced
+- LemonUI (SHVDN3 build)
+- iFruitAddon2 3.x (from milestone 3, for the phone contact)
 
-Runtime note (SHVDN wiki): SHVDN 3.6.0 stable has a compatibility issue with game
-v1.0.3258.0 and later, so players need a SHVDN nightly build (v3.6.0-nightly.89 or later)
-or SHVDN Enhanced to run the mod. Build against the stable package, run on nightly.
+## Install
+Copy `FrontsAndRivals.dll` and `FrontsAndRivals.ini` into `<GTA V>\scripts\`.
+The mod writes its log and save to `<GTA V>\scripts\FrontsAndRivals\`. Windows may need to allow
+mods to create files in the GTA V folder.
+
+## Uninstall
+Delete `FrontsAndRivals.dll`, `FrontsAndRivals.pdb`, `FrontsAndRivals.ini` and the `FrontsAndRivals` folder.
+
+## Developing
+- `cd src; dotnet build -c Release` builds the DLL and, if `Directory.Build.props.user` sets `GtaVDir`,
+  copies it into `<GtaVDir>\scripts`. Start from `Directory.Build.props.user.example`.
+  The INI is only copied when the scripts folder has none, so your settings survive rebuilds.
+- `cd tests; dotnet run` runs the unit tests for every pure system (rules, scheduler, save, config, markers).
+- In game, SHVDN's console (F4) reloads scripts with `Reload()`. Every reload doubles as a cleanup test.
+- Set `DevTools=true` in `scripts\FrontsAndRivals.ini`: F9 copies your position for fronts.json,
+  F10 opens the dev menu, and an entity counter shows at the top of the screen.
+
+Compiling proves every API name, type and signature exists. It does not prove in-game behaviour.

@@ -1,58 +1,126 @@
-// Fronts & Rivals: crash-safe save. Write to .tmp, keep 3 backups, then swap in.
+// Fronts & Rivals: crash-safe save in scripts/FrontsAndRivals/.
+//   1. Write empire.tmp and flush it to disk.
+//   2. Rotate backups: bak2 -> bak3, bak1 -> bak2 (copies, so a crash here loses nothing).
+//   3. File.Replace(tmp, empire.json, bak1): the old save becomes bak1 and the new one goes live in one step.
+// Load tries empire.json, then bak1..bak3. A corrupt file is moved aside so it never pushes good backups out.
+// Pure: no game calls, unit-tested.
+using System;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
-using System.Collections.Generic;
 
 namespace FrontsAndRivals.Data
 {
-    [DataContract]
-    public sealed class EmpireState
+    public sealed class SaveService
     {
-        [DataMember] public int SchemaVersion = 1;
-        [DataMember] public int RngSeed;
-        [DataMember] public List<string> OwnedFronts = new List<string>();
-        [DataMember] public Dictionary<string, int> Grudge = new Dictionary<string, int>();
-    }
-
-    public static class SaveService
-    {
-        private static readonly string Dir = Path.Combine("scripts", "FrontsAndRivals");
-        private static readonly string Main = Path.Combine(Dir, "empire.json");
-
-        public static void Save(EmpireState state)
+        public sealed class LoadResult
         {
-            Directory.CreateDirectory(Dir);
-            string tmp = Main + ".tmp";
-            var ser = new DataContractJsonSerializer(typeof(EmpireState));
-            using (var fs = File.Create(tmp)) ser.WriteObject(fs, state);
-
-            // Rotate backups: bak2 -> bak3, bak1 -> bak2, main -> bak1.
-            for (int i = 2; i >= 1; i--)
-            {
-                string from = Main + ".bak" + i, to = Main + ".bak" + (i + 1);
-                if (File.Exists(from)) File.Copy(from, to, true);
-            }
-            if (File.Exists(Main)) File.Copy(Main, Main + ".bak1", true);
-
-            // Swap in the new file.
-            if (File.Exists(Main)) File.Delete(Main);
-            File.Move(tmp, Main);
+            public EmpireState State;
+            /// <summary>"empire.json", "empire.bak1".. or "new".</summary>
+            public string Source;
         }
 
-        public static EmpireState Load()
+        private readonly string _dir;
+        private readonly Action<string> _log;
+
+        public SaveService(string directory, Action<string> log)
         {
-            foreach (string path in new[] { Main, Main + ".bak1", Main + ".bak2", Main + ".bak3" })
+            _dir = directory;
+            _log = log ?? (s => { });
+        }
+
+        public string MainPath { get { return Path.Combine(_dir, "empire.json"); } }
+        public string TempPath { get { return Path.Combine(_dir, "empire.tmp"); } }
+        public string BackupPath(int i) { return Path.Combine(_dir, "empire.bak" + i); }
+
+        /// <summary>True when the save on disk is from a newer mod version. Save() then writes nothing.</summary>
+        public bool Locked { get; private set; }
+
+        public void Save(EmpireState state)
+        {
+            if (Locked) return;
+            Directory.CreateDirectory(_dir);
+            state.SaveCount++;
+            string main = MainPath, tmp = TempPath;
+
+            var ser = new DataContractJsonSerializer(typeof(EmpireState));
+            using (var fs = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
             {
+                ser.WriteObject(fs, state);
+                fs.Flush(true); // force to disk before the swap
+            }
+
+            if (File.Exists(BackupPath(2))) File.Copy(BackupPath(2), BackupPath(3), true);
+            if (File.Exists(BackupPath(1))) File.Copy(BackupPath(1), BackupPath(2), true);
+
+            if (File.Exists(main))
+            {
+                File.Replace(tmp, main, BackupPath(1), true);
+            }
+            else
+            {
+                File.Move(tmp, main);
+            }
+        }
+
+        public LoadResult Load()
+        {
+            string[] names = { "empire.json", "empire.bak1", "empire.bak2", "empire.bak3" };
+            foreach (string name in names)
+            {
+                string path = Path.Combine(_dir, name);
                 if (!File.Exists(path)) continue;
                 try
                 {
-                    var ser = new DataContractJsonSerializer(typeof(EmpireState));
-                    using (var fs = File.OpenRead(path)) return (EmpireState)ser.ReadObject(fs);
+                    EmpireState s = Read(path);
+                    if (s == null) throw new InvalidDataException("empty file");
+                    if (!Migrations.Upgrade(s))
+                    {
+                        // Written by a newer Fronts & Rivals. Never overwrite it: run with a blank empire, save nothing.
+                        _log("Save " + name + " is schema " + s.SchemaVersion + ", newer than this mod (" +
+                             EmpireState.CurrentSchema + "). Saving is locked so it is never overwritten.");
+                        Locked = true;
+                        return new LoadResult { State = NewEmpire(), Source = "locked" };
+                    }
+                    if (name != "empire.json") _log("Loaded the save from backup " + name);
+                    return new LoadResult { State = s, Source = name };
                 }
-                catch (SerializationException) { /* corrupt: try the next backup */ }
+                catch (Exception ex)
+                {
+                    _log("Save " + name + " could not be read (" + ex.GetType().Name + ": " + ex.Message + ")");
+                    if (name == "empire.json") MoveAside(path);
+                }
             }
-            return new EmpireState { RngSeed = System.Environment.TickCount };
+
+            return new LoadResult { State = NewEmpire(), Source = "new" };
+        }
+
+        public static EmpireState NewEmpire()
+        {
+            return new EmpireState
+            {
+                CreatedUtc = DateTime.UtcNow.ToString("o"),
+                RngState = Core.Rng.NewState()
+            };
+        }
+
+        private static EmpireState Read(string path)
+        {
+            var ser = new DataContractJsonSerializer(typeof(EmpireState));
+            using (var fs = File.OpenRead(path)) return (EmpireState)ser.ReadObject(fs);
+        }
+
+        private void MoveAside(string path)
+        {
+            try
+            {
+                string dest = Path.Combine(_dir, "empire.corrupt-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".json");
+                File.Move(path, dest);
+                _log("Moved the unreadable save to " + Path.GetFileName(dest));
+            }
+            catch (Exception ex)
+            {
+                _log("Could not move the unreadable save aside: " + ex.Message);
+            }
         }
     }
 }

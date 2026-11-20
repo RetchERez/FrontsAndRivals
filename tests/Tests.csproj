@@ -1,4 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings></PropertyGroup>
-  <ItemGroup><Compile Include="../src/World/Rules.cs" /></ItemGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <!-- Pure files only: none of these may reference GTA, LemonUI or iFruitAddon2. -->
+  <ItemGroup>
+    <Compile Include="../src/World/Rules.cs" />
+    <Compile Include="../src/Core/Log.cs" />
+    <Compile Include="../src/Core/FailureWindow.cs" />
+    <Compile Include="../src/Core/Scheduler.cs" />
+    <Compile Include="../src/Core/Rng.cs" />
+    <Compile Include="../src/Core/Config.cs" />
+    <Compile Include="../src/Data/EmpireState.cs" />
+    <Compile Include="../src/Data/Migrations.cs" />
+    <Compile Include="../src/Data/SaveService.cs" />
+    <Compile Include="../src/Spawn/Markers.cs" />
+    <Compile Include="../src/Dev/DevFormat.cs" />
+  </ItemGroup>
 </Project>

@@ -1,7 +1,8 @@
-// Fronts & Rivals: owns every entity the mod creates, enforces the budget,
-// and cleans up orphans without any memory patching.
+// Fronts & Rivals: owns every entity the mod creates, enforces the 28 ped / 8 vehicle budget,
+// and cleans up orphans without any memory patching (see Markers).
 using System.Collections.Generic;
 using GTA;
+using FrontsAndRivals.Core;
 
 namespace FrontsAndRivals.Spawn
 {
@@ -9,20 +10,39 @@ namespace FrontsAndRivals.Spawn
     {
         public const int MaxPeds = 28;
         public const int MaxVehicles = 8;
-        public const string PlatePrefix = "FR";
 
         private readonly List<Ped> _peds = new List<Ped>();
         private readonly List<Vehicle> _vehicles = new List<Vehicle>();
 
-        public bool CanSpawnPed => _peds.Count < MaxPeds;
-        public bool CanSpawnVehicle => _vehicles.Count < MaxVehicles;
+        public int PedCount { get { return _peds.Count; } }
+        public int VehicleCount { get { return _vehicles.Count; } }
+        public bool CanSpawnPed { get { return _peds.Count < MaxPeds; } }
+        public bool CanSpawnVehicle { get { return _vehicles.Count < MaxVehicles; } }
 
-        public void Track(Ped ped) { _peds.Add(ped); }
+        /// <summary>Takes ownership of a ped. It must already be in an FR_ group, or it couldn't be swept later.</summary>
+        public void Track(Ped ped)
+        {
+            if (ped == null) return;
+            ped.IsPersistent = true;
+            if (!Markers.IsModGroup(ped.RelationshipGroup.Hash))
+            {
+                Log.Write("WARNING: tracked ped without an FR_ group, moving it to FR_GUARDS");
+                ped.RelationshipGroup = Factions.Guards;
+            }
+            _peds.Add(ped);
+        }
 
+        /// <summary>Takes ownership of a vehicle and gives it an FR plate (Markers.MakePlate).</summary>
         public void Track(Vehicle vehicle, string plate)
         {
+            if (vehicle == null) return;
+            if (!Markers.IsModPlate(plate))
+            {
+                Log.Write("WARNING: plate '" + plate + "' is not an FR plate, using FR99DV");
+                plate = Markers.MakePlate(99, Markers.OwnerDev);
+            }
             vehicle.IsPersistent = true;
-            vehicle.Mods.LicensePlate = plate; // 8 characters max, e.g. "FR03CK"
+            vehicle.Mods.LicensePlate = plate;
             _vehicles.Add(vehicle);
         }
 
@@ -30,8 +50,10 @@ namespace FrontsAndRivals.Spawn
         /// A vanished ped is "not spawned", never "dead".</summary>
         public void Prune()
         {
-            _peds.RemoveAll(p => p == null || !p.Exists());
-            _vehicles.RemoveAll(v => v == null || !v.Exists());
+            for (int i = _peds.Count - 1; i >= 0; i--)
+                if (_peds[i] == null || !_peds[i].Exists()) _peds.RemoveAt(i);
+            for (int i = _vehicles.Count - 1; i >= 0; i--)
+                if (_vehicles[i] == null || !_vehicles[i].Exists()) _vehicles.RemoveAt(i);
         }
 
         public void Despawn(Ped ped)
@@ -40,32 +62,49 @@ namespace FrontsAndRivals.Spawn
             _peds.Remove(ped);
         }
 
-        /// <summary>Deletes everything we own. Called from Script.Aborted.</summary>
-        public void DeleteAll()
+        public void Despawn(Vehicle vehicle)
         {
-            foreach (Ped p in _peds) if (p != null && p.Exists()) p.Delete();
-            foreach (Vehicle v in _vehicles) if (v != null && v.Exists()) v.Delete();
-            _peds.Clear();
-            _vehicles.Clear();
+            if (vehicle != null && vehicle.Exists()) vehicle.Delete();
+            _vehicles.Remove(vehicle);
         }
 
-        /// <summary>On load: remove peds in FR_ groups and vehicles with FR plates left over
-        /// from an earlier session or a script reload.</summary>
-        public static void SweepOrphans()
+        /// <summary>Deletes everything we own. Each delete is guarded so one bad handle can't stop the rest.</summary>
+        public int DeleteAll()
         {
+            int n = 0;
+            foreach (Ped p in _peds)
+            {
+                try { if (p != null && p.Exists()) { p.Delete(); n++; } } catch (System.Exception ex) { Log.Error("DeleteAll ped", ex); }
+            }
+            foreach (Vehicle v in _vehicles)
+            {
+                try { if (v != null && v.Exists()) { v.Delete(); n++; } } catch (System.Exception ex) { Log.Error("DeleteAll vehicle", ex); }
+            }
+            _peds.Clear();
+            _vehicles.Clear();
+            return n;
+        }
+
+        /// <summary>On load: remove peds in FR_ groups and vehicles with FR plates left from an earlier
+        /// session or a script reload. Never touches the player, or a vehicle the player is in or last used.</summary>
+        public static int SweepOrphans()
+        {
+            int peds = 0, vehicles = 0;
             Ped playerPed = Game.Player.Character;
             foreach (Ped p in World.GetAllPeds())
             {
                 if (p == null || p == playerPed || p.IsPlayer) continue;
-                if (Factions.IsOwnGroup(p.RelationshipGroup.Hash)) p.Delete();
+                if (Markers.IsModGroup(p.RelationshipGroup.Hash)) { p.Delete(); peds++; }
             }
             Vehicle current = playerPed.CurrentVehicle;
+            Vehicle last = playerPed.LastVehicle;
             foreach (Vehicle v in World.GetAllVehicles())
             {
-                if (v == null || v == current) continue;
-                string plate = v.Mods.LicensePlate;
-                if (plate != null && plate.Trim().StartsWith(PlatePrefix)) v.Delete();
+                if (v == null || v == current || v == last) continue;
+                if (Markers.IsModPlate(v.Mods.LicensePlate)) { v.Delete(); vehicles++; }
             }
+            Log.Write("Orphan sweep: removed " + peds + " peds, " + vehicles + " vehicles");
+            return peds + vehicles;
         }
     }
 }

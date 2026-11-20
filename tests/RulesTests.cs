@@ -1,20 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using FrontsAndRivals.Rules;
 
 static class RulesTests
 {
-    static int failures = 0;
-    static void Check(string name, double got, double want, double tol = 0.05)
-    {
-        bool ok = Math.Abs(got - want) <= tol;
-        if (!ok) failures++;
-        Console.WriteLine((ok ? "PASS " : "FAIL ") + name + ": got " + got.ToString("0.###") + ", want " + want);
-    }
+    static void Check(string name, double got, double want, double tol = 0.05) { T.Check(name, got, want, tol); }
     static GuardRecord G(Rank r, Weapon w, Trait t = Trait.None) => new GuardRecord { Rank = r, Weapon = w, Trait = t };
 
-    static int Main()
+    public static void Run()
     {
+        T.Section("Rules (design doc numbers)");
         var none = new FrontUpgrades();
         // Design doc worked examples
         Check("Car wash day", DefenseRating.Compute(new List<GuardRecord>{G(Rank.Recruit,Weapon.Pistol),G(Rank.Recruit,Weapon.Pistol)}, none, 12), 20);
@@ -44,7 +39,5 @@ static class RulesTests
         wins = 0;
         for (int i=0;i<10000;i++) if (Resolver.Resolve(rng, posted, 200, 100, 4, false).DefendersWon) wins++;
         Check("Monte Carlo win rate at D=2A (10,000 fights)", wins/10000.0, 0.80, 0.015);
-        Console.WriteLine(failures == 0 ? "ALL PASS" : failures + " FAILURES");
-        return failures;
     }
 }
