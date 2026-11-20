@@ -7,9 +7,9 @@ using System.Collections.Generic;
 namespace FrontsAndRivals.Rules
 {
     public enum Rank { Recruit, Soldier, Veteran, Lieutenant }
-    /// <summary>The guard weapon ladder, bottom to top. Guards start with a knife and are upgraded one gun at a time.
-    /// Saved as an int: schema 1 used 0 Pistol, 1 SMG, 2 Rifle (Migrations maps them).</summary>
-    public enum Weapon { Knife, Pistol, Shotgun, MicroSmg, Smg, AssaultRifle, CarbineRifle }
+    /// <summary>The guard weapon ladder, bottom to top. Guards start with a knife; every step is a big jump.
+    /// Saved as an int. Schema 1: 0 pistol, 1 SMG, 2 rifle. Schema 2 had 7 steps. Migrations maps both.</summary>
+    public enum Weapon { Knife, Pistol, Shotgun, Smg, CarbineRifle }
     public enum Trait { None, Sharpshooter, Tough, Hothead, NightOwl, Lookout, Medic, Loyal, Nervous }
 
     public sealed class GuardRecord
@@ -24,7 +24,7 @@ namespace FrontsAndRivals.Rules
     public sealed class FrontUpgrades
     {
         public bool Cameras;      // +10% defense
-        public bool Doors;        // +15 defense
+        public bool Doors;        // +20 defense
         public bool Floodlights;  // removes night penalty
         public bool Armory;       // +1 weapon tier (top tier: +10%)
     }
@@ -43,20 +43,19 @@ namespace FrontsAndRivals.Rules
         }
 
         public const Weapon TopWeapon = Weapon.CarbineRifle;
+        public const double DoorsBonus = 20.0;
 
-        /// <summary>Power by weapon: knife x0.6, pistol x1.0, pump shotgun x1.1, micro SMG x1.15, SMG x1.2,
-        /// assault rifle x1.3, carbine rifle x1.4.</summary>
+        /// <summary>Power by weapon. Each step is at least +23%: knife x0.6, pistol x1.0, pump shotgun x1.3,
+        /// SMG x1.6, carbine rifle x2.0. (Balance pass: the micro SMG and assault rifle were cut, they were +4-8% steps.)</summary>
         public static double WeaponPower(Weapon w)
         {
             switch (w)
             {
                 case Weapon.Knife: return 0.6;
                 case Weapon.Pistol: return 1.0;
-                case Weapon.Shotgun: return 1.1;
-                case Weapon.MicroSmg: return 1.15;
-                case Weapon.Smg: return 1.2;
-                case Weapon.AssaultRifle: return 1.3;
-                default: return 1.4; // carbine rifle
+                case Weapon.Shotgun: return 1.3;
+                case Weapon.Smg: return 1.6;
+                default: return 2.0; // carbine rifle
             }
         }
 
@@ -102,7 +101,7 @@ namespace FrontsAndRivals.Rules
             }
             double o = officer ? 1.1 : 1.0;
             double c = up.Cameras ? 0.10 : 0.0;
-            double f = up.Doors ? 15.0 : 0.0;
+            double f = up.Doors ? DoorsBonus : 0.0;
             return sum * o * (1.0 + c) + f;
         }
     }

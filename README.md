@@ -11,8 +11,8 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
-- A weapon ladder: every guard starts with a knife and is armed one gun at a time at Story Mode Ammu-Nation prices:
-  pistol $350, pump shotgun $550, micro SMG $850, SMG $1,300, assault rifle $1,400, carbine rifle $2,100
+- A weapon ladder: every guard starts with a knife and is armed one gun at a time, each a big step up:
+  pistol $750 (x1.0), pump shotgun $1,500 (x1.3), SMG $3,000 (x1.6), carbine rifle $6,000 (x2.0); the knife is x0.6
 - Three original crews (Crown Kings, Ironside MC, Velvet Syndicate), each with a named boss and three lieutenants
 - Attacks with a warning text first; within 300 m they become a live defense with convoys, timer bars and a door to hold
 - Take rival fronts by clearing their guards and claiming the door
@@ -50,7 +50,7 @@ Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2
 - When a warning text arrives, you can go and fight beside your guards or leave it to them
 - Rival fronts show on the map in their crew's colour; their soldiers ignore you while you drive past, but walk up on foot, shoot nearby or hurt one of them and the whole front fights
 - Clear a rival front's soldiers, stand at the door and press **E** to claim it
-- Fronts that are for sale can be bought from the Office for six days of their takings (the car wash is the Broker's $25,000 starter)
+- Fronts that are for sale can be bought from the Office for five days of their takings (the car wash is the Broker's $25,000 starter)
 
 ## Settings
 

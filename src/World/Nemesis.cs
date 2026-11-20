@@ -11,7 +11,7 @@ namespace FrontsAndRivals.Rules
     {
         public const int GrudgeTakeFront = 25, GrudgeKillBoss = 30, GrudgeKillLieutenant = 15, GrudgeRepelled = 10, GrudgeDailyDecay = 5;
         public const int BossLeadsAtGrudge = 70;
-        public const int LieutenantBonus = 25, BossBonus = 45;
+        public const int LieutenantBonus = 10, BossBonus = 30; // balance pass: was 25/45, which swamped small squads
         public const int MaxManpower = 20;
         public const int QuietDays = 3;
         public const double EscapeChance = 0.7, CautiousEscapeChance = 0.9;

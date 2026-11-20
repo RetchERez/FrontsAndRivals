@@ -12,8 +12,13 @@ static class SaveTests
         old.Guards = new System.Collections.Generic.List<GuardState> {
             new GuardState { Id = 1, Weapon = 0 }, new GuardState { Id = 2, Weapon = 1 }, new GuardState { Id = 3, Weapon = 2 } };
         T.True("Schema 1 upgrades", Migrations.Upgrade(old) && old.SchemaVersion == EmpireState.CurrentSchema);
-        T.True("Pistol, SMG and rifle guards keep their guns", old.Guards[0].Weapon == 1 && old.Guards[1].Weapon == 4 && old.Guards[2].Weapon == 6);
-        var cur = new EmpireState { SchemaVersion = 2 };
+        T.True("Pistol, SMG and rifle guards keep their guns", old.Guards[0].Weapon == (int)FrontsAndRivals.Rules.Weapon.Pistol
+               && old.Guards[1].Weapon == (int)FrontsAndRivals.Rules.Weapon.Smg && old.Guards[2].Weapon == (int)FrontsAndRivals.Rules.Weapon.CarbineRifle);
+        var v2 = new EmpireState { SchemaVersion = 2 };
+        v2.Guards = new System.Collections.Generic.List<GuardState> { new GuardState { Id = 1, Weapon = 3 }, new GuardState { Id = 2, Weapon = 5 } };
+        Migrations.Upgrade(v2);
+        T.True("Schema 2: micro SMG becomes an SMG, assault rifle a carbine", v2.Guards[0].Weapon == (int)FrontsAndRivals.Rules.Weapon.Smg && v2.Guards[1].Weapon == (int)FrontsAndRivals.Rules.Weapon.CarbineRifle);
+        var cur = new EmpireState { SchemaVersion = EmpireState.CurrentSchema };
         cur.Guards = new System.Collections.Generic.List<GuardState> { new GuardState { Id = 1, Weapon = 0 } };
         Migrations.Upgrade(cur);
         T.True("A current save's knife stays a knife", cur.Guards[0].Weapon == 0);

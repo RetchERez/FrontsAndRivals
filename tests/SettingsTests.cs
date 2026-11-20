@@ -14,7 +14,7 @@ static class SettingsTests
         Config shipped = Config.Load(repoIni, w => warnings++);
         T.Check("Shipped INI parses with no warnings", warnings, 0, 0);
         T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton && shipped.EmpirePressure);
-        T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 6 && shipped.RivalAlertRange == 35
+        T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 5 && shipped.RivalAlertRange == 35
             && shipped.LiveDefense && shipped.TurfFrequency == AttackFrequency.Normal && shipped.NotifyLevel == NoteLevel.All);
 
         var c = Config.FromIni(IniFile.Parse("[General]\nOfficeButton=false\n[Sound]\nEffects=false\n[Attacks]\nCooldownMinutes=90\nLiveDefense=false\nFirstAttackDelayMinutes=0\n"

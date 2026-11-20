@@ -258,7 +258,7 @@ namespace FrontsAndRivals.UI
             AddSection("Overview", "Your empire at a glance: income, wages, fronts and people.", Money(net) + "/day");
             AddSection("Fronts", "Every business: who holds it, its defense and income. Select one to manage it.", e.OwnedCount() + " held" + Open);
             AddSection("Guards", "Your roster: rank, trait and post. Select one to manage it.", e.LivingCount() + (injured > 0 ? " (" + injured + " hurt)" : "") + Open);
-            AddSection("Hire recruits", "The Broker sends 3 new faces every morning at 06:00.", e.State.Offers.Count + " today" + Open);
+            AddSection("Hire recruits", "The Broker sends " + Economy.RecruitsPerDay + " new faces every morning at 06:00.", e.State.Offers.Count + " today" + Open);
             int maxGrudge = 0;
             foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
             AddSection("Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge + Open);
@@ -493,7 +493,7 @@ namespace FrontsAndRivals.UI
 
         private static NativeStatsPanel FrontBars(double defense, int income)
         {
-            return new NativeStatsPanel(new NativeStatsInfo("Defense", Bar(defense, 200)), new NativeStatsInfo("Income", Bar(income, 12000)));
+            return new NativeStatsPanel(new NativeStatsInfo("Defense", Bar(defense, 300)), new NativeStatsInfo("Income", Bar(income, 12000)));
         }
 
         private void DetailFront(Empire e, FrontDef def)
@@ -582,7 +582,7 @@ namespace FrontsAndRivals.UI
             FrontState fs = e.Find(def.Id);
             if (fs == null) return;
             AddUpgrade(fs, "Cameras", 15000, "+10% defense, and attack warnings arrive an hour earlier.", fs.Cameras, () => fs.Cameras = true);
-            AddUpgrade(fs, "Reinforced doors", 25000, "+15 defense.", fs.Doors, () => fs.Doors = true);
+            AddUpgrade(fs, "Reinforced doors", 20000, "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
             AddUpgrade(fs, "Floodlights", 10000, "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
             AddUpgrade(fs, "Armory", 30000, "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
         }
@@ -666,9 +666,9 @@ namespace FrontsAndRivals.UI
                 weapon = Row("Buy " + Economy.WithArticle(nextGun),
                     "Carries " + Economy.WithArticle(w) + " (x" + DefenseRating.WeaponPower(w).ToString("0.0#") + " power). "
                     + Economy.WeaponName(nextGun) + ": x" + DefenseRating.WeaponPower(nextGun).ToString("0.0#")
-                    + ", at the Ammu-Nation price. Step " + (int)nextGun + " of " + (int)DefenseRating.TopWeapon + ".", Money(price));
+                    + ". Step " + (int)nextGun + " of " + (int)DefenseRating.TopWeapon + ".", Money(price));
             }
-            else weapon = Row("Weapon: carbine rifle", "The best gun on the ladder (x1.4 power).", "Best");
+            else weapon = Row("Weapon: carbine rifle", "The best gun on the ladder (x2.0 power).", "Best");
             weapon.Activated += (s, a) => Safe("weapon", () =>
             {
                 int cost = e.WeaponUpgradePrice(g);
@@ -758,7 +758,7 @@ namespace FrontsAndRivals.UI
             SetTitles(_detail, offer.First + " " + offer.Last, ("\"" + offer.Nick + "\" · RECRUIT"));
             _detail.Add(Info(Economy.TraitName(t), Economy.TraitEffect(t), ""));
             _detail.Add(Info("Wage", "Paid every in-game midnight.", Money(Economy.Wage(Rank.Recruit)) + "/day"));
-            _detail.Add(Info("Starts with", "A knife. Arm them on their page, one gun at a time: pistol, pump shotgun, micro SMG, SMG, assault rifle, carbine rifle.", "Knife"));
+            _detail.Add(Info("Starts with", "A knife. Arm them on their page, one gun at a time: pistol, pump shotgun, SMG, carbine rifle.", "Knife"));
             int price = e.OfferPrice(offer);
             NativeItem hire = Row("Hire for " + Money(price), "They join your reserve and wait for a post.", Money(price));
             hire.Activated += (s, a) => Safe("hire", () => Hire(e, offer));
@@ -781,7 +781,7 @@ namespace FrontsAndRivals.UI
                     break;
                 case Empire.HireResult.NotEnoughCash: GTA.UI.Notification.Show("You need " + Money(price) + " to hire " + offer.First + "."); break;
                 case Empire.HireResult.ReserveFull: GTA.UI.Notification.Show("Your reserve is full (6). Post someone first."); break;
-                case Empire.HireResult.RosterFull: GTA.UI.Notification.Show("Your roster is full (30)."); break;
+                case Empire.HireResult.RosterFull: GTA.UI.Notification.Show("Your roster is full (" + Empire.MaxRoster + ")."); break;
             }
         }
     }

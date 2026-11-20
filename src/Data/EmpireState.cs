@@ -8,7 +8,7 @@ namespace FrontsAndRivals.Data
     [DataContract]
     public sealed class EmpireState
     {
-        public const int CurrentSchema = 2; // 2: the weapon ladder (knife to carbine rifle)
+        public const int CurrentSchema = 3; // 2: seven-step weapon ladder; 3: five steps (balance pass)
 
         [DataMember(Name = "schemaVersion", Order = 0)] public int SchemaVersion = CurrentSchema;
         [DataMember(Name = "createdUtc", Order = 1)] public string CreatedUtc;

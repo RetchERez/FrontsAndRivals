@@ -8,7 +8,7 @@ namespace FrontsAndRivals.Rules
     public sealed class Empire
     {
         public const int MaxReserve = 6;   // guards waiting at the HQ
-        public const int MaxRoster = 30;   // 6 fronts x 4 posts + 6 reserve
+        public const int MaxRoster = 60;   // enough to guard about 13 fronts fully; wages are the real limit
 
         private readonly EmpireState _s;
         private readonly ContentDb _content;

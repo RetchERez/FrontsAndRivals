@@ -17,7 +17,8 @@ Each difference was a user decision or a simplification made to keep 1.0 finishe
 | Laying low: guards walk inside | Guards on screen walk to the door, others despawn | As designed |
 | Rival fronts show once seen or tipped off | Shown when Map > ShowRivalFronts is on | Simpler and clearer |
 | Fixed attack pace however big you get | Empire pressure: shorter cooldown and bigger squads as you hold more fronts (INI EmpirePressure) | With 29 fronts the late game went quiet; pressure keeps holding a big empire a job |
-| Pistol, SMG, rifle ($3,000 / $8,000 upgrades) | Knife start and a six-gun ladder at Story Mode Ammu-Nation prices (GTABase) | User request: progressive, priced like the game's own guns |
+| Pistol, SMG, rifle ($3,000 / $8,000 upgrades) | Knife start and a four-gun ladder: pistol $750, shotgun $1,500, SMG $3,000, carbine $6,000 | User request: progressive with only big steps (micro SMG and assault rifle cut as +4-8% steps); prices balanced against front income |
+| Leader bonus lieutenant 25, boss 45; wages 500-2,000; fronts 6 days; roster 30; 3 recruits a day | Lieutenant 10, boss 30; wages 300-1,200; 5 days; roster 60; 4 a day; doors +20 | Balance pass: with the doc's numbers a fully prepared front won under half its fights and four-guard tier-0 fronts barely paid. Target win chances are locked in by RulesTests.BalanceTests |
 | Office: two levels, separate screens | Three side-by-side panels | User request: submenus visible at the same time |
 
 ## Needs in-game confirmation

@@ -17,6 +17,13 @@ namespace FrontsAndRivals.Data
                 if (s.Offers != null) foreach (GuardState g in s.Offers) g.Weapon = MapV1Weapon(g.Weapon);
                 s.SchemaVersion = 2;
             }
+            if (s.SchemaVersion == 2)
+            {
+                // Schema 2's seven steps onto the five-step ladder: micro SMG becomes an SMG, the assault rifle a carbine.
+                if (s.Guards != null) foreach (GuardState g in s.Guards) g.Weapon = MapV2Weapon(g.Weapon);
+                if (s.Offers != null) foreach (GuardState g in s.Offers) g.Weapon = MapV2Weapon(g.Weapon);
+                s.SchemaVersion = 3;
+            }
             Normalize(s);
             return true;
         }
@@ -25,9 +32,21 @@ namespace FrontsAndRivals.Data
         {
             switch (old)
             {
-                case 1: return 4;  // SMG
+                case 1: return 4;  // SMG (schema 2 numbering; MapV2Weapon takes it the rest of the way)
                 case 2: return 6;  // carbine rifle
                 default: return 1; // pistol
+            }
+        }
+
+        public static int MapV2Weapon(int old)
+        {
+            switch (old)
+            {
+                case 0: return 0;  // knife
+                case 1: return 1;  // pistol
+                case 2: return 2;  // pump shotgun
+                case 3: case 4: return 3;  // micro SMG, SMG -> SMG
+                default: return 4; // assault rifle, carbine rifle -> carbine rifle
             }
         }
 

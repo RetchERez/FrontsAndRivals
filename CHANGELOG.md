@@ -7,11 +7,14 @@ First full release.
 - 29 real businesses as fronts across Los Santos, with guard posts placed from the game's navigation data
 - Crew territories (South LS, the east side, the west) and nightly turf moves: crews grab fronts for sale and fight each other for fronts
 - Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
-- Any front for sale can be bought (six days of its income; the starter car wash is $25,000)
+- Any front for sale can be bought (five days of its income; the starter car wash is $25,000)
 - The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
-- Weapon ladder: guards start with a knife and step up through six guns at Story Mode Ammu-Nation prices
-  (pistol, pump shotgun, micro SMG, SMG, assault rifle, carbine rifle); older saves keep each guard's gun
+- Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
+  (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Balance pass: a prepared front is now favoured (about 55-70%) and a neglected one loses; attack leaders add less
+  (lieutenant +10, boss +30), wages are $300-$1,200, fronts cost five days of income, reinforced doors give +20 for $20,000,
+  the Broker sends 4 recruits a day, the roster holds 60, and empire pressure never brings attacks closer than 20 minutes
 - Fronts: buying the starter car wash, four upgrades (cameras, reinforced doors, floodlights, armory), defense and income bars
 - Rival crews: Crown Kings, Ironside MC and Velvet Syndicate, each with a named boss and three lieutenants
 - Attacks: cooldown by frequency, warning texts and taunts, attack window, auto-resolve, live defenses with convoys, timer bars,

@@ -10,22 +10,23 @@ namespace FrontsAndRivals.Rules
     {
         public const int StarterFrontPrice = 25000; // the Broker's starter price for the car wash
 
-        /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise six days of its income.</summary>
-        public static int FrontPrice(FrontDef def) { return FrontPrice(def, 6); }
+        /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise five days of its income.</summary>
+        public static int FrontPrice(FrontDef def) { return FrontPrice(def, 5); }
 
         public static int FrontPrice(FrontDef def, int days) { return def.Starter ? StarterFrontPrice : def.Income * Math.Max(1, days); }
-        public const int RecruitsPerDay = 3;
+        public const int RecruitsPerDay = 4;
         public const int MaxNightsPaidOnSkip = 3; // sleeping across midnights pays at most 3
 
         /// <summary>Wage per in-game day by rank.</summary>
         public static int Wage(Rank r)
         {
+            // Balance pass: a tier-0 front ($4,000-$5,000) with four guards now clears a profit at every rank.
             switch (r)
             {
-                case Rank.Recruit: return 500;
-                case Rank.Soldier: return 800;
-                case Rank.Veteran: return 1200;
-                default: return 2000;
+                case Rank.Recruit: return 300;
+                case Rank.Soldier: return 500;
+                case Rank.Veteran: return 800;
+                default: return 1200;
             }
         }
 
@@ -81,9 +82,7 @@ namespace FrontsAndRivals.Rules
                 case Weapon.Knife: return "Knife";
                 case Weapon.Pistol: return "Pistol";
                 case Weapon.Shotgun: return "Pump Shotgun";
-                case Weapon.MicroSmg: return "Micro SMG";
                 case Weapon.Smg: return "SMG";
-                case Weapon.AssaultRifle: return "Assault Rifle";
                 default: return "Carbine Rifle";
             }
         }
@@ -91,23 +90,21 @@ namespace FrontsAndRivals.Rules
         /// <summary>"a pistol", "an SMG", "an assault rifle".</summary>
         public static string WithArticle(Weapon w)
         {
-            string name = w == Weapon.Smg || w == Weapon.MicroSmg ? WeaponName(w).Replace("Micro", "micro") : WeaponName(w).ToLowerInvariant();
+            string name = w == Weapon.Smg ? WeaponName(w) : WeaponName(w).ToLowerInvariant();
             return ("aeiouAEIOU".IndexOf(name[0]) >= 0 || name.StartsWith("SMG") ? "an " : "a ") + name;
         }
 
-        /// <summary>What each gun costs at Ammu-Nation in Story Mode (GTABase's Story Mode prices).
-        /// The knife comes with every hire.</summary>
+        /// <summary>What each step costs. Balanced against front income ($4,000-$12,000 a day): a pistol is a few
+        /// hours of one front, a carbine about a day and a half. $11,250 takes a guard from the knife to the carbine.</summary>
         public static int WeaponPrice(Weapon w)
         {
             switch (w)
             {
-                case Weapon.Knife: return 100;
-                case Weapon.Pistol: return 350;
-                case Weapon.Shotgun: return 550;
-                case Weapon.MicroSmg: return 850;
-                case Weapon.Smg: return 1300;
-                case Weapon.AssaultRifle: return 1400;
-                default: return 2100; // carbine rifle
+                case Weapon.Knife: return 0;
+                case Weapon.Pistol: return 750;
+                case Weapon.Shotgun: return 1500;
+                case Weapon.Smg: return 3000;
+                default: return 6000; // carbine rifle
             }
         }
 

@@ -34,6 +34,7 @@ namespace FrontsAndRivals.Rules
         // cooldown (45 min on Normal becomes ~35 at 10 fronts, ~30 at 15, 25 at 23+). Squads grow by one at 6, 12 and 20 fronts.
         public const int PressureFreeFronts = 3;
         public const double PressureMinFactor = 0.55;
+        public const long PressureFloorMs = 20 * Minute; // pressure never makes attacks closer than this
 
         /// <summary>Multiplier on the attack cooldown for the number of fronts you hold (1.0 = no change).</summary>
         public static double PressureCooldownFactor(int held)
@@ -85,7 +86,8 @@ namespace FrontsAndRivals.Rules
         {
             long cooldown = CooldownMs(frequency);
             if (cooldown >= 0 && cooldownMinutes > 0) cooldown = cooldownMinutes * Minute;
-            else if (cooldown > 0 && pressure) cooldown = (long)(cooldown * PressureCooldownFactor(HeldCount(s)));
+            else if (cooldown > 0 && pressure)
+                cooldown = Math.Min(cooldown, Math.Max(PressureFloorMs, (long)(cooldown * PressureCooldownFactor(HeldCount(s)))));
             if (cooldown < 0 || s.Attack != null) return false;
             if (sinceLoadMs < firstDelayMinutes * Minute) return false;
             if (nowMs - s.LastAttackMs < cooldown) return false;
