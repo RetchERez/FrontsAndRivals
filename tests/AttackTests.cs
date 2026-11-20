@@ -1,0 +1,194 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using FrontsAndRivals.Core;
+using FrontsAndRivals.Data;
+using FrontsAndRivals.Rules;
+
+static class AttackTests
+{
+    static ContentDb Content()
+    {
+        string repo = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "Content"));
+        var c = new ContentDb(repo, null);
+        c.Load();
+        return c;
+    }
+
+    public static void Run()
+    {
+        T.Section("Crews (content and setup)");
+        var content = Content();
+        T.Check("3 crews in crews.json", content.Crews.Count, 3, 0);
+        T.True("Crown Kings boss is Darnell \"King D\" Hayes", content.Crew("CK").Boss.First == "Darnell" && content.Crew("CK").Boss.Nick == "King D");
+        T.True("Every crew has 3 lieutenants", content.Crews.TrueForAll(c => c.Lieutenants.Count == 3));
+        T.True("lines.json loaded", content.Lines.Count >= 10);
+
+        var rng = new Rng(2024);
+        var s = SaveService.NewEmpire();
+        var e = new Empire(s, content);
+        Nemesis.EnsureCrews(s, content, rng);
+        T.Check("Save gets 3 crews", s.Crews.Count, 3, 0);
+        CrewState ck = Nemesis.Crew(s, "CK");
+        T.True("Crew has a boss and 3 lieutenants", ck.Boss != null && ck.Lieutenants().Count == 3);
+        T.True("Members get unique ids", ck.Members[0].Id != ck.Members[1].Id);
+        T.True("Traits parsed (King D is Ruthless)", ck.Boss.LeaderTrait == LeaderTrait.Ruthless);
+
+        T.Section("Attack planning");
+        T.Check("Normal cooldown 45 min", Attacks.CooldownMs("Normal"), 45 * 60000, 0);
+        T.Check("Low cooldown 75 min", Attacks.CooldownMs("Low"), 75 * 60000, 0);
+        T.Check("High cooldown 25 min", Attacks.CooldownMs("High"), 25 * 60000, 0);
+        T.Check("Off disables attacks", Attacks.CooldownMs("Off"), -1, 0);
+        long now = 100 * 60000;
+        T.True("No fronts owned: no attack", !Attacks.CanPlan(s, now, now, "Normal"));
+        e.SetOwner("carwash_handson", Owners.Player);
+        T.True("Own a front after the cooldown: can plan", Attacks.CanPlan(s, now, now, "Normal"));
+        T.True("Never in the first 10 minutes after loading", !Attacks.CanPlan(s, now, 5 * 60000, "Normal"));
+        T.True("Off: never", !Attacks.CanPlan(s, now, now, "Off"));
+        s.LastLossMs = now - 10 * 60000;
+        T.True("Never within 30 minutes of losing a front", !Attacks.CanPlan(s, now, now, "Normal"));
+        s.LastLossMs = -10000000;
+
+        T.Check("Warning: 3 hours by default", Attacks.WarningHours(3, false, false, "CK"), 3, 0);
+        T.Check("Cameras and a Lookout add an hour each", Attacks.WarningHours(3, true, true, "CK"), 5, 0);
+        T.Check("Velvet Syndicate cuts an hour", Attacks.WarningHours(3, false, false, "VS"), 2, 0);
+        T.Check("Never less than 1 hour", Attacks.WarningHours(1, false, false, "VS"), 1, 0);
+        T.Check("Near the crew's home: d = 1.0", Attacks.DistanceFactor(Spot.At(10, 10, 0, 0), Spot.At(500, 10, 0, 0)), 1.0, 0.0001);
+        T.Check("Far away: d = 0.6", Attacks.DistanceFactor(Spot.At(10, 10, 0, 0), Spot.At(5010, 10, 0, 0)), 0.6, 0.0001);
+
+        // Crew weights: aggression + grudge/25; a quiet crew never attacks.
+        int ckPicks = 0, irPicks = 0, vsPicks = 0;
+        Nemesis.Crew(s, "VS").QuietUntilDay = s.Day + 3;
+        for (int i = 0; i < 3000; i++)
+        {
+            CrewState c = Attacks.PickCrew(s, content, rng);
+            if (c.Id == "CK") ckPicks++; else if (c.Id == "IR") irPicks++; else vsPicks++;
+        }
+        T.Check("Quiet crews sit out", vsPicks, 0, 0);
+        T.Check("Crown Kings (2.0) picked ~80% vs Ironside (0.5)", ckPicks / 3000.0, 0.8, 0.04);
+        Nemesis.Crew(s, "VS").QuietUntilDay = -1;
+
+        AttackState plan = Attacks.Plan(s, content, e, rng, 3, 12, now);
+        T.True("Plan: targets your only front", plan != null && plan.Front == "carwash_handson");
+        T.True("Plan: warning then a 3-minute window", plan.WindowEnds - plan.WarnEnds == Attacks.WindowMs && plan.WarnEnds > now);
+        T.True("Plan: squad of at least 1 with a named leader", plan.Squad >= 1 && Nemesis.Crew(s, plan.Crew).Member(plan.Leader) != null);
+
+        T.Section("Attack results");
+        var guards = new List<GuardState>();
+        FrontDef wash = content.Front("carwash_handson");
+        for (int p = 0; p < wash.Posts.Count; p++) { GuardState g = e.Recruit(rng); e.Assign(g, "carwash_handson", p); guards.Add(g); }
+
+        var a1 = new AttackState { Crew = "CK", Front = "carwash_handson", Leader = ck.Lieutenants()[0].Id, Squad = 3, Strength = 1 };
+        int grudgeBefore = ck.Grudge;
+        Attacks.Outcome win = Attacks.Resolve(s, content, e, a1, rng, 12, now, true, false, true, 2, 1000);
+        T.True("Defended: front still yours", win.DefendersWon && e.PlayerOwns("carwash_handson"));
+        T.Check("Defended: grudge +10", ck.Grudge - grudgeBefore, 10, 0);
+        T.True("Defended: survivors gain XP", guards[0].Xp == 1 && guards[0].Defenses == 1);
+        T.True("Attack cleared and cooldown starts", s.Attack == null && s.LastAttackMs == now);
+
+        var a2 = new AttackState { Crew = "CK", Front = "carwash_handson", Leader = ck.Lieutenants()[0].Id, Squad = 3, Strength = 1000 };
+        Attacks.Outcome loss = Attacks.Resolve(s, content, e, a2, rng, 12, now + 1, true, false, false, 0, 1000);
+        T.True("Lost: the crew owns the front", loss.FrontLost && e.OwnerOf("carwash_handson") == "CK");
+        T.True("Lost: our guards went back to the reserve", guards.TrueForAll(g => !g.IsPosted));
+        T.True("Lost: no new attack for 30 minutes", s.LastLossMs == now + 1);
+
+        e.SetOwner("carwash_handson", Owners.Player);
+        var a3 = new AttackState { Crew = "IR", Front = "carwash_handson", Leader = Nemesis.Crew(s, "IR").Boss.Id, Squad = 3, Strength = 1000 };
+        Attacks.Outcome prot = Attacks.Resolve(s, content, e, a3, rng, 12, now + 2, true, true, false, 0, 1000);
+        T.True("Protected mode: front damaged, not lost", prot.FrontDamaged && e.PlayerOwns("carwash_handson") && e.Find("carwash_handson").Damaged);
+
+        // Auto-resolve keeps the design-doc win rate at D = A.
+        var mc = SaveService.NewEmpire();
+        var me = new Empire(mc, content);
+        Nemesis.EnsureCrews(mc, content, rng);
+        me.SetOwner("carwash_handson", Owners.Player);
+        GuardState lone = me.Recruit(rng); me.Assign(lone, "carwash_handson", 0);
+        double d = me.Defense("carwash_handson", 12);
+        int wins = 0;
+        for (int i = 0; i < 4000; i++)
+        {
+            lone.Status = GuardStatus.Active; lone.Front = "carwash_handson"; lone.Post = 0; lone.Xp = 0; lone.Rank = 0;
+            me.SetOwner("carwash_handson", Owners.Player);
+            var aa = new AttackState { Crew = "CK", Front = "carwash_handson", Leader = 0, Squad = 3, Strength = d };
+            if (Attacks.Resolve(mc, content, me, aa, rng, 12, i, true, false, null, 0, 1000).DefendersWon) wins++;
+            if (!mc.Guards.Contains(lone)) mc.Guards.Add(lone);
+        }
+        T.Check("Auto-resolve at D = A wins ~50% (4,000 fights)", wins / 4000.0, 0.5, 0.03);
+
+        T.Section("Nemesis loop");
+        var leader = new CrewMember { Id = 999, First = "Dre", Nick = "Ledger", Last = "Collins", Role = MemberRole.Lieutenant, Trait = (int)LeaderTrait.Showboat, Alive = true };
+        int escapes = 0;
+        for (int i = 0; i < 4000; i++)
+        {
+            leader.Alive = true; leader.Scars.Clear();
+            if (!Nemesis.LeaderLost(leader, "Car Wash", rng, 0)) escapes++;
+        }
+        T.Check("Leaders escape a lost fight ~70% of the time", escapes / 4000.0, 0.7, 0.03);
+        leader.Alive = true; leader.Scars.Clear(); leader.Rep = 1;
+        var always = new Rng(1);
+        CrewMember cautious = new CrewMember { Id = 998, Role = MemberRole.Lieutenant, Trait = (int)LeaderTrait.Cautious, Alive = true };
+        int cEsc = 0;
+        for (int i = 0; i < 4000; i++) { cautious.Alive = true; if (!Nemesis.LeaderLost(cautious, "x", always, 0)) cEsc++; }
+        T.Check("Cautious leaders escape ~90%", cEsc / 4000.0, 0.9, 0.03);
+        bool died = Nemesis.LeaderLost(leader, "Car Wash", new FixedRandom(0.1), 5000);
+        T.True("Escaped leader: +1 rep, a scar, a return text due later", !died && leader.Rep == 2 && leader.Scars[0] == "put me down at the Car Wash" && leader.ReturnTextAt > 5000);
+
+        // A lieutenant dies: grudge +15 and a survivor is promoted.
+        CrewState ir = Nemesis.Crew(s, "IR");
+        CrewMember lt = ir.Lieutenants()[0];
+        int g0 = ir.Grudge;
+        lt.Alive = false;
+        var evs = Nemesis.OnMemberDied(s, content, ir, lt, "Car Wash", rng, s.Day);
+        T.Check("Killing a lieutenant: grudge +15", ir.Grudge - g0, 15, 0);
+        T.True("A survivor is promoted to keep 3 lieutenants", ir.Lieutenants().Count == 3 && evs.Exists(x => x.Moment == "promotion"));
+
+        // The boss dies: the highest-rep lieutenant takes over.
+        CrewMember oldBoss = ir.Boss;
+        CrewMember favourite = ir.Lieutenants()[1];
+        favourite.Rep = 50;
+        oldBoss.Alive = false;
+        Nemesis.OnMemberDied(s, content, ir, oldBoss, "Car Wash", rng, s.Day);
+        T.True("Boss dies: highest-rep lieutenant takes over", ir.Boss == favourite);
+
+        // Collapse and rebuild.
+        CrewState vs = Nemesis.Crew(s, "VS");
+        foreach (CrewMember m in vs.Members) if (m.Role == MemberRole.Lieutenant) m.Alive = false;
+        CrewMember vb = vs.Boss;
+        vb.Alive = false;
+        var col = Nemesis.OnMemberDied(s, content, vs, vb, "Tavern", rng, 10);
+        T.True("Boss with no lieutenants: the crew collapses for 3 days", col.Exists(x => x.Moment == "collapsed") && vs.QuietUntilDay == 13);
+        T.True("Still quiet on day 12", Nemesis.Rebuild(s, content, vs, rng, 12) == null);
+        var rb = Nemesis.Rebuild(s, content, vs, rng, 13);
+        T.True("Day 13: rebuilt with a new boss and one lieutenant", rb != null && vs.Boss != null && vs.Lieutenants().Count == 1 && vs.QuietUntilDay == -1);
+        T.True("Velvet promotions have no nickname", string.IsNullOrEmpty(vs.Boss.Nick));
+
+        // Daily: manpower +1 per held front (max 20), grudge -5 without contact.
+        var ds = SaveService.NewEmpire();
+        var de = new Empire(ds, content);
+        Nemesis.EnsureCrews(ds, content, rng);
+        CrewState dck = Nemesis.Crew(ds, "CK");
+        dck.Manpower = 10; dck.Grudge = 20; dck.LastContactDay = 0; ds.Day = 1;
+        Nemesis.Daily(ds, 1);
+        T.Check("CK holds 2 fronts: manpower +2", dck.Manpower, 12, 0);
+        T.Check("No contact today: grudge -5", dck.Grudge, 15, 0);
+        dck.Manpower = 19; Nemesis.Daily(ds, 2);
+        T.Check("Manpower caps at 20", dck.Manpower, 20, 0);
+
+        T.Section("Text lines");
+        var tokens = new Dictionary<string, string> { { "crew", "Crown Kings" }, { "front", "Car Wash" } };
+        string w = content.Lines.Pick(rng, "warning", tokens);
+        T.True("Warning lines fill {crew} and {front}", w.Contains("Car Wash") && !w.Contains("{"));
+        T.Equal("Fill replaces every token", LineBook.Fill("{a} and {a}", new Dictionary<string, string> { { "a", "x" } }), "x and x");
+        T.True("Unknown moment gives an empty line, never a crash", content.Lines.Pick(rng, "nope", tokens) == "");
+    }
+
+    /// <summary>Random that always returns the same double (for deterministic branches).</summary>
+    sealed class FixedRandom : Random
+    {
+        private readonly double _v;
+        public FixedRandom(double v) { _v = v; }
+        protected override double Sample() { return _v; }
+        public override double NextDouble() { return _v; }
+        public override int Next(int maxValue) { return 0; }
+    }
+}

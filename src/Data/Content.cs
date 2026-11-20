@@ -112,6 +112,14 @@ namespace FrontsAndRivals.Data
         public List<FrontDef> Fronts = new List<FrontDef>();
         public NamesFile Names;
         public ModelsFile Models;
+        public List<CrewDef> Crews = new List<CrewDef>();
+        public LineBook Lines = new LineBook();
+
+        public CrewDef Crew(string id)
+        {
+            for (int i = 0; i < Crews.Count; i++) if (Crews[i].Id == id) return Crews[i];
+            return null;
+        }
 
         private readonly string _dir;
         private readonly Action<string> _log;
@@ -165,11 +173,18 @@ namespace FrontsAndRivals.Data
             }
             if (Models.GuardsFemale == null) Models.GuardsFemale = new List<string>();
 
+            CrewsFile crews = Read<CrewsFile>("crews.json");
+            Crews = new List<CrewDef>();
+            if (crews != null && crews.Crews != null)
+                foreach (CrewDef c in crews.Crews) if (ValidCrew(c)) Crews.Add(c); else _log("Content: skipped an incomplete crew in crews.json");
+            if (Crews.Count == 0) { _log("Content: crews.json missing or empty, using built-in crews"); Crews = DefaultCrews(); }
+            Lines = LineBook.Load(Path.Combine(_dir, "lines.json"), _log);
+
             int scouted = 0;
             foreach (FrontDef f in Fronts) if (f.IsScouted) scouted++;
             _log("Content: " + Fronts.Count + " fronts (" + scouted + " scouted), "
                  + (Names.MaleNames.Count + Names.FemaleNames.Count) + " first names, "
-                 + (Models.GuardsMale.Count + Models.GuardsFemale.Count) + " guard models");
+                 + (Models.GuardsMale.Count + Models.GuardsFemale.Count) + " guard models, " + Crews.Count + " crews, " + Lines.Count + " line sets");
         }
 
         /// <summary>Writes fronts.json (used by the in-game scouting tools). Same temp-and-swap safety as the save.</summary>
@@ -202,6 +217,48 @@ namespace FrontsAndRivals.Data
         }
 
         private static bool Empty(List<string> l) { return l == null || l.Count == 0; }
+
+        private static bool ValidCrew(CrewDef c)
+        {
+            if (c == null || string.IsNullOrEmpty(c.Id) || c.Boss == null || c.Lieutenants == null || Empty(c.Models) || Empty(c.Vehicles)) return false;
+            if (c.Home == null) c.Home = new Spot();
+            if (Empty(c.Weapons)) c.Weapons = new List<string> { "pistol" };
+            if (string.IsNullOrEmpty(c.Name)) c.Name = c.Id;
+            if (c.SoldierPower <= 0) c.SoldierPower = 12;
+            return true;
+        }
+
+        public static List<CrewDef> DefaultCrews()
+        {
+            return new List<CrewDef>
+            {
+                NewCrew("CK", "Crown Kings", 12, 2.0, 120, -1700, 51, 38, P("Darnell", "King D", "Hayes", "Ruthless"),
+                    new[] { P("Dre", "Ledger", "Collins", "Showboat"), P("Tasha", "Switch", "Monroe", "Tactician"), P("Luis", "Ghost", "Arenas", "Cautious") },
+                    new[] { "a_m_y_stbla_01", "a_m_y_soucent_01", "a_m_y_eastsa_01" }, new[] { "sultan", "buffalo" }),
+                NewCrew("IR", "Ironside MC", 16, 0.5, 1150, -1500, 76, 40, P("Walt", "Anvil", "Kessler", "Ruthless"),
+                    new[] { P("Ray", "Gravel", "Dunn", "Cautious"), P("Mickey", "Torch", "Boyle", "Showboat"), P("Hank", "Deacon", "Pruitt", "Ruthless") },
+                    new[] { "a_m_m_hillbilly_01", "a_m_m_salton_01", "a_m_y_motox_01" }, new[] { "daemon", "gburrito" }),
+                NewCrew("VS", "Velvet Syndicate", 14, 1.0, -800, -500, 53, 54, P("Celeste", "", "Marchand", "Tactician"),
+                    new[] { P("Victor", "", "Sato", "Cautious"), P("Ines", "", "Kovac", "Tactician"), P("Julian", "", "Pryce", "Showboat") },
+                    new[] { "a_m_y_business_01", "a_m_m_business_01", "a_f_y_business_01" }, new[] { "schafter2", "tailgater" })
+            };
+        }
+
+        private static PersonDef P(string first, string nick, string last, string trait)
+        {
+            return new PersonDef { First = first, Nick = nick, Last = last, Trait = trait };
+        }
+
+        private static CrewDef NewCrew(string id, string name, double power, double aggression, float hx, float hy, int blip, int paint,
+                                       PersonDef boss, PersonDef[] lts, string[] models, string[] vehicles)
+        {
+            return new CrewDef
+            {
+                Id = id, Name = name, SoldierPower = power, Aggression = aggression, Home = Spot.At(hx, hy, 30f, 0f),
+                BlipColor = blip, Paint = paint, Boss = boss, Lieutenants = new List<PersonDef>(lts),
+                Models = new List<string>(models), Vehicles = new List<string>(vehicles), Weapons = new List<string> { "pistol", "smg" }
+            };
+        }
 
         public static List<FrontDef> DefaultFronts()
         {

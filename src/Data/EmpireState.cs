@@ -33,6 +33,15 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "frequency", Order = 14)] public string Frequency;
         [DataMember(Name = "hideBlips", Order = 15)] public bool HideBlips;
         [DataMember(Name = "lastIncome", Order = 16)] public int LastNet;
+        // ---- v1.0: crews and attacks ----
+        [DataMember(Name = "crews", Order = 17)] public List<CrewState> Crews = new List<CrewState>();
+        [DataMember(Name = "attack", Order = 18)] public AttackState Attack;
+        [DataMember(Name = "lastAttackMs", Order = 19)] public long LastAttackMs;
+        [DataMember(Name = "lastLossMs", Order = 20)] public long LastLossMs = -10000000;
+        [DataMember(Name = "frontAttackedMs", Order = 21)] public Dictionary<string, long> FrontAttackedMs = new Dictionary<string, long>();
+        [DataMember(Name = "nextMemberId", Order = 22)] public int NextMemberId = 1;
+        [DataMember(Name = "introSent", Order = 23)] public bool IntroSent;
+        [DataMember(Name = "memorial", Order = 24)] public List<string> Memorial = new List<string>();
     }
 
     [DataContract]
@@ -41,6 +50,17 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "id", Order = 0)] public string Id;
         /// <summary>Owners.Player, Owners.ForSale or a crew code.</summary>
         [DataMember(Name = "owner", Order = 1)] public string Owner;
+        /// <summary>Crew this front was taken from (they want it back: x1.5 target score).</summary>
+        [DataMember(Name = "takenFrom", Order = 2)] public string TakenFrom;
+        // Upgrades (permanent while held; a lost front keeps them at half strength, see Attacks).
+        [DataMember(Name = "cameras", Order = 3)] public bool Cameras;
+        [DataMember(Name = "doors", Order = 4)] public bool Doors;
+        [DataMember(Name = "floodlights", Order = 5)] public bool Floodlights;
+        [DataMember(Name = "armory", Order = 6)] public bool Armory;
+        /// <summary>Protected mode: a failed defense damages the front, no income at the next midnight.</summary>
+        [DataMember(Name = "damaged", Order = 7)] public bool Damaged;
+        /// <summary>After you repel this crew, their nearest front is weakened (-25% defense) until this day.</summary>
+        [DataMember(Name = "weakUntilDay", Order = 8)] public int WeakUntilDay = -1;
     }
 
     public static class GuardStatus

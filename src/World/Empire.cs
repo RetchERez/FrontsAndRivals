@@ -1,4 +1,4 @@
-﻿// Fronts & Rivals: fronts and guards as data (the "Data" simulation tier). Pure: no game calls, unit-tested.
+// Fronts & Rivals: fronts and guards as data (the "Data" simulation tier). Pure: no game calls, unit-tested.
 using System;
 using System.Collections.Generic;
 using FrontsAndRivals.Data;
@@ -146,7 +146,7 @@ namespace FrontsAndRivals.Rules
         /// <summary>Buying only works for fronts that are for sale (the starter car wash).</summary>
         public bool CanBuy(string frontId) { return OwnerOf(frontId) == Owners.ForSale; }
 
-        /// <summary>A front's defense rating right now (design doc formula). Upgrades arrive in milestone 8.</summary>
+        /// <summary>A front's defense rating right now (design doc formula, including the front's upgrades).</summary>
         public double Defense(string frontId, int hour)
         {
             var posted = new List<GuardRecord>();
@@ -159,7 +159,9 @@ namespace FrontsAndRivals.Rules
                     Injured = g.Status == GuardStatus.Injured
                 });
             }
-            return DefenseRating.Compute(posted, new FrontUpgrades(), hour);
+            FrontState fs = Find(frontId);
+            var up = fs == null ? new FrontUpgrades() : new FrontUpgrades { Cameras = fs.Cameras, Doors = fs.Doors, Floodlights = fs.Floodlights, Armory = fs.Armory };
+            return DefenseRating.Compute(posted, up, hour);
         }
 
         public int OwnedCount()

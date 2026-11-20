@@ -43,6 +43,7 @@ static class Program
         SaveTests.Run();
         FrontTests.Run();
         EconomyTests.Run();
+        AttackTests.Run();
         Console.WriteLine();
         Console.WriteLine(T.Failures == 0 ? "ALL PASS" : T.Failures + " FAILURES");
         return T.Failures;

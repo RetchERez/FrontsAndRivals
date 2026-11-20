@@ -24,6 +24,21 @@ namespace FrontsAndRivals.Data
             if (s.Guards == null) s.Guards = new List<GuardState>();
             if (s.NextGuardId < 1) s.NextGuardId = 1;
             if (s.Offers == null) { s.Offers = new List<GuardState>(); s.OffersDay = -1; }
+            if (s.Crews == null) s.Crews = new List<CrewState>();
+            if (s.FrontAttackedMs == null) s.FrontAttackedMs = new Dictionary<string, long>();
+            if (s.Memorial == null) s.Memorial = new List<string>();
+            if (s.NextMemberId < 1) s.NextMemberId = 1;
+            if (s.LastLossMs == 0 && s.SaveCount > 0) s.LastLossMs = -10000000;
+            foreach (CrewState c in s.Crews)
+            {
+                if (c.Members == null) c.Members = new List<CrewMember>();
+                foreach (CrewMember m in c.Members)
+                {
+                    if (m.Log == null) m.Log = new List<string>();
+                    if (m.Scars == null) m.Scars = new List<string>();
+                    if (m.Id >= s.NextMemberId) s.NextMemberId = m.Id + 1;
+                }
+            }
             foreach (GuardState g in s.Guards)
             {
                 if (string.IsNullOrEmpty(g.Status)) g.Status = GuardStatus.Active;

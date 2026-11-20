@@ -23,5 +23,9 @@
     <Compile Include="../src/Spawn/StreamRules.cs" />
     <Compile Include="../src/Spawn/AutoPosts.cs" />
     <Compile Include="../src/World/Economy.cs" />
+    <Compile Include="../src/World/Nemesis.cs" />
+    <Compile Include="../src/World/Attacks.cs" />
+    <Compile Include="../src/Data/Crews.cs" />
   </ItemGroup>
 </Project>
+
