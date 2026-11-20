@@ -87,6 +87,7 @@ namespace FrontsAndRivals.Core
         public int RivalAlertRange = 35;
         // [Map] (ShowRivalFronts below)
         public bool ShowForSaleFronts = true;
+        public bool FrontStaff = true;
         public bool ArrivalCamera = true;
         // [Economy]
         public double IncomeMultiplier = 1.0;
@@ -142,6 +143,7 @@ namespace FrontsAndRivals.Core
             c.MidnightReport = Bool(ini, "Notifications", "MidnightReport", c.MidnightReport, warn);
             c.RivalAlertRange = Int(ini, "Rivals", "AlertRange", c.RivalAlertRange, 5, 150, warn);
             c.ShowForSaleFronts = Bool(ini, "Map", "ShowForSaleFronts", c.ShowForSaleFronts, warn);
+            c.FrontStaff = Bool(ini, "Map", "FrontStaff", c.FrontStaff, warn);
             c.FrontPriceDays = Int(ini, "Economy", "FrontPriceDays", c.FrontPriceDays, 1, 60, warn);
             c.ArrivalCamera = Bool(ini, "Attacks", "ArrivalCamera", c.ArrivalCamera, warn);
             c.IncomeMultiplier = Double(ini, "Economy", "IncomeMultiplier", c.IncomeMultiplier, 0, 100, warn);

@@ -60,6 +60,21 @@ static class FrontTests
         foreach (GuardState g in es.Guards.Concat(es.Offers)) if (content.Models.GuardsFemale.Contains(g.Model)) women++;
         int people = es.Guards.Count + es.Offers.Count;
         T.True("Women and men among recruits (" + women + " of " + people + " women)", women > 0 && women < people);
+        T.Section("Bodyguards");
+        T.True("Up to two, with room kept for a live fight", EscortRules.Fits(17, 28) && !EscortRules.Fits(18, 28) && EscortRules.Max == 2);
+        var bs = SaveService.NewEmpire();
+        var be = new Empire(bs, content);
+        be.SetOwner("carwash_handson", Owners.Player);
+        GuardState b1 = be.Recruit(rng), b2 = be.Recruit(rng), b3 = be.Recruit(rng);
+        be.Assign(b1, "carwash_handson", 0); be.Assign(b2, "carwash_handson", 1);
+        double before = be.Defense("carwash_handson", 12);
+        T.True("Call two bodyguards", be.SetEscort(b1, true) && be.SetEscort(b2, true) && be.EscortCount() == 2);
+        T.True("A third is refused", !be.SetEscort(b3, true) && !b3.Escort);
+        T.True("Their front is weaker while they're with you", be.Defense("carwash_handson", 12) < before);
+        T.True("They keep their post", b1.Front == "carwash_handson" && b1.Post == 0);
+        be.GuardDown(b1, "your side", false, 0, 1000);
+        T.True("Hurt: no longer a bodyguard", !b1.Escort && be.EscortCount() == 1);
+        T.True("Send back", be.SetEscort(b2, false) && be.EscortCount() == 0);
         var plain = new GuardState { First = "Ana", Nick = "", Last = "Diaz" };
         T.True("No empty quotes for a guard without a nickname", plain.ShortName == "Ana Diaz" && plain.FullName == "Ana Diaz");
     }

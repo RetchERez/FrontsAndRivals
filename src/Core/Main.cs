@@ -34,6 +34,7 @@ namespace FrontsAndRivals.Core
         private readonly ContentDb _content;
         private readonly Streamer _streamer;
         private Workers _workers;
+        private Escorts _escorts;
         private readonly DevTools _dev;
         private readonly AutoPostPlacer _placer = new AutoPostPlacer();
         private readonly OfficeMenu _office;
@@ -75,6 +76,7 @@ namespace FrontsAndRivals.Core
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
             _live = new LiveDefense(_registry, _streamer);
             _workers = new Workers(_registry, _content, () => _empire);
+            _escorts = new Escorts(_registry, () => _empire, OnBodyguardDown);
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
             _notifier.UseSettings(NoteSettingsNow);
@@ -119,7 +121,8 @@ namespace FrontsAndRivals.Core
             }
             _scheduler.Add("Streamer", "guards", 500, StreamerTick);
             _scheduler.Add("AutoPosts", "guard posts", 1000, AutoPostsTick);
-            _scheduler.Add("Workers", "front staff", 1000, () => _workers.Update());
+            if (_config.FrontStaff) _scheduler.Add("Workers", "front staff", 1000, () => _workers.Update());
+            _scheduler.Add("Escorts", "bodyguards", 500, () => _escorts.Update());
             _scheduler.Add("Blips", "map blips", 2000, () => _blips.Refresh(_empire, _content));
             _scheduler.Add("World", "guard recovery", 60000, WorldTick);
             _scheduler.Add("Director", "attacks", 2000, () => _director.Update());
@@ -274,6 +277,17 @@ namespace FrontsAndRivals.Core
             if (back > 0) { Log.Write(back + " injured guard(s) back on duty"); SaveNow(); }
         }
 
+        /// <summary>A bodyguard died at your side. Same rules as at a post.</summary>
+        private void OnBodyguardDown(GuardState g, Ped body)
+        {
+            bool permanent = _empire.PermanentDeath(_config.PermanentDeath);
+            _empire.GuardDown(g, "your side", permanent, ActiveNow(), InjuryRecoveryMs);
+            Log.Write("Bodyguard " + g.Id + " " + g.FullName + (permanent ? " died" : " was injured"));
+            _notifier.PostWithMugshot(body, "Bodyguard", permanent ? "Guard down" : "Guard injured",
+                permanent ? g.ShortName + " took a bullet for you." : g.ShortName + " got hurt covering you. Back in two days.");
+            SaveNow();
+        }
+
         /// <summary>A streamed guard died in the world. Permanent death unless PermanentDeath=false.</summary>
         private void OnGuardDown(GuardState g, Ped body, FrontDef front)
         {
@@ -319,6 +333,7 @@ namespace FrontsAndRivals.Core
                 int n = _registry.DeleteAll();
                 if (_streamer != null) _streamer.Reset();
                 if (_workers != null) _workers.Forget();
+                if (_escorts != null) _escorts.Forget();
                 if (n > 0) Log.Write("Cleared " + n + " mod entities (" + why + ")");
             }
             catch (Exception ex) { Log.Error("ClearWorld", ex); }

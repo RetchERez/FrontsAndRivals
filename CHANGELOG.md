@@ -12,6 +12,8 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Bodyguards: up to two guards join your own group (follow, ride along, fight); blue blips; their post waits for them;
+  killed or hurt the same as at a post; gone during missions and back afterwards
 - Guard skills (Shooting, Strength, Stamina, Stealth, 0-100, average 50) that grow with days on duty, fights, kills and
   promotions; they move power x0.8-x1.2, injury and death chances x0.7-x1.3, recovery time, and live-fight aim and health.
   Hire prices follow skills (x0.86-x1.18). Older saves get rank-based skills. Guards can be fired from their page

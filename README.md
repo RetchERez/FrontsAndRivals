@@ -11,6 +11,8 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
+- Bodyguards: call up to two of your guards from the Office to follow you around the city, on foot or in your car,
+  and fight at your side. Their front is a guard short while they're with you
 - Guard skills like the player's: Shooting (aim and power), Strength (power and health), Stamina (fewer injuries,
   quicker recovery) and Stealth (fewer deaths). They grow on the job: every midnight on a post, every fight, every kill,
   every promotion. Better recruits cost more; fire anyone from their page in the Office

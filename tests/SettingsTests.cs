@@ -13,7 +13,7 @@ static class SettingsTests
         int warnings = 0;
         Config shipped = Config.Load(repoIni, w => warnings++);
         T.Check("Shipped INI parses with no warnings", warnings, 0, 0);
-        T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton && shipped.EmpirePressure);
+        T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton && shipped.EmpirePressure && shipped.FrontStaff);
         T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 5 && shipped.RivalAlertRange == 35
             && shipped.LiveDefense && shipped.TurfFrequency == AttackFrequency.Normal && shipped.NotifyLevel == NoteLevel.All);
 

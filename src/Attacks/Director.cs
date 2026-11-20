@@ -251,7 +251,7 @@ namespace FrontsAndRivals.Attacks
             CrewDef crew = _content.Crew(a.Crew);
             CrewMember leader = cs.Member(a.Leader);
             var guards = new List<GuardState>();
-            foreach (GuardState g in s.Guards) if (g.Front == a.Front && g.Status == GuardStatus.Active) guards.Add(g);
+            foreach (GuardState g in s.Guards) if (g.Front == a.Front && g.Status == GuardStatus.Active && !g.Escort) guards.Add(g);
 
             Rules.Attacks.Outcome o = Rules.Attacks.Resolve(s, _content, e, a, _rng(), hour, now, e.PermanentDeath(_config.PermanentDeath), _config.ProtectedMode,
                 won, r.AttackersLost, InjuryRecoveryMs);

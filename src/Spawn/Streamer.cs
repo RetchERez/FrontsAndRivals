@@ -210,7 +210,7 @@ namespace FrontsAndRivals.Spawn
             {
                 Slot slot = f.Slots[post];
                 GuardState g = _empire.AtPost(f.Def.Id, post);
-                int wantId = (g != null && g.Status == GuardStatus.Active) ? g.Id : 0;
+                int wantId = (g != null && g.Status == GuardStatus.Active && !g.Escort) ? g.Id : 0; // bodyguards are with you
 
                 if (slot.Ped != null)
                 {
@@ -280,7 +280,7 @@ namespace FrontsAndRivals.Spawn
             Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, ped, scenario, post.X, post.Y, post.Z, post.H, -1, false, true);
         }
 
-        private static WeaponHash WeaponFor(int weapon)
+        public static WeaponHash WeaponFor(int weapon)
         {
             switch ((Rules.Weapon)weapon)
             {

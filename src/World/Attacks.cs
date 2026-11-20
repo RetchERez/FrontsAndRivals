@@ -236,7 +236,7 @@ namespace FrontsAndRivals.Rules
             bool medic = false;
             foreach (GuardState g in s.Guards)
             {
-                if (g.Front != attack.Front || g.Status == GuardStatus.Dead) continue;
+                if (g.Front != attack.Front || g.Status == GuardStatus.Dead || g.Escort) continue; // bodyguards are with you
                 posted.Add(g);
                 records.Add(Empire.Record(g));
                 if (g.Trait == (int)Trait.Medic && g.Status == GuardStatus.Active) medic = true;

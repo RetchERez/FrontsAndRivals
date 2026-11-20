@@ -131,6 +131,23 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>Lets a guard go. They leave the roster for good.</summary>
+        public int EscortCount()
+        {
+            int n = 0;
+            foreach (GuardState g in _s.Guards) if (g.Escort && g.Status != GuardStatus.Dead) n++;
+            return n;
+        }
+
+        /// <summary>Calls a guard to follow you, or sends them back to their post. Returns false if not allowed.</summary>
+        public bool SetEscort(GuardState g, bool on)
+        {
+            if (g == null) return false;
+            if (!on) { g.Escort = false; return true; }
+            if (!FrontsAndRivals.Spawn.EscortRules.CanCall(g.Status == GuardStatus.Active, g.Escort, EscortCount())) return false;
+            g.Escort = true;
+            return true;
+        }
+
         /// <summary>A midnight on the payroll: every guard standing a post gets a little better at it.</summary>
         public void DayOnDuty()
         {
@@ -169,7 +186,7 @@ namespace FrontsAndRivals.Rules
             var posted = new List<GuardRecord>();
             foreach (GuardState g in _s.Guards)
             {
-                if (g.Front != frontId || g.Status == GuardStatus.Dead) continue;
+                if (g.Front != frontId || g.Status == GuardStatus.Dead || g.Escort) continue; // a bodyguard is with you, not here
                 posted.Add(Record(g));
             }
             FrontState fs = Find(frontId);
@@ -289,6 +306,7 @@ namespace FrontsAndRivals.Rules
         public void GuardDown(GuardState g, string where, bool permanentDeath, long nowActiveMs, long recoveryMs)
         {
             if (g == null || g.Status == GuardStatus.Dead) return;
+            g.Escort = false;
             if (permanentDeath)
             {
                 g.Status = GuardStatus.Dead;

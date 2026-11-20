@@ -219,6 +219,7 @@ namespace FrontsAndRivals.UI
         private string PostLabel(GuardState g)
         {
             if (g.Status == GuardStatus.Injured) return "Injured";
+            if (g.Escort) return "Bodyguard";
             if (!g.IsPosted) return "Reserve";
             FrontDef def = _content.Front(g.Front);
             return (def != null ? def.ShortName : g.Front) + " " + (g.Post + 1);
@@ -659,6 +660,19 @@ namespace FrontsAndRivals.UI
                 Changed(true);
             });
             _detail.Add(postItem);
+
+            int escorts = e.EscortCount();
+            var guard = new NativeCheckboxItem("Bodyguard",
+                "On: they leave their post and stay at your side, on foot or in your car, and fight whoever comes for you. Up to "
+                + FrontsAndRivals.Spawn.EscortRules.Max + ". Off: back to their post. Not during missions.", g.Escort);
+            guard.Enabled = g.Status == GuardStatus.Active && (g.Escort || escorts < FrontsAndRivals.Spawn.EscortRules.Max);
+            guard.CheckboxChanged += (s, a) => Safe("bodyguard", () =>
+            {
+                if (!e.SetEscort(g, guard.Checked)) { GTA.UI.Notification.Show("You already have " + FrontsAndRivals.Spawn.EscortRules.Max + " bodyguards."); }
+                else GTA.UI.Notification.Show(guard.Checked ? g.ShortName + " is on the way to you." : g.ShortName + " is heading back to their post.");
+                Changed(true);
+            });
+            _detail.Add(guard);
 
             int price = e.WeaponUpgradePrice(g);
             Weapon w = (Weapon)g.Weapon;
