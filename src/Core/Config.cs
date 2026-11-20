@@ -70,6 +70,10 @@ namespace FrontsAndRivals.Core
         public double WageMultiplier = 1.0;
         // [Guards]
         public bool PermanentDeath = true;
+        /// <summary>Fronts can't be lost: a failed defense damages the front (no income at the next midnight) and deaths become injuries.</summary>
+        public bool ProtectedMode = false;
+        /// <summary>Start with the car wash, 2 recruits and the Broker's message already done (for reinstalls).</summary>
+        public bool SkipIntro = false;
         // [Map]
         public bool ShowRivalFronts = true;
         // [Debug]
@@ -103,6 +107,8 @@ namespace FrontsAndRivals.Core
             c.IncomeMultiplier = Double(ini, "Economy", "IncomeMultiplier", c.IncomeMultiplier, 0, 100, warn);
             c.WageMultiplier = Double(ini, "Economy", "WageMultiplier", c.WageMultiplier, 0, 100, warn);
             c.PermanentDeath = Bool(ini, "Guards", "PermanentDeath", c.PermanentDeath, warn);
+            c.ProtectedMode = Bool(ini, "Guards", "ProtectedMode", c.ProtectedMode, warn);
+            c.SkipIntro = Bool(ini, "General", "SkipIntro", c.SkipIntro, warn);
             c.ShowRivalFronts = Bool(ini, "Map", "ShowRivalFronts", c.ShowRivalFronts, warn);
             c.DevTools = Bool(ini, "Debug", "DevTools", c.DevTools, warn);
             return c;

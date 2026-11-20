@@ -1,6 +1,7 @@
 // Fronts & Rivals: the one SHVDN script that drives everything.
 // M1: pause gate, scheduler, log, crash-safe save, factions, registry + orphan sweep, dev tools.
 // M2: content (fronts.json), fronts and guards in the save, the Streamer, front blips, in-game scouting.
+// M3+: the Office, hiring, payouts; v1.0: crews, attacks, live defenses, taking fronts, the nemesis loop.
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -24,7 +25,9 @@ namespace FrontsAndRivals.Core
         private readonly Config _config;
         private readonly Scheduler _scheduler;
         private readonly Registry _registry = new Registry();
-        private readonly Director _director = new Director();
+        private readonly Director _director;
+        private readonly LiveDefense _live;
+        private readonly Banners _banners = new Banners();
         private readonly Notifier _notifier = new Notifier();
         private readonly FrontBlips _blips = new FrontBlips();
         private readonly SaveService _saves;
@@ -67,6 +70,9 @@ namespace FrontsAndRivals.Core
             _content = new ContentDb(dataDir, Log.Write);
             _content.Load(); // files only, no game calls
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
+            _live = new LiveDefense(_registry, _streamer);
+            _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
+                                     EmpireChanged, _banners, _notifier, _streamer, _live);
             _office = new OfficeMenu(_content, () => _empire, () => _rng, EmpireChanged, SaveNow);
 
             try { _phone = PhoneHost.TryCreate(() => _office.OpenOffice()); Log.Write("Phone contact \"The Office\" added"); }
@@ -94,6 +100,8 @@ namespace FrontsAndRivals.Core
             _scheduler.Add("Notifier", "notifications", 0, () => _notifier.Update(), runWhilePaused: true);
             _scheduler.Add("Office", "the Office menu", 0, () => _office.Process(), runWhilePaused: true);
             if (_phone != null) _scheduler.Add("Phone", "the phone contact", 0, () => PhoneHost.Update(_phone), runWhilePaused: true);
+            _scheduler.Add("Banners", "banners", 0, () => { _banners.Process(); _live.Draw(); }, runWhilePaused: true);
+            _scheduler.Add("Prompts", "prompts", 0, () => _director.UpdateFrame());
             _scheduler.Add("Clock", "income and recruits", 2000, ClockTick);
             if (_dev != null)
             {
@@ -104,7 +112,7 @@ namespace FrontsAndRivals.Core
             _scheduler.Add("AutoPosts", "guard posts", 1000, AutoPostsTick);
             _scheduler.Add("Blips", "map blips", 2000, () => _blips.Refresh(_empire, _content));
             _scheduler.Add("World", "guard recovery", 60000, WorldTick);
-            _scheduler.Add("Director", "attacks", 60000, () => _director.Update());
+            _scheduler.Add("Director", "attacks", 2000, () => _director.Update());
             _scheduler.Add("Saver", "saving", SaveEveryMs, SaveNow);
 
             Tick += OnTick;
@@ -153,7 +161,10 @@ namespace FrontsAndRivals.Core
             Log.Write("Empire loaded from " + loaded.Source + " (save #" + _state.SaveCount + ", schema " + _state.SchemaVersion + ")");
 
             _empire = new Empire(_state, _content);
-            _streamer.Attach(_empire);
+            Nemesis.EnsureCrews(_state, _content, _rng);
+            _blips.ShowRivalFronts = _config.ShowRivalFronts;
+            _streamer.Attach(_empire, _config.ShowRivalFronts);
+            if (_config.SkipIntro && !_state.IntroSent) ApplySkipIntro();
             try { _blips.Refresh(_empire, _content); } catch (Exception ex) { Log.Error("Blips", ex); }
             Log.Write("Empire: " + _empire.LivingCount() + " guards, " + _state.Fronts.Count + " fronts tracked");
 
@@ -198,6 +209,7 @@ namespace FrontsAndRivals.Core
         {
             _registry.Prune();
             _streamer.Update();
+            _director.UpdateLive();
             if (_dev != null) _dev.UpdateSpawns();
             if (_autoScout != null) _autoScout.Update();
         }
@@ -260,6 +272,7 @@ namespace FrontsAndRivals.Core
         {
             try
             {
+                if (_director != null) _director.OnWorldCleared(); // a live fight is auto-resolved before its peds go
                 if (_dev != null) _dev.CancelPending();
                 if (_autoScout != null) _autoScout.Cancel();
                 int n = _registry.DeleteAll();
@@ -267,6 +280,22 @@ namespace FrontsAndRivals.Core
                 if (n > 0) Log.Write("Cleared " + n + " mod entities (" + why + ")");
             }
             catch (Exception ex) { Log.Error("ClearWorld", ex); }
+        }
+
+        /// <summary>SkipIntro=true: start with the car wash, 2 recruits posted, and the Broker's message done.</summary>
+        private void ApplySkipIntro()
+        {
+            _state.IntroSent = true;
+            if (_empire.OwnedCount() > 0) return;
+            _empire.SetOwner("carwash_handson", Owners.Player);
+            FrontDef wash = _content.Front("carwash_handson");
+            for (int post = 0; post < 2 && wash != null && post < wash.Posts.Count; post++)
+            {
+                GuardState g = _empire.Recruit(_rng);
+                if (g != null) _empire.Assign(g, wash.Id, post);
+            }
+            Log.Write("SkipIntro: started with the car wash and 2 recruits");
+            EmpireChanged();
         }
 
         private void ShutDownForOnline()
@@ -321,6 +350,12 @@ namespace FrontsAndRivals.Core
             for (int i = 0; i < nights; i++)
             {
                 _state.Day++;
+                Nemesis.Daily(_state, _state.Day);
+                foreach (CrewState crew in _state.Crews)
+                {
+                    Nemesis.Event rebuilt = Nemesis.Rebuild(_state, _content, crew, _rng, _state.Day);
+                    if (rebuilt != null) Notifier.Post("CHAR_DEFAULT", "Street word", "Back in business", _content.Lines.Pick(_rng, rebuilt.Moment, rebuilt.Tokens));
+                }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
                 foreach (GuardState q in pay.Quit)
                 {
@@ -336,6 +371,14 @@ namespace FrontsAndRivals.Core
                 changed = true;
             }
             if (nights > 0) EmpireChanged(); // quitters leave their posts
+
+            // The Broker's first message, 10 minutes into free roam on a new empire.
+            if (!_state.IntroSent && _scheduler.ActiveMs > 10 * 60000L && _empire.OwnedCount() == 0)
+            {
+                _state.IntroSent = true;
+                Notifier.Post("CHAR_DEFAULT", "The Broker", "Business", _content.Lines.Pick(_rng, "brokerIntro", null));
+                changed = true;
+            }
 
             // The Broker's recruits: a fresh set each morning from 06:00, and right away on a brand-new empire.
             if (_state.OffersDay < 0 || (_state.OffersDay != _state.Day && GTA.World.CurrentTimeOfDay.Hours >= 6))

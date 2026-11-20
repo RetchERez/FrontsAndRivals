@@ -1,4 +1,4 @@
-﻿// Fronts & Rivals: developer tools. Only exist when DevTools=true in FrontsAndRivals.ini.
+// Fronts & Rivals: developer tools. Only exist when DevTools=true in FrontsAndRivals.ini.
 //   F9  copies the player's position + heading as a fronts.json snippet (clipboard + log)
 //   F10 opens the dev menu: force attack, add cash, test spawns, cleanup, save
 //   An entity counter at the top of the screen: mod peds/vehicles against the budget, plus the pause-gate state.
@@ -60,7 +60,7 @@ namespace FrontsAndRivals.Dev
             _pool.Add(_menu);
 
             Add("Copy position (F9)", "Copies position and heading as a fronts.json snippet.", CopyPosition);
-            Add("Force attack", "Asks the Director to plan an attack now. Real attacks arrive in milestone 4.", ForceAttack);
+            Add("Force attack", "Plans an attack on one of your fronts now, with a 30-second warning.", ForceAttack);
             Add("Add $10,000", "Adds cash to the character you're playing.", () => AddCash(10000));
             Add("Add $100,000", "Adds cash to the character you're playing.", () => AddCash(100000));
             Add("Spawn test guard", "An FR_GUARDS ped in front of you. Reload scripts to check cleanup.", () => QueueSpawn("a_m_y_business_01", false));
@@ -214,7 +214,7 @@ namespace FrontsAndRivals.Dev
         private void ForceAttack()
         {
             _director.RequestForcedAttack();
-            Notify("Forced attack requested. The Director picks it up within 60 s of free roam.");
+            Notify("Forced attack requested. Warning in a moment; the attack starts 30 s later.");
         }
 
         private void AddCash(int amount)

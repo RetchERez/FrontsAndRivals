@@ -1,6 +1,8 @@
-﻿// Fronts & Rivals: the Streamer. Every 0.5 s it checks the distance to each front you own:
+﻿// Fronts & Rivals: the Streamer. Every 0.5 s it checks the distance to each scouted front:
 //   under 250 m  -> its guards spawn at their posts with idle scenarios (nearest front first)
 //   over 300 m   -> they're deleted (the 50 m gap stops flicker)
+// Your fronts get your guards. Rival-held fronts get the crew's own soldiers, who fight you on sight;
+// kill them all and the front can be claimed at its door (FrontAssault).
 // Models load without blocking: request, check on later updates, give up after 5 s.
 // A guard deleted by another mod is "not spawned", never dead, and comes back 10 s later.
 using System;
@@ -16,8 +18,8 @@ namespace FrontsAndRivals.Spawn
 {
     public sealed class Streamer
     {
-        /// <summary>Raised when a streamed guard ped dies in the world.</summary>
         public delegate void GuardDownHandler(GuardState guard, Ped ped, FrontDef front);
+        public delegate void CrewGuardDownHandler(FrontDef front, string crewId, Ped ped, bool lastOne);
 
         private const float DoorReachedDistance = 2.5f;
         private const int LeaveTimeoutMs = 20000;
@@ -25,31 +27,38 @@ namespace FrontsAndRivals.Spawn
 
         private sealed class Slot
         {
-            public int GuardId;          // guard the ped belongs to (0 = none)
+            public int GuardId;          // your guard's id, or -1 for a crew soldier, 0 for none
             public Ped Ped;
-            public Ped Body;             // a dead guard's body, removed when the front streams out
+            public Ped Body;             // a dead body, removed when the front streams out
             public bool Pending;
             public Model PendingModel;
             public int PendingGuardId;
             public int PendingSince;
             public long RespawnAt;
-            public bool Leaving;         // walking to the door to go inside (laying low)
+            public bool Leaving;
             public long LeaveStart;
+            public bool Killed;          // crew soldier killed this visit: stays dead until the front streams out
         }
 
         private sealed class StreamedFront
         {
             public FrontDef Def;
+            public string Owner;         // Owners.Player or a crew id
             public bool Streamed;
             public float Distance;
             public readonly LayLowTimer LayLow = new LayLowTimer();
             public readonly Slot[] Slots = new Slot[FrontDef.MaxPosts];
+            public bool CrewSpawnedThisVisit;
+            public bool ClearedReported;
 
-            public StreamedFront(FrontDef def)
+            public StreamedFront(FrontDef def, string owner)
             {
                 Def = def;
+                Owner = owner;
                 for (int i = 0; i < Slots.Length; i++) Slots[i] = new Slot();
             }
+
+            public bool IsCrew { get { return Owner != Owners.Player; } }
         }
 
         private readonly Registry _registry;
@@ -57,10 +66,16 @@ namespace FrontsAndRivals.Spawn
         private readonly Func<long> _activeClock;
         private readonly GuardDownHandler _onGuardDown;
         private readonly List<StreamedFront> _fronts = new List<StreamedFront>();
-        private readonly List<StreamedFront> _order = new List<StreamedFront>(); // reused for nearest-first sorting
+        private readonly List<StreamedFront> _order = new List<StreamedFront>();
         private Empire _empire;
+        private bool _showRivals = true;
 
         public int StreamIns, StreamOuts, Leftovers, Vanished;
+
+        /// <summary>A front kept streamed no matter the distance (a live defense is running there).</summary>
+        public string LiveFrontId;
+        /// <summary>Raised when a rival crew's soldier at one of their fronts dies.</summary>
+        public CrewGuardDownHandler OnCrewGuardDown;
 
         public Streamer(Registry registry, ContentDb content, Func<long> activeClock, GuardDownHandler onGuardDown)
         {
@@ -70,22 +85,23 @@ namespace FrontsAndRivals.Spawn
             _onGuardDown = onGuardDown;
         }
 
-        public void Attach(Empire empire)
+        public void Attach(Empire empire, bool showRivalFronts)
         {
             _empire = empire;
+            _showRivals = showRivalFronts;
             Rebuild();
         }
 
-        /// <summary>Re-reads which fronts are owned and scouted. Fronts that drop out are streamed out first.</summary>
+        /// <summary>Re-reads ownership. Fronts that changed hands are streamed out and come back with the new owner's people.</summary>
         public void Rebuild()
         {
             if (_empire == null) return;
-            // Stream out anything that's no longer eligible, keep the rest as they are.
             for (int i = _fronts.Count - 1; i >= 0; i--)
             {
                 StreamedFront f = _fronts[i];
                 FrontDef def = _content.Front(f.Def.Id);
-                if (def == null || !def.IsScouted || !_empire.PlayerOwns(def.Id) || def != f.Def)
+                string owner = def != null ? _empire.OwnerOf(def.Id) : null;
+                if (def == null || !def.IsScouted || def != f.Def || owner != f.Owner || !Wanted(owner))
                 {
                     StreamOut(f, false);
                     _fronts.RemoveAt(i);
@@ -93,11 +109,45 @@ namespace FrontsAndRivals.Spawn
             }
             foreach (FrontDef def in _content.Fronts)
             {
-                if (!def.IsScouted || !_empire.PlayerOwns(def.Id)) continue;
+                string owner = _empire.OwnerOf(def.Id);
+                if (!def.IsScouted || !Wanted(owner)) continue;
                 bool known = false;
                 for (int i = 0; i < _fronts.Count; i++) if (_fronts[i].Def == def) { known = true; break; }
-                if (!known) _fronts.Add(new StreamedFront(def));
+                if (!known) _fronts.Add(new StreamedFront(def, owner));
             }
+        }
+
+        private static bool Wanted(string owner)
+        {
+            // Your fronts and crew fronts stream; fronts for sale stand empty.
+            return owner == Owners.Player || owner == Owners.CrownKings || owner == Owners.Ironside || owner == Owners.Velvet;
+        }
+
+        /// <summary>Your living guard peds at a front, for the live defense.</summary>
+        public List<KeyValuePair<GuardState, Ped>> GuardPedsAt(string frontId)
+        {
+            var list = new List<KeyValuePair<GuardState, Ped>>();
+            foreach (StreamedFront f in _fronts)
+            {
+                if (f.Def.Id != frontId || f.IsCrew) continue;
+                foreach (Slot s in f.Slots)
+                {
+                    if (s.Ped == null || !s.Ped.Exists() || s.Ped.IsDead || s.GuardId <= 0) continue;
+                    GuardState g = _empire.Guard(s.GuardId);
+                    if (g != null) list.Add(new KeyValuePair<GuardState, Ped>(g, s.Ped));
+                }
+            }
+            return list;
+        }
+
+        /// <summary>The guard a ped belongs to, or null (kill credit in live defenses).</summary>
+        public GuardState GuardForPed(Ped ped)
+        {
+            if (ped == null) return null;
+            foreach (StreamedFront f in _fronts)
+                foreach (Slot s in f.Slots)
+                    if (s.Ped == ped && s.GuardId > 0) return _empire.Guard(s.GuardId);
+            return null;
         }
 
         /// <summary>Every 0.5 s while the pause gate is open.</summary>
@@ -111,7 +161,6 @@ namespace FrontsAndRivals.Spawn
             long now = _activeClock();
             int hour = GTA.World.CurrentTimeOfDay.Hours;
 
-            // Nearest front first, so the budget goes where you are.
             _order.Clear();
             foreach (StreamedFront f in _fronts)
             {
@@ -123,12 +172,15 @@ namespace FrontsAndRivals.Spawn
 
             foreach (StreamedFront f in _order)
             {
-                bool hidden = f.LayLow.Update(now, wanted, f.Distance < StreamRules.SpawnRange, grey);
-                bool want = StreamRules.ShouldStream(f.Streamed, f.Distance) && !hidden;
+                bool live = f.Def.Id == LiveFrontId;
+                bool hidden = !live && !f.IsCrew && f.LayLow.Update(now, wanted, f.Distance < StreamRules.SpawnRange, grey);
+                bool want = live || (StreamRules.ShouldStream(f.Streamed, f.Distance) && !hidden);
 
                 if (want && !f.Streamed)
                 {
                     f.Streamed = true;
+                    f.CrewSpawnedThisVisit = false;
+                    f.ClearedReported = false;
                     StreamIns++;
                 }
                 else if (!want && f.Streamed)
@@ -136,10 +188,16 @@ namespace FrontsAndRivals.Spawn
                     StreamOut(f, hidden && f.Distance < StreamRules.DespawnRange);
                 }
 
-                if (f.Streamed) UpdateSlots(f, now, hour);
+                if (f.Streamed)
+                {
+                    if (f.IsCrew) UpdateCrewSlots(f, hour);
+                    else UpdateSlots(f, now, hour);
+                }
                 UpdateLeaving(f, now);
             }
         }
+
+        // ---------------- your fronts ----------------
 
         private void UpdateSlots(StreamedFront f, long now, int hour)
         {
@@ -153,7 +211,6 @@ namespace FrontsAndRivals.Spawn
                 {
                     if (!slot.Ped.Exists())
                     {
-                        // Deleted by someone else: not dead, just not spawned. Back in 10 s.
                         Log.Write("Streamer: guard " + slot.GuardId + " at " + f.Def.Id + " vanished, respawning in 10 s");
                         slot.Ped = null;
                         slot.RespawnAt = now + StreamRules.RespawnDelayMs;
@@ -163,82 +220,46 @@ namespace FrontsAndRivals.Spawn
                     {
                         GuardState dead = _empire.Guard(slot.GuardId);
                         if (slot.Body != null) _registry.Despawn(slot.Body);
-                        slot.Body = slot.Ped; // stays until the front streams out
+                        slot.Body = slot.Ped;
                         slot.Ped = null;
                         slot.GuardId = 0;
-                        if (dead != null && dead.Status == GuardStatus.Active && _onGuardDown != null)
-                            _onGuardDown(dead, slot.Body, f.Def);
-                        continue; // the post is re-read next update
+                        if (dead != null && dead.Status == GuardStatus.Active && _onGuardDown != null) _onGuardDown(dead, slot.Body, f.Def);
+                        continue;
                     }
                     else if (slot.GuardId != wantId)
                     {
-                        _registry.Despawn(slot.Ped); // reassigned, injured or sent to the reserve
+                        _registry.Despawn(slot.Ped);
                         slot.Ped = null;
                     }
                 }
 
-                if (slot.Ped != null || wantId == 0)
-                {
-                    CancelPending(slot);
-                    continue;
-                }
+                if (slot.Ped != null || wantId == 0) { CancelPending(slot); continue; }
                 if (now < slot.RespawnAt) continue;
-
-                if (!slot.Pending)
-                {
-                    var model = new Model(g.Model);
-                    if (!model.IsValid || !model.IsPed)
-                    {
-                        Log.Write("Streamer: bad ped model '" + g.Model + "' for guard " + g.Id + ", retrying in 10 s");
-                        slot.RespawnAt = now + StreamRules.RespawnDelayMs;
-                        continue;
-                    }
-                    model.Request();
-                    slot.Pending = true;
-                    slot.PendingModel = model;
-                    slot.PendingGuardId = wantId;
-                    slot.PendingSince = Game.GameTime;
-                }
-                else if (slot.PendingGuardId != wantId)
-                {
-                    CancelPending(slot);
-                }
-                else if (slot.PendingModel.IsLoaded)
-                {
-                    if (!_registry.CanSpawnPed) continue; // budget full, try next update
-                    try { SpawnGuard(slot, g, f.Def.Posts[post], hour); }
-                    finally { CancelPending(slot); }
-                }
-                else if (Game.GameTime - slot.PendingSince > StreamRules.ModelTimeoutMs)
-                {
-                    Log.Write("Streamer: model " + g.Model + " didn't load in 5 s, retrying in 10 s");
-                    CancelPending(slot);
-                    slot.RespawnAt = now + StreamRules.RespawnDelayMs;
-                }
+                Load(slot, g.Model, wantId, now, () => SpawnGuard(slot, g, f.Def.Posts[post], hour, f.Def.Id == LiveFrontId));
             }
         }
 
-        private void SpawnGuard(Slot slot, GuardState g, PostDef post, int hour)
+        private void SpawnGuard(Slot slot, GuardState g, PostDef post, int hour, bool fighting)
         {
-            var pos = new Vector3(post.X, post.Y, post.Z);
-            Ped ped = GTA.World.CreatePed(slot.PendingModel, pos, post.H);
+            Ped ped = GTA.World.CreatePed(slot.PendingModel, new Vector3(post.X, post.Y, post.Z), post.H);
             if (ped == null) return;
-
             ped.RelationshipGroup = Factions.Guards;
             _registry.Track(ped);
             slot.Ped = ped;
             slot.GuardId = g.Id;
-
             ped.Armor = 0;
-            ped.Weapons.Give(WeaponFor(g.Weapon), 250, false, true);
-            // Idle guards ignore stray events so a bump or a car horn doesn't send them running.
-            // Switched off when an attack starts (milestone 4/5) so they can fight.
-            ped.BlockPermanentEvents = true;
+            ped.Weapons.Give(WeaponFor(g.Weapon), 250, fighting, true);
             Function.Call(Hash.SET_PED_CAN_BE_TARGETTED_BY_PLAYER, ped, Game.Player, false);
             Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
-
+            if (fighting)
+            {
+                ped.BlockPermanentEvents = false;
+                ped.Task.FightAgainstHatedTargets(60f);
+                return;
+            }
+            // Idle guards ignore stray events so a bump or a car horn doesn't send them running.
+            ped.BlockPermanentEvents = true;
             string scenario = StreamRules.GuardScenario(post.Scenario, (Trait)g.Trait, hour);
-            // NativeDB: ped, scenario, x, y, z, heading, timeToLeave (<0 = idle forever), playIntro, teleport
             Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, ped, scenario, post.X, post.Y, post.Z, post.H, -1, false, true);
         }
 
@@ -252,7 +273,115 @@ namespace FrontsAndRivals.Spawn
             }
         }
 
-        /// <summary>Deletes a front's peds. When laying low, guards on screen walk to the door first.</summary>
+        // ---------------- rival crews' fronts ----------------
+
+        /// <summary>A crew front holds min(posts, 2 + tier) soldiers while the crew has manpower; killed ones stay dead
+        /// until you leave. Weakened fronts (after a failed attack on you) hold one fewer.</summary>
+        private void UpdateCrewSlots(StreamedFront f, int hour)
+        {
+            CrewDef crew = _content.Crew(f.Owner);
+            CrewState cs = Nemesis.Crew(_empire.State, f.Owner);
+            if (crew == null || cs == null) return;
+            FrontState fs = _empire.Find(f.Def.Id);
+            int count = Math.Min(f.Def.Posts.Count, 2 + f.Def.Tier);
+            if (fs != null && fs.WeakUntilDay >= _empire.State.Day) count = Math.Max(1, count - 1);
+            if (cs.Manpower <= 0) count = 0;
+
+            int alive = 0, killed = 0;
+            for (int post = 0; post < count; post++)
+            {
+                Slot slot = f.Slots[post];
+                if (slot.Ped != null)
+                {
+                    if (!slot.Ped.Exists()) { slot.Ped = null; continue; } // deleted elsewhere: no credit, respawns next visit
+                    if (slot.Ped.IsDead)
+                    {
+                        if (slot.Body != null) _registry.Despawn(slot.Body);
+                        slot.Body = slot.Ped;
+                        slot.Ped = null;
+                        slot.Killed = true;
+                        if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, slot.Body, false);
+                        continue;
+                    }
+                    alive++;
+                    continue;
+                }
+                if (slot.Killed) { killed++; continue; }
+                string model = crew.Models[Math.Abs(f.Def.Id.GetHashCode() + post * 7) % crew.Models.Count];
+                Load(slot, model, -1, 0, () => SpawnCrewGuard(slot, crew, f.Def.Posts[post], hour));
+            }
+            if (alive > 0 || killed > 0) f.CrewSpawnedThisVisit = true;
+            if (f.CrewSpawnedThisVisit && alive == 0 && killed > 0 && !f.ClearedReported)
+            {
+                bool anyPending = false;
+                for (int post = 0; post < count; post++) if (f.Slots[post].Pending) anyPending = true;
+                if (!anyPending)
+                {
+                    f.ClearedReported = true;
+                    if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true);
+                }
+            }
+        }
+
+        private void SpawnCrewGuard(Slot slot, CrewDef crew, PostDef post, int hour)
+        {
+            Ped ped = GTA.World.CreatePed(slot.PendingModel, new Vector3(post.X, post.Y, post.Z), post.H);
+            if (ped == null) return;
+            ped.RelationshipGroup = Factions.CrewGroup(crew.Id);
+            _registry.Track(ped);
+            slot.Ped = ped;
+            slot.GuardId = -1;
+            ped.Weapons.Give(CrewWeapon(crew, Math.Abs(post.GetHashCode())), 250, false, true);
+            ped.Accuracy = 25;
+            Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
+            // Crew soldiers stand their post and fight anyone they hate who comes close (you and your guards).
+            Function.Call(Hash.TASK_GUARD_CURRENT_POSITION, ped, 15f, 15f, true);
+        }
+
+        public static WeaponHash CrewWeapon(CrewDef crew, int pick)
+        {
+            string name = crew.Weapons[pick % crew.Weapons.Count];
+            WeaponHash w;
+            return Enum.TryParse(name, true, out w) ? w : WeaponHash.Pistol;
+        }
+
+        // ---------------- shared ----------------
+
+        private void Load(Slot slot, string modelName, int forId, long now, Action spawn)
+        {
+            if (!slot.Pending)
+            {
+                var model = new Model(modelName);
+                if (!model.IsValid || !model.IsPed)
+                {
+                    Log.Write("Streamer: bad ped model '" + modelName + "', retrying in 10 s");
+                    slot.RespawnAt = now + StreamRules.RespawnDelayMs;
+                    return;
+                }
+                model.Request();
+                slot.Pending = true;
+                slot.PendingModel = model;
+                slot.PendingGuardId = forId;
+                slot.PendingSince = Game.GameTime;
+            }
+            else if (slot.PendingGuardId != forId)
+            {
+                CancelPending(slot);
+            }
+            else if (slot.PendingModel.IsLoaded)
+            {
+                if (!_registry.CanSpawnPed) return;
+                try { spawn(); }
+                finally { CancelPending(slot); }
+            }
+            else if (Game.GameTime - slot.PendingSince > StreamRules.ModelTimeoutMs)
+            {
+                Log.Write("Streamer: model " + modelName + " didn't load in 5 s, retrying in 10 s");
+                CancelPending(slot);
+                slot.RespawnAt = now + StreamRules.RespawnDelayMs;
+            }
+        }
+
         private void StreamOut(StreamedFront f, bool layLow)
         {
             Vector3 door = new Vector3(f.Def.Door.X, f.Def.Door.Y, f.Def.Door.Z);
@@ -262,6 +391,7 @@ namespace FrontsAndRivals.Spawn
             {
                 Slot s = f.Slots[i];
                 CancelPending(s);
+                s.Killed = false;
                 if (s.Body != null) { _registry.Despawn(s.Body); s.Body = null; }
                 if (s.Ped == null) continue;
                 if (layLow && s.Ped.Exists() && !s.Ped.IsDead && s.Ped.IsOnScreen)
@@ -301,7 +431,7 @@ namespace FrontsAndRivals.Spawn
             }
         }
 
-        /// <summary>The 50-drive-by test: after a front streams out, no FR_ ped may remain near it.</summary>
+        /// <summary>The drive-by test: after a front streams out, no FR_ ped may remain near it.</summary>
         private void CheckLeftovers(Vector3 door)
         {
             foreach (Ped p in GTA.World.GetNearbyPeds(door, LeftoverScanRadius))
@@ -331,7 +461,7 @@ namespace FrontsAndRivals.Spawn
                 {
                     Slot s = f.Slots[i];
                     CancelPending(s);
-                    s.Ped = null; s.Body = null; s.GuardId = 0; s.Leaving = false; s.RespawnAt = 0;
+                    s.Ped = null; s.Body = null; s.GuardId = 0; s.Leaving = false; s.RespawnAt = 0; s.Killed = false;
                 }
                 f.Streamed = false;
             }
@@ -341,6 +471,35 @@ namespace FrontsAndRivals.Spawn
         public void DespawnAll()
         {
             foreach (StreamedFront f in _fronts) StreamOut(f, false);
+        }
+
+        /// <summary>Re-tasks a front's idle guards for a fight (live defense start) or back to idle (fight over).</summary>
+        public void SetFighting(string frontId, bool fighting)
+        {
+            int hour = GTA.World.CurrentTimeOfDay.Hours;
+            foreach (StreamedFront f in _fronts)
+            {
+                if (f.Def.Id != frontId || f.IsCrew) continue;
+                for (int i = 0; i < f.Slots.Length && i < f.Def.Posts.Count; i++)
+                {
+                    Slot s = f.Slots[i];
+                    if (s.Ped == null || !s.Ped.Exists() || s.Ped.IsDead) continue;
+                    s.Ped.Task.ClearAll();
+                    if (fighting)
+                    {
+                        s.Ped.BlockPermanentEvents = false;
+                        s.Ped.Task.FightAgainstHatedTargets(60f);
+                    }
+                    else
+                    {
+                        GuardState g = _empire.Guard(s.GuardId);
+                        PostDef post = f.Def.Posts[i];
+                        s.Ped.BlockPermanentEvents = true;
+                        string scenario = StreamRules.GuardScenario(post.Scenario, g != null ? (Trait)g.Trait : Trait.None, hour);
+                        Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, s.Ped, scenario, post.X, post.Y, post.Z, post.H, -1, false, false);
+                    }
+                }
+            }
         }
 
         public int StreamedCount

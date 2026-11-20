@@ -1,5 +1,7 @@
-// Fronts & Rivals: map blips for the fronts you own (business icon, green, short range on the minimap).
-// Threatened / under attack colours arrive with attacks in milestone 4.
+// Fronts & Rivals: map blips. Business icon for every front:
+//   yours: green, short range on the minimap        threatened (warning text sent): yellow, flashing
+//   under attack: red, flashing, with a red radius ring     rival-held: the crew's colour (Map > ShowRivalFronts)
+// States never rely on colour alone: threatened and under attack also flash, and under attack gets the ring.
 using System.Collections.Generic;
 using GTA;
 using GTA.Math;
@@ -10,50 +12,89 @@ namespace FrontsAndRivals.UI
 {
     public sealed class FrontBlips
     {
-        private readonly Dictionary<string, Blip> _blips = new Dictionary<string, Blip>();
-        private readonly List<string> _remove = new List<string>();
+        private sealed class Entry
+        {
+            public Blip Blip;
+            public Blip Ring;
+            public string Shown; // what the blip currently shows, so nothing changes when nothing changed
+        }
 
-        /// <summary>Makes the blips match ownership. Cheap: six fronts, no allocations when nothing changed.</summary>
+        private readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
+        public bool ShowRivalFronts = true;
+
         public void Refresh(Empire empire, ContentDb content)
         {
             if (empire == null) return;
+            AttackState attack = empire.State.Attack;
             foreach (FrontDef def in content.Fronts)
             {
-                bool show = def.Door.IsSet && empire.PlayerOwns(def.Id) && !empire.State.HideBlips;
-                Blip blip;
-                bool has = _blips.TryGetValue(def.Id, out blip) && blip != null && blip.Exists();
-                if (show && !has)
+                Entry en;
+                if (!_entries.TryGetValue(def.Id, out en)) { en = new Entry(); _entries[def.Id] = en; }
+                string owner = empire.OwnerOf(def.Id);
+                string want = Want(empire, def, owner, attack);
+
+                if (want == en.Shown && en.Blip != null && en.Blip.Exists()) continue;
+                Remove(en);
+                en.Shown = want;
+                if (want == null) continue;
+
+                var pos = new Vector3(def.Door.X, def.Door.Y, def.Door.Z);
+                Blip b = GTA.World.CreateBlip(pos);
+                b.Sprite = BlipSprite.Business;
+                b.Name = def.Name;
+                b.IsShortRange = want == "yours" || want.StartsWith("crew");
+                switch (want)
                 {
-                    blip = GTA.World.CreateBlip(new Vector3(def.Door.X, def.Door.Y, def.Door.Z));
-                    blip.Sprite = BlipSprite.Business;
-                    blip.Color = BlipColor.Green;
-                    blip.IsShortRange = true;
-                    blip.Name = def.Name;
-                    _blips[def.Id] = blip;
+                    case "yours": b.Color = BlipColor.Green; break;
+                    case "threat": b.Color = BlipColor.Yellow; b.IsFlashing = true; break;
+                    case "attack":
+                        b.Color = BlipColor.Red; b.IsFlashing = true;
+                        en.Ring = GTA.World.CreateBlip(pos, 60f);
+                        en.Ring.Color = BlipColor.Red;
+                        en.Ring.Alpha = 90;
+                        break;
+                    case "forsale": b.Color = BlipColor.White; b.Name = def.Name + " (for sale)"; break;
+                    default:
+                        CrewDef crew = content.Crew(owner);
+                        b.Color = crew != null ? (BlipColor)crew.BlipColor : BlipColor.Grey;
+                        b.Name = def.Name + (crew != null ? " (" + crew.Name + ")" : "");
+                        break;
                 }
-                else if (show && has && blip.Position.DistanceTo(new Vector3(def.Door.X, def.Door.Y, def.Door.Z)) > 1f)
-                {
-                    blip.Position = new Vector3(def.Door.X, def.Door.Y, def.Door.Z); // door moved by scouting
-                }
-                else if (!show && has)
-                {
-                    blip.Delete();
-                    _blips.Remove(def.Id);
-                }
+                en.Blip = b;
             }
-            // Fronts removed from content
-            _remove.Clear();
-            foreach (KeyValuePair<string, Blip> kv in _blips) if (content.Front(kv.Key) == null) _remove.Add(kv.Key);
-            foreach (string id in _remove) { if (_blips[id] != null && _blips[id].Exists()) _blips[id].Delete(); _blips.Remove(id); }
+        }
+
+        private string Want(Empire empire, FrontDef def, string owner, AttackState attack)
+        {
+            if (!def.Door.IsSet) return null;
+            if (owner == Owners.Player)
+            {
+                if (empire.State.HideBlips) return null;
+                if (attack != null && attack.Front == def.Id)
+                    return attack.Phase == AttackPhase.Warning ? "threat" : "attack";
+                return "yours";
+            }
+            if (empire.State.HideBlips || !ShowRivalFronts) return null;
+            if (owner == Owners.ForSale) return "forsale";
+            return "crew:" + owner;
+        }
+
+        private static void Remove(Entry en)
+        {
+            if (en.Blip != null && en.Blip.Exists()) en.Blip.Delete();
+            if (en.Ring != null && en.Ring.Exists()) en.Ring.Delete();
+            en.Blip = null;
+            en.Ring = null;
+            en.Shown = null;
         }
 
         public void DeleteAll()
         {
-            foreach (Blip b in _blips.Values)
+            foreach (Entry en in _entries.Values)
             {
-                try { if (b != null && b.Exists()) b.Delete(); } catch { }
+                try { Remove(en); } catch { }
             }
-            _blips.Clear();
+            _entries.Clear();
         }
     }
 }

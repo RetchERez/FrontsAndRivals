@@ -99,6 +99,7 @@ namespace FrontsAndRivals.Rules
             public int Wages;
             public int Net { get { return Income - Wages; } }
             public List<GuardState> Quit = new List<GuardState>();
+            public int DamagedSkipped;
         }
 
         /// <summary>One in-game midnight. Wages come out before income; if the player can't cover them,
@@ -109,6 +110,7 @@ namespace FrontsAndRivals.Rules
             foreach (FrontState f in s.Fronts)
             {
                 if (f.Owner != Owners.Player) continue;
+                if (f.Damaged) { f.Damaged = false; p.DamagedSkipped++; continue; } // protected mode: no take tonight, fixed by morning
                 FrontDef def = content.Front(f.Id);
                 if (def != null) p.Income += (int)Math.Round(def.Income * incomeMult);
             }

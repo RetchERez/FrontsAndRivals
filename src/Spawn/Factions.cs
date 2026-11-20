@@ -70,6 +70,17 @@ namespace FrontsAndRivals.Spawn
             Function.Call(Hash.SET_RELATIONSHIP_BETWEEN_GROUPS, relationship, b, a);
         }
 
+        /// <summary>The FR_ relationship group for a crew id (CK, IR, VS).</summary>
+        public static RelationshipGroup CrewGroup(string crewId)
+        {
+            switch (crewId)
+            {
+                case "IR": return Ironside;
+                case "VS": return Velvet;
+                default: return CrownKings;
+            }
+        }
+
         public static bool IsOwnGroup(int hash)
         {
             return Markers.IsModGroup(hash);
