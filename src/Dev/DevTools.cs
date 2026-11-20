@@ -40,6 +40,7 @@ namespace FrontsAndRivals.Dev
         private readonly GTA.UI.TextElement _counter;
         private readonly List<PendingSpawn> _pending = new List<PendingSpawn>();
         private bool _showCounter = true;
+        private bool _openPending; // opened from the Office: wait until Select is let go
 
         /// <summary>Other dev panels (ScoutMenu) hang off this pool and menu.</summary>
         public ObjectPool Pool { get { return _pool; } }
@@ -57,6 +58,7 @@ namespace FrontsAndRivals.Dev
             _counter = new GTA.UI.TextElement("", new PointF(640f, 4f), 0.3f, Color.White, GTA.UI.Font.ChaletLondon, GTA.UI.Alignment.Center, true, true);
 
             _menu = new NativeMenu("Fronts & Rivals", "Dev tools", "Only shown with DevTools=true.");
+            UI.MenuStyle.Apply(_menu, false);
             _pool.Add(_menu);
 
             Add("Copy position (F9)", "Copies position and heading as a fronts.json snippet.", CopyPosition);
@@ -105,9 +107,18 @@ namespace FrontsAndRivals.Dev
             else if (key == MenuKey) _menu.Visible = !_menu.Visible;
         }
 
+        /// <summary>Opens the dev menu once the button that chose it is let go, so the same press
+        /// doesn't also activate its first row (Office > Settings > Dev tools, the controller route).</summary>
+        public void OpenSoon() { _openPending = true; }
+
         /// <summary>Every tick, also while paused, so the menu never freezes.</summary>
         public void Draw(PauseReason gate)
         {
+            if (_openPending && !Game.IsControlPressed(GTA.Control.FrontendAccept))
+            {
+                _openPending = false;
+                _menu.Visible = true;
+            }
             _pool.Process();
             if (_showCounter)
             {

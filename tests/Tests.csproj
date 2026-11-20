@@ -27,6 +27,7 @@
     <Compile Include="../src/World/Attacks.cs" />
     <Compile Include="../src/World/Turf.cs" />
     <Compile Include="../src/Core/NotifyQueue.cs" />
+    <Compile Include="../src/Core/HoldButton.cs" />
     <Compile Include="../src/Data/Crews.cs" />
   </ItemGroup>
 </Project>

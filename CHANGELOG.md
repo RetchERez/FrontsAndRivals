@@ -25,7 +25,8 @@ First full release.
 - Notifications go through one queue: a minimum gap (20 s default), important messages first, stale gossip dropped,
   and a level (All, Important, Minimal) with switches for taunts, street word and the midnight report
 - Sound effects from the game's own HUD sound sets (attack warning and start, purchases, midnight take, banners), with an on/off setting
-- Controller support: the Interaction Menu button can open the Office (OfficeButton), and every menu and prompt works on a gamepad
+- Controller support: hold Back/View (or M) for half a second to open the Office, like GTA Online (a tap still changes the camera);
+  every menu shows the pad's buttons, and with DevTools=true the dev menu opens from Office > Settings
 - Options: attack frequency or exact cooldown, first-attack delay, warning hours, live defenses on/off, police response,
   turf frequency, rival alert range, front price, income and wage multipliers, permanent death, protected mode, map blips,
   skip intro, Office hotkey; the everyday ones are also in the Office's Settings

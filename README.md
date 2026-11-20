@@ -57,7 +57,7 @@ attack frequency, rival turf moves, notifications, live defenses, sound effects 
 
 Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the file:
 
-- `OfficeHotkey` (keyboard key, e.g. `F7`) and `OfficeButton` (true = the controller's Interaction Menu button opens the Office)
+- `OfficeHotkey` (keyboard key, e.g. `F7`) and `OfficeButton` (true, the default = hold the controller's Back/View button, or M, for half a second to open the Office)
 - Attacks: `Frequency`, `CooldownMinutes` (exact minutes between attacks), `FirstAttackDelayMinutes`, `WarningHours`, `LiveDefense`, `PoliceRespond`
 - Turf: `Frequency` for how often crews grab and fight over fronts at night
 - Notifications: `Level` (All, Important, Minimal), `MinSecondsBetween` (default 20 s so messages never pile up), `Taunts`, `StreetWord`, `MidnightReport`
@@ -69,7 +69,7 @@ Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the 
 
 ## Controller
 
-Everything works on a gamepad: open your phone and call The Office, or set `OfficeButton=true` to use the Interaction Menu button (Back/View). In the Office, the D-pad moves, **A** opens or selects, **B** goes back, and left/right on the D-pad changes a post or a setting. The claim prompt at a rival front's door shows your controller's button.
+Everything works on a gamepad. **Hold Back/View for half a second** to open or close the Office (a quick tap still changes the camera), or call The Office from your phone. In the Office, the D-pad moves, **A** opens or selects, **B** goes back, and left/right on the D-pad changes a post or a setting. The claim prompt at a rival front's door shows your controller's button. With `DevTools=true`, the dev menu is under Office > Settings > Dev tools, so it needs no keyboard either.
 
 ## Uninstall
 

@@ -8,7 +8,8 @@
 //    Rivals
 //    Settings ›
 //
-// Enter moves one panel to the right, Backspace one panel to the left; Backspace on the left panel closes.
+// Select (Enter / A) moves one panel right, Back (Backspace / B) one panel left; Back on the left panel closes.
+// Opened by the hotkey, the phone contact, or holding the Interaction Menu button (M / Back/View).
 // Only the focused panel takes input. Design doc: native look, badges on the right, bars not numbers, one accent colour.
 using System;
 using System.Collections.Generic;
@@ -57,6 +58,9 @@ namespace FrontsAndRivals.UI
         private int _letGoArmed;
         private bool _rebuild;
 
+        /// <summary>Set when DevTools=true: Settings gets a "Dev tools" row (the controller's way in).</summary>
+        public Action OpenDevTools;
+
         public OfficeMenu(ContentDb content, Config config, Func<Empire> empire, Func<Random> rng, Action changed, Action save)
         {
             _content = content;
@@ -87,11 +91,7 @@ namespace FrontsAndRivals.UI
             m.Offset = new PointF(x, 0f);
             m.MaxItems = Rows;
             // The game's own Interaction Menu banner texture, titled in GTA's menu font (Chalet), like Rockstar's menus.
-            m.Banner = new ScaledTexture(PointF.Empty, new SizeF(width, 107f), "commonmenu", "interaction_bgd");
-            m.BannerText.Font = GTA.UI.Font.ChaletLondon;
-            m.BannerText.Scale = 0.85f;
-            m.RotateCamera = false;
-            m.MouseBehavior = MenuMouseBehavior.Disabled; // keyboard and controller only, like the Interaction Menu
+            MenuStyle.Banner(m, width);
             Pool.Add(m);
             return m;
         }
@@ -256,13 +256,13 @@ namespace FrontsAndRivals.UI
             foreach (GuardState g in e.State.Guards) if (g.Status == GuardStatus.Injured) injured++;
 
             AddSection("Overview", "Your empire at a glance: income, wages, fronts and people.", Money(net) + "/day");
-            AddSection("Fronts", "Every business: who holds it, its defense and income. Enter to manage one.", e.OwnedCount() + " held" + Open);
-            AddSection("Guards", "Your roster: rank, trait and post. Enter to manage one.", e.LivingCount() + (injured > 0 ? " (" + injured + " hurt)" : "") + Open);
+            AddSection("Fronts", "Every business: who holds it, its defense and income. Select one to manage it.", e.OwnedCount() + " held" + Open);
+            AddSection("Guards", "Your roster: rank, trait and post. Select one to manage it.", e.LivingCount() + (injured > 0 ? " (" + injured + " hurt)" : "") + Open);
             AddSection("Hire recruits", "The Broker sends 3 new faces every morning at 06:00.", e.State.Offers.Count + " today" + Open);
             int maxGrudge = 0;
             foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
             AddSection("Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge + Open);
-            AddSection("Settings", "Attack frequency and map blips.", Open.Trim());
+            AddSection("Settings", "Attacks, turf moves, notifications, sound and map blips.", Open.Trim());
         }
 
         private NativeItem AddSection(string title, string description, string badge)
@@ -316,7 +316,7 @@ namespace FrontsAndRivals.UI
             AddListRow(Info("Net per day", "Income minus wages.", Money(income - wages)), null, false);
             AddListRow(Info("This week, about", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
             AddListRow(Info("Last midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
-            AddListRow(Info("Fronts held", "Buy the car wash from the Broker; the rest are held by rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
+            AddListRow(Info("Fronts held", "Buy fronts for sale from the Broker, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
             AddListRow(Info("Guards", "Hired people, posted or in the reserve.", e.LivingCount() + (injured > 0 ? ", " + injured + " hurt" : "")), null, false);
             if (fallen > 0) AddListRow(Info("Fallen", "Guards who died at their post.", fallen.ToString()), null, false);
         }
@@ -337,7 +337,7 @@ namespace FrontsAndRivals.UI
                 string badge = owner == Owners.Player
                     ? (atk != null && atk.Front == def.Id ? (atk.Phase == AttackPhase.Warning ? "Threatened" : "Under attack") : GuardsAt(e, def) + "/" + def.Posts.Count + " guards")
                     : OwnerLabel(owner);
-                NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Enter to manage.", badge + Open);
+                NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Select to manage.", badge + Open);
                 AddListRow(row, def, true);
             }
         }
@@ -370,7 +370,7 @@ namespace FrontsAndRivals.UI
                 if (g.Status == GuardStatus.Dead) continue;
                 living++;
                 NativeItem row = Row(Short(g) + " " + g.Last,
-                    Economy.RankName((Rank)g.Rank) + ", " + Economy.TraitName((Trait)g.Trait) + ", " + Economy.WeaponName((Weapon)g.Weapon) + ". Enter to manage.",
+                    Economy.RankName((Rank)g.Rank) + ", " + Economy.TraitName((Trait)g.Trait) + ", " + Economy.WeaponName((Weapon)g.Weapon) + ". Select to manage.",
                     PostLabel(g) + Open);
                 AddListRow(row, g, true);
             }
@@ -402,7 +402,7 @@ namespace FrontsAndRivals.UI
             foreach (GuardState offer in e.State.Offers)
             {
                 Trait t = (Trait)offer.Trait;
-                NativeItem row = Row(Short(offer) + " " + offer.Last, Economy.TraitName(t) + ". " + Economy.TraitEffect(t) + " Enter to hire.",
+                NativeItem row = Row(Short(offer) + " " + offer.Last, Economy.TraitName(t) + ". " + Economy.TraitEffect(t) + " Select to hire.",
                     Money(e.OfferPrice(offer)) + Open);
                 AddListRow(row, offer, true);
             }
@@ -445,6 +445,13 @@ namespace FrontsAndRivals.UI
             var blips = new NativeCheckboxItem("Map blips", "Show fronts on the map and minimap.", !e.State.HideBlips);
             blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
             AddListRow(blips, null, false);
+
+            if (OpenDevTools != null)
+            {
+                NativeItem dev = Row("Dev tools", "Testing tools: force an attack, add cash, scout fronts. Shown because DevTools=true.", Open.Trim());
+                dev.Activated += (s, a) => { CloseAll(); OpenDevTools(); };
+                AddListRow(dev, null, false);
+            }
 
             NativeItem version = Row("Version", "Fronts & Rivals, a free single-player mod for Grand Theft Auto V.", Main.ModVersion);
             version.Enabled = false;
@@ -498,7 +505,7 @@ namespace FrontsAndRivals.UI
             }
             else
             {
-                NativeItem held = Row("Held by the " + OwnerLabel(owner), "Clear their guards and claim the door to take it. Taking fronts arrives with the rival crews.", "");
+                NativeItem held = Row("Held by the " + OwnerLabel(owner), "Clear their soldiers, then claim the door to take it.", "");
                 held.Enabled = false;
                 _detail.Add(held);
             }
@@ -654,7 +661,7 @@ namespace FrontsAndRivals.UI
             weapon.Enabled = price > 0;
             _detail.Add(weapon);
 
-            NativeItem letGo = Row(_letGoArmed == g.Id ? "Let go: press Enter again" : "Let go", "They leave your roster for good. No refund.", "");
+            NativeItem letGo = Row(_letGoArmed == g.Id ? "Let go: select again to confirm" : "Let go", "They leave your roster for good. No refund.", "");
             letGo.Activated += (s, a) => Safe("let go", () =>
             {
                 if (_letGoArmed != g.Id) { _letGoArmed = g.Id; _rebuild = true; return; }
@@ -679,7 +686,7 @@ namespace FrontsAndRivals.UI
                 int held = 0;
                 foreach (FrontState f in e.State.Fronts) if (f.Owner == c.Id) held++;
                 bool quiet = Nemesis.IsQuiet(c, e.State.Day);
-                string desc = def.Style + ". Holds " + held + (held == 1 ? " front. " : " fronts. ") + (quiet ? "Gone quiet after losing their leaders." : "Enter for their leaders.");
+                string desc = def.Style + ". Holds " + held + (held == 1 ? " front. " : " fronts. ") + (quiet ? "Gone quiet after losing their leaders." : "Select for their leaders.");
                 NativeItem row = Row(def.Name, desc, (quiet ? "Quiet" : "Grudge " + c.Grudge) + Open);
                 AddListRow(row, c, true);
             }

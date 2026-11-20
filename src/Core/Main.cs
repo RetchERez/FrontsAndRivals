@@ -38,6 +38,7 @@ namespace FrontsAndRivals.Core
         private readonly OfficeMenu _office;
         private readonly object _phone; // PhoneContact, held as object so a missing iFruitAddon2.dll can't break Main
         private readonly Keys _officeKey = Keys.None;
+        private readonly HoldButton _officeHold = new HoldButton(500); // hold Back/View (M on keyboard)
         private readonly AutoScout _autoScout;
         private readonly FailureWindow _tickFailures = new FailureWindow();
 
@@ -94,6 +95,7 @@ namespace FrontsAndRivals.Core
             {
                 _dev = new DevTools(_registry, _director, SaveNow, () => _gate);
                 _autoScout = new AutoScout(_content, _placer, WorldChanged);
+                _office.OpenDevTools = _dev.OpenSoon;
                 new ScoutMenu(_dev, _content, () => _empire, () => _rng, WorldChanged, () => _gate, _placer, _autoScout);
                 _dev.ExtraStatus = () => "streams in " + _streamer.StreamIns + " / out " + _streamer.StreamOuts
                                        + "   leftovers " + _streamer.Leftovers;
@@ -129,8 +131,14 @@ namespace FrontsAndRivals.Core
         private void PromptsTick()
         {
             _director.UpdateFrame();
-            // Interaction Menu button (Back/View on a pad, M on keyboard). Story Mode doesn't use it.
-            if (_config.OfficeButton && Game.IsControlJustReleased(GTA.Control.InteractionMenu)) _office.Toggle();
+            if (!_config.OfficeButton) return;
+            // Hold the Interaction Menu button (Back/View on a pad, M on keyboard) for half a second, like GTA Online.
+            // A tap still changes the camera view; once the hold fires the camera change is blocked until you let go.
+            if (_officeHold.Update(Game.IsControlPressed(GTA.Control.InteractionMenu), Game.GameTime))
+            {
+                _office.Toggle();
+            }
+            if (_officeHold.Fired) Game.DisableControlThisFrame(GTA.Control.NextCamera);
         }
 
         /// <summary>Notification settings: the INI, with the Office's Notifications choice on top.</summary>

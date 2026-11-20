@@ -13,13 +13,13 @@ static class SettingsTests
         int warnings = 0;
         Config shipped = Config.Load(repoIni, w => warnings++);
         T.Check("Shipped INI parses with no warnings", warnings, 0, 0);
-        T.True("Shipped INI: dev tools off, sounds on, controller button off", !shipped.DevTools && shipped.SoundEffects && !shipped.OfficeButton);
+        T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton);
         T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 6 && shipped.RivalAlertRange == 35
             && shipped.LiveDefense && shipped.TurfFrequency == AttackFrequency.Normal && shipped.NotifyLevel == NoteLevel.All);
 
-        var c = Config.FromIni(IniFile.Parse("[General]\nOfficeButton=true\n[Sound]\nEffects=false\n[Attacks]\nCooldownMinutes=90\nLiveDefense=false\nFirstAttackDelayMinutes=0\n"
+        var c = Config.FromIni(IniFile.Parse("[General]\nOfficeButton=false\n[Sound]\nEffects=false\n[Attacks]\nCooldownMinutes=90\nLiveDefense=false\nFirstAttackDelayMinutes=0\n"
             + "[Turf]\nFrequency=Off\n[Notifications]\nLevel=Minimal\nMinSecondsBetween=45\nTaunts=false\n[Rivals]\nAlertRange=500\n[Economy]\nFrontPriceDays=10\n"), null);
-        T.True("Controller button and sound settings read", c.OfficeButton && !c.SoundEffects);
+        T.True("Controller button and sound settings read", !c.OfficeButton && !c.SoundEffects);
         T.True("Attack settings read", c.CooldownMinutes == 90 && !c.LiveDefense && c.FirstAttackDelayMinutes == 0);
         T.True("Turf and notification settings read", c.TurfFrequency == AttackFrequency.Off && c.NotifyLevel == NoteLevel.Minimal && c.MinSecondsBetweenTexts == 45 && !c.Taunts);
         T.Check("Out-of-range alert range falls back to 35", c.RivalAlertRange, 35, 0);

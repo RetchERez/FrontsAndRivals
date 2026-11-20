@@ -33,32 +33,5 @@ namespace FrontsAndRivals.Spawn
             bool ok = Function.Call<bool>(Hash.CREATE_INCIDENT_WITH_ENTITY, 1, attacker, units, 0f, outId, 0, 0);
             return ok ? outId.GetResult<int>() : 0;
         }
-
-        /// <summary>3-second convoy shot. Always restores the gameplay camera, even if it throws.</summary>
-        public static void PlayArrivalShot(Vehicle leadCar, Vector3 camPos)
-        {
-            Camera cam = null;
-            Player player = Game.Player;
-            try
-            {
-                cam = World.CreateCamera(camPos, Vector3.Zero, 50f);
-                cam.PointAt(leadCar);
-                World.RenderingCamera = cam;
-                player.CanControlCharacter = false;
-                int end = Game.GameTime + 3000;
-                while (Game.GameTime < end)
-                {
-                    // Any button skips (control 24 = INPUT_ATTACK, 22 = INPUT_JUMP).
-                    if (Game.IsControlJustPressed(Control.Attack) || Game.IsControlJustPressed(Control.Jump)) break;
-                    Script.Yield();
-                }
-            }
-            finally
-            {
-                World.RenderingCamera = null; // back to the gameplay camera
-                if (cam != null) cam.Delete();
-                player.CanControlCharacter = true;
-            }
-        }
     }
 }

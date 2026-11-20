@@ -39,6 +39,7 @@ namespace FrontsAndRivals.Dev
             _autoScout = autoScout;
 
             _menu = new NativeMenu("Fronts & Rivals", "Scout fronts", "Stand on a spot, then press an item. Saves fronts.json.");
+            UI.MenuStyle.Apply(_menu, true);
             dev.Pool.Add(_menu);
             // Put "Scout fronts" at the top of the dev menu so it is never hidden below the fold.
             NativeSubmenuItem entry = dev.Menu.AddSubMenu(_menu);
@@ -66,7 +67,7 @@ namespace FrontsAndRivals.Dev
             _menu.Add(_scenario);
             Add("Set post here", "Puts the selected post where you stand, facing where you face.", SetPost);
             Add("Remove last post", "Drops the highest-numbered post.", RemoveLastPost);
-            Add("Set owner-car spot here", "Where the ownership car parks (used in a later milestone).", SetOwnerSpot);
+            Add("Set owner-car spot here", "Where the ownership car parks (for the front's parked car).", SetOwnerSpot);
             Add("Add convoy spawn here", "A road spot 350-450 m away where attackers start. Stand on the road, face the front.", AddConvoy);
             Add("Clear convoy spawns", "Removes all convoy spawns for this front.", ClearConvoys);
             Add("Own this front (dev)", "Gives you the front so its guards stream in.", OwnFront);
