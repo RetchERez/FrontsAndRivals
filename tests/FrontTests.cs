@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using FrontsAndRivals.Core;
@@ -28,10 +28,10 @@ static class FrontTests
         shipped.Load();
         T.Check("Shipped fronts.json has 6 fronts", shipped.Fronts.Count, 6, 0);
         T.True("No fallback warnings for shipped files", !log.Exists(l => l.Contains("built-in") || l.Contains("could not")));
-        T.True("Car wash is for sale at start", shipped.Front("carwash_davis").StartOwner == Owners.ForSale);
+        T.True("Car wash is for sale at start", shipped.Front("carwash_littleseoul").StartOwner == Owners.ForSale);
         T.True("Truck depot starts with Ironside", shipped.Front("truckdepot_elysian").StartOwner == Owners.Ironside);
         T.Check("Truck depot income $12,000", shipped.Front("truckdepot_elysian").Income, 12000, 0);
-        T.True("Shipped fronts are not scouted yet", !shipped.Front("carwash_davis").IsScouted);
+        T.True("Shipped fronts are not scouted yet", !shipped.Front("carwash_littleseoul").IsScouted);
         T.True("Shipped name pools are filled", shipped.Names.MaleNames.Count >= 20 && shipped.Names.FemaleNames.Count >= 10);
         T.True("Shipped guard models are filled", shipped.Models.GuardsMale.Count >= 20 && shipped.Models.GuardsFemale.Count >= 3);
 
@@ -45,7 +45,7 @@ static class FrontTests
             T.True("No files: built-in names and models", missing.Names.MaleNames.Count > 0 && missing.Models.GuardsMale.Count > 0);
 
             // Scouting writes fronts.json; it reads back identically.
-            FrontDef wash = missing.Front("carwash_davis");
+            FrontDef wash = missing.Front("carwash_littleseoul");
             wash.Door = Spot.At(-50.5f, -1390.25f, 29.3f, 270f);
             wash.Posts.Add(new PostDef { X = -48f, Y = -1392f, Z = 29.3f, H = 90f, Scenario = "WORLD_HUMAN_SMOKING" });
             wash.Posts.Add(new PostDef { X = -52f, Y = -1388f, Z = 29.3f, H = 180f, Scenario = "WORLD_HUMAN_GUARD_STAND" });
@@ -55,13 +55,23 @@ static class FrontTests
 
             var reread = new ContentDb(dir, null);
             reread.Load();
-            FrontDef w2 = reread.Front("carwash_davis");
+            FrontDef w2 = reread.Front("carwash_littleseoul");
             T.True("Scouted front reads back scouted", w2.IsScouted);
             T.Check("Door X round trip", w2.Door.X, -50.5, 0.001);
             T.Check("Two posts round trip", w2.Posts.Count, 2, 0);
             T.Equal("Post scenario round trip", w2.Posts[0].Scenario, "WORLD_HUMAN_SMOKING");
             T.Check("Convoy spawn round trip", w2.ConvoySpawns.Count, 1, 0);
             T.True("Written file uses the doc's layout", File.ReadAllText(missing.FrontsPath).Contains("\"door\": { \"x\": -50.50, \"y\": -1390.25, \"z\": 29.30, \"h\": 270.0 }"));
+
+            // A file saved by Notepad with a byte-order mark still loads.
+            byte[] raw = File.ReadAllBytes(missing.FrontsPath);
+            byte[] withBom = new byte[raw.Length + 3];
+            withBom[0] = 0xEF; withBom[1] = 0xBB; withBom[2] = 0xBF;
+            Array.Copy(raw, 0, withBom, 3, raw.Length);
+            File.WriteAllBytes(missing.FrontsPath, withBom);
+            var bom = new ContentDb(dir, null);
+            bom.Load();
+            T.True("fronts.json with a byte-order mark still loads", bom.Front("carwash_littleseoul").IsScouted);
 
             // A second save keeps a .bak of the first.
             reread.SaveFronts();
@@ -92,7 +102,7 @@ static class FrontTests
     {
         var c = new ContentDb(Path.Combine(Path.GetTempPath(), "fr_none_" + Guid.NewGuid().ToString("N")), null);
         c.Load();
-        FrontDef wash = c.Front("carwash_davis");
+        FrontDef wash = c.Front("carwash_littleseoul");
         wash.Door = Spot.At(1, 1, 1, 0);
         for (int i = 0; i < 4; i++) wash.Posts.Add(new PostDef { X = i, Y = 1, Z = 1, Scenario = "WORLD_HUMAN_SMOKING" });
         FrontDef pawn = c.Front("pawnshop_strawberry");
@@ -110,7 +120,7 @@ static class FrontTests
         var rng = new Rng(42);
 
         T.Check("Every front gets a save entry", state.Fronts.Count, 6, 0);
-        T.True("Fronts start with their doc owners", e.OwnerOf("chopshop_lamesa") == Owners.CrownKings && e.OwnerOf("carwash_davis") == Owners.ForSale);
+        T.True("Fronts start with their doc owners", e.OwnerOf("chopshop_lamesa") == Owners.CrownKings && e.OwnerOf("carwash_littleseoul") == Owners.ForSale);
 
         GuardState g1 = e.Recruit(rng);
         T.True("Recruit has a full name and a model", g1 != null && g1.First != null && g1.Nick != null && g1.Last != null && g1.Model != null);
@@ -118,15 +128,15 @@ static class FrontTests
         T.True("Female models get female names",
             content.Models.GuardsFemale.Contains(g1.Model) ? content.Names.FemaleNames.Contains(g1.First) : content.Names.MaleNames.Contains(g1.First));
 
-        T.True("Can't post at a front you don't own", !e.Assign(g1, "carwash_davis", 0));
-        e.SetOwner("carwash_davis", Owners.Player);
-        T.True("Can post once you own it", e.Assign(g1, "carwash_davis", 0));
-        T.True("AtPost finds the guard", e.AtPost("carwash_davis", 0) == g1);
-        T.True("Post beyond the scouted posts refused", !e.Assign(g1, "pawnshop_strawberry", 3) && !e.Assign(g1, "carwash_davis", 4));
+        T.True("Can't post at a front you don't own", !e.Assign(g1, "carwash_littleseoul", 0));
+        e.SetOwner("carwash_littleseoul", Owners.Player);
+        T.True("Can post once you own it", e.Assign(g1, "carwash_littleseoul", 0));
+        T.True("AtPost finds the guard", e.AtPost("carwash_littleseoul", 0) == g1);
+        T.True("Post beyond the scouted posts refused", !e.Assign(g1, "pawnshop_strawberry", 3) && !e.Assign(g1, "carwash_littleseoul", 4));
 
         GuardState g2 = e.Recruit(rng);
-        e.Assign(g2, "carwash_davis", 0);
-        T.True("Posting onto an occupied post swaps: new guard in", e.AtPost("carwash_davis", 0) == g2);
+        e.Assign(g2, "carwash_littleseoul", 0);
+        T.True("Posting onto an occupied post swaps: new guard in", e.AtPost("carwash_littleseoul", 0) == g2);
         T.True("...old guard goes to where the new one was (reserve)", !g1.IsPosted);
 
         // Reserve limit 6.
@@ -136,24 +146,24 @@ static class FrontTests
         T.Check("Reserve holds 6 unposted guards", hired, Empire.MaxReserve, 0);
 
         // Losing a front sends its guards home.
-        e.Assign(g1, "carwash_davis", 1);
-        e.SetOwner("carwash_davis", Owners.CrownKings);
+        e.Assign(g1, "carwash_littleseoul", 1);
+        e.SetOwner("carwash_littleseoul", Owners.CrownKings);
         T.True("Lost front: guards back in the reserve", !g1.IsPosted && !g2.IsPosted);
 
         // Death and injury.
-        e.SetOwner("carwash_davis", Owners.Player);
-        e.Assign(g1, "carwash_davis", 0);
-        e.GuardDown(g1, "the Davis Car Wash", true, 0, 1000);
-        T.True("Permanent death: dead, off the post, memorial line", g1.Status == GuardStatus.Dead && !g1.IsPosted && g1.FellAt == "the Davis Car Wash");
-        T.True("Dead guards can't be posted", !e.Assign(g1, "carwash_davis", 0));
+        e.SetOwner("carwash_littleseoul", Owners.Player);
+        e.Assign(g1, "carwash_littleseoul", 0);
+        e.GuardDown(g1, "the Little Seoul Car Wash", true, 0, 1000);
+        T.True("Permanent death: dead, off the post, memorial line", g1.Status == GuardStatus.Dead && !g1.IsPosted && g1.FellAt == "the Little Seoul Car Wash");
+        T.True("Dead guards can't be posted", !e.Assign(g1, "carwash_littleseoul", 0));
         T.True("Dead guards don't count as living", e.LivingCount() == 1);
 
-        e.Assign(g2, "carwash_davis", 2);
+        e.Assign(g2, "carwash_littleseoul", 2);
         e.GuardDown(g2, "x", false, 5000, 1000);
         T.True("Injury: keeps the post, status injured", g2.Status == GuardStatus.Injured && g2.Post == 2);
         T.Check("Not recovered before the time", e.Recover(5999), 0, 0);
         T.Check("Recovered after the time", e.Recover(6000), 1, 0);
-        T.True("Back on duty at the same post", g2.Status == GuardStatus.Active && e.AtPost("carwash_davis", 2) == g2);
+        T.True("Back on duty at the same post", g2.Status == GuardStatus.Active && e.AtPost("carwash_littleseoul", 2) == g2);
 
         // Save round trip keeps guards and fronts; ids keep counting up.
         string dir = Path.Combine(Path.GetTempPath(), "fr_emp_" + Guid.NewGuid().ToString("N"));
@@ -163,7 +173,7 @@ static class FrontTests
             saves.Save(state);
             var back = saves.Load().State;
             T.Check("Guards survive save/load", back.Guards.Count, state.Guards.Count, 0);
-            T.True("Front owner survives save/load", back.Fronts.Find(f => f.Id == "carwash_davis").Owner == Owners.Player);
+            T.True("Front owner survives save/load", back.Fronts.Find(f => f.Id == "carwash_littleseoul").Owner == Owners.Player);
             T.True("Post survives save/load", back.Guards.Find(g => g.Id == g2.Id).Post == 2);
             var e2 = new Empire(back, content);
             T.True("New ids continue after load", e2.Recruit(rng).Id > g2.Id);

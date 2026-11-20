@@ -1,4 +1,4 @@
-// Fronts & Rivals: content as data (fronts.json, names.json, models.json in scripts/FrontsAndRivals/).
+﻿// Fronts & Rivals: content as data (fronts.json, names.json, models.json in scripts/FrontsAndRivals/).
 // Balance and text live here so they can change without recompiling. Pure: no game calls, unit-tested.
 using System;
 using System.Collections.Generic;
@@ -184,8 +184,11 @@ namespace FrontsAndRivals.Data
             if (!File.Exists(path)) return null;
             try
             {
+                // Notepad and PowerShell can add a UTF-8 byte-order mark, which the JSON reader rejects. Skip it.
+                byte[] bytes = File.ReadAllBytes(path);
+                int start = (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF) ? 3 : 0;
                 var ser = new DataContractJsonSerializer(typeof(T));
-                using (var fs = File.OpenRead(path)) return (T)ser.ReadObject(fs);
+                using (var ms = new MemoryStream(bytes, start, bytes.Length - start)) return (T)ser.ReadObject(ms);
             }
             catch (Exception ex)
             {
@@ -200,8 +203,8 @@ namespace FrontsAndRivals.Data
         {
             return new List<FrontDef>
             {
-                Def("carwash_davis", "Davis Car Wash", "Davis", 1, 0, 4000, Owners.ForSale),
-                Def("laundromat_ktown", "Little Seoul Laundromat", "Little Seoul", 2, 0, 5000, Owners.Velvet),
+                Def("carwash_littleseoul", "Little Seoul Car Wash", "Little Seoul", 1, 0, 4000, Owners.ForSale),
+                Def("laundromat_rancho", "Rancho Laundromat", "Rancho", 2, 0, 5000, Owners.Velvet),
                 Def("pawnshop_strawberry", "Strawberry Pawn Shop", "Strawberry", 3, 1, 6000, Owners.CrownKings),
                 Def("bar_mirrorpark", "Mirror Park Bar", "Mirror Park", 4, 1, 7000, Owners.Velvet),
                 Def("chopshop_lamesa", "La Mesa Chop Shop", "La Mesa", 5, 2, 9000, Owners.CrownKings),

@@ -1,8 +1,8 @@
 [
   {
-    "id": "carwash_davis",
-    "name": "Davis Car Wash",
-    "area": "Davis",
+    "id": "carwash_littleseoul",
+    "name": "Little Seoul Car Wash",
+    "area": "Little Seoul",
     "number": 1,
     "tier": 0,
     "income": 4000,
@@ -13,9 +13,9 @@
     "convoySpawns": []
   },
   {
-    "id": "laundromat_ktown",
-    "name": "Little Seoul Laundromat",
-    "area": "Little Seoul",
+    "id": "laundromat_rancho",
+    "name": "Rancho Laundromat",
+    "area": "Rancho",
     "number": 2,
     "tier": 0,
     "income": 5000,
