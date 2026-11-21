@@ -16,7 +16,7 @@ static class RulesTests
         T.True("Power x0.8 to x1.2", Math.Abs(Stats.PowerFactor(0, 0) - 0.8) < 1e-9 && Math.Abs(Stats.PowerFactor(100, 100) - 1.2) < 1e-9);
         T.True("Shooting counts more than Strength", Stats.PowerFactor(80, 50) > Stats.PowerFactor(50, 80));
         T.True("Stamina cuts injuries, Stealth cuts deaths", Stats.InjuryFactor(100) < Stats.InjuryFactor(50) && Stats.DeathFactor(100) < Stats.DeathFactor(0));
-        T.True("Live-fight aim and health", Stats.Accuracy(0) == 15 && Stats.Accuracy(100) == 65 && Stats.Health(100) == 300);
+        T.True("Live-fight aim and health", Stats.Accuracy(0) == 15 && Stats.Accuracy(100) == 65 && Stats.Health(0) == 300 && Stats.Health(100) == 500);
         var rng = new Random(3);
         bool inRange = true, sharpAim = true;
         for (int i = 0; i < 200; i++)

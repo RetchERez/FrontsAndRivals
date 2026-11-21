@@ -42,7 +42,12 @@ namespace FrontsAndRivals.Rules
         public static int Accuracy(int shooting) { return 15 + Clamp(shooting) / 2; }
 
         /// <summary>Ped health in a live fight: 200 is a normal ped; Strength adds up to 100.</summary>
-        public static int Health(int strength) { return 200 + Clamp(strength); }
+        /// <summary>A guard's health in a live fight: twice an ordinary ped's (GTA counts health above 100), plus Strength.
+        /// 300 at Strength 0 up to 500 at 100.</summary>
+        public static int Health(int strength) { return 300 + 2 * Clamp(strength); }
+
+        /// <summary>Crew soldiers at fronts and in attacks: twice an ordinary ped's health too, so fights last.</summary>
+        public const int CrewHealth = 300;
 
         // ---- where skills start ----
 

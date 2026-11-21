@@ -313,7 +313,7 @@ namespace FrontsAndRivals.Rules
                     return new Hint { Title = "Raid the " + best.ShortName, Text = "About " + (int)Math.Round(bestOdds * 100) + "% with your reserve. Open it and choose Send a Crew, or go and take it yourself.", FrontId = best.Id };
             }
             int held = OwnedCount();
-            if (held < 3) return new Hint { Title = "Grow to 3 fronts", Text = "Holding 3 earns the Broker's trust for mid-size fronts. Take small crew fronts or buy one.", FrontId = null };
+            if (held < 3) return new Hint { Title = "Grow to 3 fronts", Text = "Holding 3 lets you take mid-size fronts. Take the crews' small fronts.", FrontId = null };
             if (held < 8) return new Hint { Title = "Grow to 8 fronts", Text = "Holding 8 opens the biggest businesses: clubs, factories and depots.", FrontId = null };
             return new Hint { Title = "Hold the city", Text = "Keep your fronts staffed and armed. The crews never stay gone for long.", FrontId = null };
         }

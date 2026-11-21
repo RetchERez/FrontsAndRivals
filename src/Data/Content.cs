@@ -67,11 +67,11 @@ namespace FrontsAndRivals.Data
         public static int PostsForTier(int tier) { return tier >= 2 ? 4 : tier == 1 ? 3 : 2; }
 
         /// <summary>The most soldiers a crew keeps on one front.</summary>
-        public const int MaxCrew = 7;
+        public const int MaxCrew = 8;
 
-        /// <summary>Soldiers a crew keeps on this front at full strength: the car wash is the easy way in with 2; other small
-        /// fronts 3, mid-size 5, the biggest 7. Bigger fronts pay more and are that much harder to take.</summary>
-        public static int CrewSoldiers(FrontDef def) { return def == null ? 0 : def.Starter ? 2 : def.Tier >= 2 ? 7 : def.Tier == 1 ? 5 : 3; }
+        /// <summary>Soldiers a crew keeps on this front at full strength: small fronts (the car wash too) 3, mid-size 5, the
+        /// biggest 8. Bigger fronts pay more and are that much harder to take; the car wash's 3 only carry pistols and melee.</summary>
+        public static int CrewSoldiers(FrontDef def) { return def == null ? 0 : def.Tier >= 2 ? 8 : def.Tier == 1 ? 5 : 3; }
 
         /// <summary>Guards this front takes, by size. Known from the start, so a front taken by raid can be staffed at once,
         /// even before its posts are placed on your first visit.</summary>

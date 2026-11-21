@@ -27,26 +27,26 @@ Playing on the older Legacy edition? Use the Script Hook V .NET nightly build in
 
 1. Install everything in Requirements
 2. Copy the contents of this zip's `scripts` folder into `<GTA V>\scripts\`: `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `FrontsAndRivals` folder
-3. Start Story Mode; after Franklin's first mission, the Broker texts you about a car wash the Dead Kings barely guard
+3. Start Story Mode; after Franklin's first mission, a help box points you at a car wash the Dead Kings hold
 
 Windows may need to let mods create files in the GTA V folder; the mod saves to `scripts\FrontsAndRivals\empire.json`.
 
 ## Getting started
 
 - **Open the Office:** hold Back/View on a controller (or M) for half a second, or call The Office on your phone
-- **Take your first front:** go to the Hands On Car Wash in Strawberry, clear the two Dead Kings watching it (pistols and bats) and claim the door; two of the car wash workers join you
+- **Take your first front:** go to the Hands On Car Wash in Strawberry, take out the three Dead Kings watching it (pistols and bats) and it's yours on the spot; two of the car wash workers join you
 - **Follow the Next Step line** at the top of the Office: it always says what to do next
 - **Hire and post guards** from the Office, then arm them and give them body armour
 - **Get paid at midnight:** every front pays out at in-game midnight, after wages
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
-- **Take rival fronts:** clear a crew's soldiers, stand at the door and press the prompt's button; or send a crew from the Office
+- **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
 ## What's in 1.0
 
 - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
 - Three original crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side and the Vinewood Elite out west; each has a boss and three lieutenants
 - Every front starts in a crew's hands and nothing is for sale: you take them by force, in person or with a raid
-- Bigger fronts pay more and fight harder: 2 kids with pistols and bats at the car wash; 3 soldiers with everyday guns at small fronts; 5 at mid-size fronts with more rifles, light armour and better aim; 7 at the biggest with the most heavy guns and armour
+- Bigger fronts pay more and fight harder: 3 kids with pistols and bats at the car wash; 3 soldiers with everyday guns at other small fronts; 5 at mid-size fronts with more rifles, light armour and better aim; 8 at the biggest with the most heavy guns and armour. Everyone in a fight, yours and theirs, has twice an ordinary ped's health, so fights last
 - Street heat, shown in the Office: every front you take raises it and every night cools it; the hotter it is, the sooner the crews hit back and the harder their fronts fight, so lying low for a night or two pays off
 - Taking a front plays out like finishing a job in Story Mode: the gold shard, the chime and a shot of the building
 - A city that moves without you: once you've taken your first front, the crews feud with each other and take each other's fronts at night; until then they leave you and each other alone
@@ -60,7 +60,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Raids: send up to four reserve guards to take a rival front without you, with the odds shown first
 - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and the biggest 4; Cameras, Floodlights, Reinforced Doors and an Armory
 - A Story Mode economy: fronts pay about what Story Mode properties do; they pay more the longer you hold them and the more you own
-- Progression money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held) and new fronts get two quiet days
+- Progression money can't skip: guns unlock with rank, bigger fronts need a bigger empire (3 and 8 fronts held) and new fronts get two quiet days
 - Staff at the front you're near: a cashier on the phone, a janitor sweeping, a chef on a smoke break
 - A big, mixed cast of ordinary Los Santos street people, women and men, with nicknames for only some of them
 - Difficulty from Relaxed to Brutal, Reset the City to take Los Santos again with the crew you built, and Start a New Empire for a new story game
@@ -76,13 +76,12 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 | Select or open | A | Enter |
 | Back | B | Backspace |
 | Change a post or a setting | D-pad left/right | Left/Right |
-| Claim a cleared front at its door | The button shown in the prompt | E |
 
 ## Playing alongside the story
 
 Fronts & Rivals is built to run for your whole Story Mode playthrough. Everything pauses during missions, cutscenes, random events and character switches, and attacks only count free-roam time, so a long mission never costs you a front.
 
-Money is at Story Mode scale, and money can't buy you fronts: every one is taken by force. Early Franklin can take the car wash with a pistol; bigger fronts need guards, guns and the Broker's trust. A steady player holds about 8 fronts after 10-12 hours, 15 after about 25 and 22 after about 40, roughly the length of the story; even someone fighting non-stop can't take the city in an evening.
+Money is at Story Mode scale, and money can't buy you fronts: every one is taken by force. Early Franklin can take the car wash with a pistol; bigger fronts need guards, guns and a bigger empire. A steady player holds about 8 fronts after 10-12 hours, 15 after about 25 and 22 after about 40, roughly the length of the story; even someone fighting non-stop can't take the city in an evening.
 
 ## Settings
 

@@ -418,6 +418,19 @@ namespace FrontsAndRivals.Spawn
                 s.Ped.Task.ClearAll();
                 s.Ped.BlockPermanentEvents = false;
                 s.Ped.Task.FightAgainstHatedTargets(60f);
+                try
+                {
+                    // A small blip in the crew's colour (the same as its fronts on the map) on every soldier in the fight.
+                    CrewDef cd = _content.Crew(f.Owner);
+                    if (s.Ped.AttachedBlip == null || !s.Ped.AttachedBlip.Exists())
+                    {
+                        Blip b = s.Ped.AddBlip();
+                        b.Color = cd != null ? (BlipColor)cd.BlipColor : BlipColor.Red;
+                        b.Scale = 0.7f;
+                        b.Name = cd != null ? cd.Name : "Crew";
+                    }
+                }
+                catch (Exception ex) { Log.Error("Crew blip", ex); }
             }
             Log.Write("Streamer: crew at " + f.Def.Id + " alerted");
         }
@@ -444,6 +457,8 @@ namespace FrontsAndRivals.Spawn
                 ped.Accuracy = CrewDef.FrontAccuracy(tier) + Heat.CrewAccuracy(heat) - 25; // by size, sharper on hot streets
                 ped.Armor = Math.Min(100, CrewDef.FrontArmor(tier) + Heat.ExtraArmor(heat)); // bigger fronts are better kitted out, more so on hot streets
             }
+            ped.MaxHealth = Rules.Stats.CrewHealth; // twice an ordinary ped: fights last long enough to be fun
+            ped.Health = ped.MaxHealth;
             Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
             // Calm until alerted (see ShouldAlert): idle at the post, ignoring the world.
             ped.BlockPermanentEvents = true;

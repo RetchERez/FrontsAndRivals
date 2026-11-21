@@ -93,6 +93,7 @@ namespace FrontsAndRivals.Core
             _streamer.AlertOnFootRange = _config.RivalAlertRange;
             _office = new OfficeMenu(_content, _config, () => _empire, () => _rng, EmpireChanged, SaveNow);
             _office.StartOver = StartOver;
+            _office.Messages = () => _notifier.Log;
             _office.ResetCity = () =>
             {
                 if (_empire == null) return;
@@ -265,7 +266,7 @@ namespace FrontsAndRivals.Core
                 {
                     Log.Write("Pause gate: " + (_gateKnown ? _gate.ToString() : "start") + " -> " + gate);
                     if (PauseGate.ClearsWorld(gate)) ClearWorld("gate " + gate);
-                    // Franklin's first mission (Franklin and Lamar) just ended: the moment the Broker gets in touch.
+                    // Franklin's first mission (Franklin and Lamar) just ended: the moment to introduce the mod.
                     if (_gate == PauseReason.Mission && gate == PauseReason.None && Game.Player.Character.Model == new Model(PedHash.Franklin)) _franklinDone = true;
                     _gate = gate;
                     _gateKnown = true;
@@ -562,7 +563,7 @@ namespace FrontsAndRivals.Core
                 if (_empire.BrokerRescue())
                 {
                     Log.Write("Broker rescue: the car wash is thinly held for two days");
-                    _notifier.Send(NoteKind.Broker, "The Broker", "Back in business", "Rough few days. Word is there's only one kid watching the Hands On Car Wash right now. Go take it back.");
+                    _notifier.Send(NoteKind.Broker, "Street Word", "Car Wash", "Word is the Dead Kings pulled most of their people off the Hands On Car Wash. Go take it back.");
                 }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
                 foreach (GuardState up in _empire.DayOnDuty())
@@ -593,7 +594,11 @@ namespace FrontsAndRivals.Core
             if (!_state.IntroSent && _empire.OwnedCount() == 0 && (_franklinDone || Economy.BrokerReady(_scheduler.ActiveMs)))
             {
                 _state.IntroSent = true;
-                _notifier.Send(NoteKind.Broker, "The Broker", "Business", _content.Lines.Pick(_rng, "brokerIntro", null));
+                // A GTA help box, like the game introducing a new activity, and the map icon flashes.
+                string intro = _content.Lines.Pick(_rng, "brokerIntro", null);
+                GTA.UI.Screen.ShowHelpText(intro, 15000, true, false);
+                _notifier.Remember("Fronts & Rivals", "Your first front", intro);
+                _blips.Flash("carwash_handson");
                 changed = true;
             }
 

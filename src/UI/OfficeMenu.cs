@@ -31,10 +31,10 @@ namespace FrontsAndRivals.UI
     public sealed class OfficeMenu
     {
         private const int Rows = 13; // a whole front page (header, 3 quick actions, 4 posts, 4 upgrades, waypoint) fits without scrolling
-        private const float SectionsWidth = 380f, ListWidth = 500f, DetailWidth = 500f, Gap = 12f;
-        private const string Open = "  ›";
+        private const float SectionsWidth = 430f, ListWidth = 600f, DetailWidth = 600f, Gap = 16f; // roomy: names and values never run into each other
+        private const string Open = "";
 
-        private enum Section { Overview, Fronts, Guards, Hire, Rivals, Settings }
+        private enum Section { Overview, Fronts, Guards, Hire, Rivals, Messages, Settings }
 
         public readonly ObjectPool Pool = new ObjectPool();
 
@@ -88,7 +88,7 @@ namespace FrontsAndRivals.UI
             // Narrow screens (4:3, 5:4) can't fit three full panels: shrink them all evenly so nothing runs off the edge.
             float k = FitFactor();
             float sw = SectionsWidth * k, lw = ListWidth * k, dw = DetailWidth * k, gap = Gap * k;
-            _sections = Panel("The Office", "FRONTS & RIVALS", sw, 0f);
+            _sections = Panel("Office", "FRONTS & RIVALS", sw, 0f);
             _list = Panel("Fronts", "", lw, sw + gap);
             _detail = Panel("", "", dw, sw + gap + lw + gap);
             _panels = new[] { _sections, _list, _detail };
@@ -239,11 +239,44 @@ namespace FrontsAndRivals.UI
             catch (Exception ex) { Log.Error("Office " + where, ex); }
         }
 
+        /// <summary>Set by Main: the message log (newest first).</summary>
+        public Func<IList<Notifier.Logged>> Messages;
+
+        private void ListMessages()
+        {
+            SetTitles(_list, "Messages", "NEWEST FIRST");
+            IList<Notifier.Logged> log = Messages != null ? Messages() : null;
+            if (log == null || log.Count == 0) { AddListRow(Row("Nothing Yet", "Texts and alerts show up here once things get going.", ""), null, false); return; }
+            foreach (Notifier.Logged m in log)
+                AddListRow(Info(m.Subject, m.Sender + ": " + m.Message, m.When), null, false);
+        }
+
         // ---------- helpers ----------
 
         private static NativeItem Row(string title, string description, string badge)
         {
             return new NativeItem(title, description, badge ?? "");
+        }
+
+        /// <summary>A row that opens the next panel: GTA's own menu arrow on the right, like the Interaction Menu.</summary>
+        private static NativeItem Opens(NativeItem item)
+        {
+            item.RightBadgeSet = new BadgeSet("commonmenu", "arrowright", "arrowright");
+            return item;
+        }
+
+        /// <summary>An owner in its crew's map colour (yours in green), using the game's own text colour codes.</summary>
+        private string OwnerColored(string owner)
+        {
+            string c = "~s~";
+            switch (owner)
+            {
+                case Owners.Player: c = "~g~"; break;
+                case Owners.CrownKings: c = "~o~"; break; // orange on the map
+                case Owners.Ironside: c = "~r~"; break;   // red
+                case Owners.Velvet: c = "~b~"; break;     // light blue
+            }
+            return c + OwnerLabel(owner) + "~s~";
         }
 
         private static NativeItem Info(string title, string description, string value)
@@ -285,6 +318,9 @@ namespace FrontsAndRivals.UI
         private static void SetTitles(NativeMenu m, string title, string subtitle)
         {
             m.BannerText.Text = title;
+            // GTA's banner font is big: shrink a long title so it always fits inside its panel.
+            float fit = title.Length > 0 ? m.Width / (title.Length * 25f) : 1f;
+            m.BannerText.Scale = Math.Max(0.5f, Math.Min(0.85f, 0.85f * fit));
             m.Name = subtitle;
         }
 
@@ -314,16 +350,17 @@ namespace FrontsAndRivals.UI
             AddSection("Overview", "Your empire at a glance: income, wages, fronts and people.", Money(net) + "/day");
             AddSection("Fronts", "Every business: who holds it, its defense and income. Select one to manage it.", e.OwnedCount() + " Held" + Open);
             AddSection("Guards", "Your roster: rank, trait and post. Select one to manage it.", e.LivingCount() + (injured > 0 ? " (" + injured + " Hurt)" : "") + Open);
-            AddSection("Hire Recruits", "The Broker sends " + Economy.RecruitsPerDay + " new faces every morning at 06:00.", e.State.Offers.Count + " Today" + Open);
+            AddSection("Hire Recruits", Economy.RecruitsPerDay + " new faces turn up every morning at 06:00. Hire them before midnight.", e.State.Offers.Count + " Today" + Open);
             int maxGrudge = 0;
             foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
             AddSection("Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge + Open);
-            AddSection("Settings", "Attacks, turf moves, notifications, sound, routes, permanent death and map blips.", Open.Trim());
+            AddSection("Messages", "Every text and alert from Fronts & Rivals, newest first, so you can read them again.", (Messages != null ? Messages().Count : 0).ToString());
+            AddSection("Settings", "Attacks, turf moves, notifications, sound, routes, permanent death and map blips.", "");
         }
 
         private NativeItem AddSection(string title, string description, string badge)
         {
-            NativeItem item = Row(title, description, badge);
+            NativeItem item = Opens(Row(title, description, badge));
             item.Activated += (s, a) => FocusRight(0);
             _sections.Add(item);
             return item;
@@ -345,6 +382,7 @@ namespace FrontsAndRivals.UI
                 case Section.Hire: ListRecruits(e); break;
                 case Section.Settings: ListSettings(e); break;
                 case Section.Rivals: ListRivals(e); break;
+                case Section.Messages: ListMessages(); break;
             }
             if (resetSelection && _list.Items.Count > 0) _list.SelectedIndex = 0;
             BuildDetail();
@@ -352,7 +390,7 @@ namespace FrontsAndRivals.UI
 
         private void AddListRow(NativeItem item, object key, bool opensDetail)
         {
-            if (opensDetail) item.Activated += (s, a) => FocusRight(1);
+            if (opensDetail) { Opens(item); item.Activated += (s, a) => FocusRight(1); }
             _list.Add(item);
             _listKeys.Add(key);
         }
@@ -416,8 +454,8 @@ namespace FrontsAndRivals.UI
                 string owner = e.OwnerOf(def.Id);
                 AttackState atk = e.State.Attack;
                 string badge = owner == Owners.Player
-                    ? (atk != null && atk.Front == def.Id ? "Under Attack" : GuardsAt(e, def) + "/" + def.Capacity + " guards")
-                    : OwnerLabel(owner);
+                    ? (atk != null && atk.Front == def.Id ? "~r~Under Attack~s~" : "~g~Yours~s~  " + GuardsAt(e, def) + "/" + def.Capacity)
+                    : OwnerColored(owner);
                 NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(Economy.BaseIncome(def)) + " a night. Select to manage.", badge + Open);
                 AddListRow(row, def, true);
             }
@@ -472,10 +510,10 @@ namespace FrontsAndRivals.UI
 
         private void ListRecruits(Empire e)
         {
-            SetTitles(_list, "Hire Recruits", "TODAY'S RECRUITS FROM THE BROKER");
+            SetTitles(_list, "Hire Recruits", "LOOKING FOR WORK TODAY");
             if (e.State.Offers.Count == 0)
             {
-                NativeItem none = Row("Nobody Today", "The Broker sends new recruits every morning at 06:00.", "");
+                NativeItem none = Row("Nobody Today", "New recruits turn up every morning at 06:00.", "");
                 none.Enabled = false;
                 AddListRow(none, null, false);
                 return;
@@ -618,7 +656,7 @@ namespace FrontsAndRivals.UI
         {
             string owner = e.OwnerOf(def.Id);
             double defense = owner == Owners.Player ? e.Defense(def.Id, Hour()) : 0;
-            SetTitles(_detail, def.Name, def.Area.ToUpperInvariant() + " · " + OwnerLabel(owner).ToUpperInvariant());
+            SetTitles(_detail, def.ShortName, (def.Name + " · " + def.Area + " · " + OwnerLabel(owner)).ToUpperInvariant());
 
             string pays;
             int tonight = Economy.BaseIncome(def);
@@ -647,7 +685,7 @@ namespace FrontsAndRivals.UI
                 bool dug = Rules.Attacks.DugIn(e.State, e.Find(def.Id));
                 NativeItem held = Row("Held by the " + OwnerLabel(owner), dug ? "They just took it and they're dug in. You can claim it back after midnight."
                     : e.Trusted(def) ? "Clear their soldiers, then claim the door to take it."
-                    : "Too big to take yet: the Broker backs a claim here once you hold " + need + " fronts. You hold " + e.OwnedCount() + ".", e.Trusted(def) ? "" : "Hold " + need);
+                    : "Too big for you yet: you can take it once you hold " + need + " fronts. You hold " + e.OwnedCount() + ".", e.Trusted(def) ? "" : "Hold " + need);
                 held.Enabled = false;
                 _detail.Add(held);
                 if (_config.Raids) AddRaidRow(e, def);

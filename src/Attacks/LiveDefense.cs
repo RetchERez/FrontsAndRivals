@@ -265,6 +265,8 @@ namespace FrontsAndRivals.Attacks
                     }
                     ped.Accuracy = 20 + (int)(_crew.SoldierPower);
                     ped.Armor = placed == 0 ? 100 : (int)(_crew.SoldierPower * 2);
+                    ped.MaxHealth = FrontsAndRivals.Rules.Stats.CrewHealth; // twice an ordinary ped, like everyone else's
+                    ped.Health = ped.MaxHealth;
                     ped.BlockPermanentEvents = false;
                     Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 0, true);   // CA_USE_COVER
                     Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true);  // CA_ALWAYS_FIGHT
@@ -350,7 +352,7 @@ namespace FrontsAndRivals.Attacks
                 if (show && _pedBlips[i] == null)
                 {
                     Blip b = p.AddBlip();
-                    b.Color = BlipColor.Red;
+                    b.Color = (BlipColor)_crew.BlipColor; // the crew's own colour, like its fronts on the map
                     b.Scale = 0.7f;
                     b.Name = _crew.Name;
                     _pedBlips[i] = b;

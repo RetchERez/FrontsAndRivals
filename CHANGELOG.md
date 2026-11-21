@@ -4,6 +4,14 @@
 
 First full release.
 
+- From the first playtest: roomier Office panels with short banner titles that always fit; GTA's own menu arrow
+  (the old arrow character drew as a white block); owners in their crew's colour on the Fronts list; a Messages page
+  that keeps every text and alert to read again
+- No Broker: the first-front introduction is a GTA help box (and the car wash's map icon flashes); other messages come
+  from the Office or the street. A front is yours the moment its last soldier drops, with no trip to the door
+- Everyone in a fight (your guards, bodyguards, crew soldiers and attackers) has twice an ordinary ped's health
+- Crew soldiers: 3 at small fronts (the car wash's 3 still only carry pistols and melee), 5 mid-size, 8 at the biggest.
+  Soldiers in a fight and attackers wear a small blip in their crew's map colour; Hellfire MC is now bright red
 - Takeovers only: every front starts in a crew's hands and nothing is for sale. The car wash is the easy way in: two
   Dead Kings kids with pistols, bats, knives and crowbars, no armour, and two of its workers join you when you take it
 - Rivals scale with the front: small fronts hold 3 soldiers with everyday guns (aim 20, no armour), mid-size 5 (aim 27,

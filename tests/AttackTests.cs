@@ -45,8 +45,8 @@ static class AttackTests
         T.True("An old save's for-sale front goes back to its crew", me2.OwnerOf("motel_alta") == Owners.Velvet);
 
         T.True("The car wash crew carries pistols and melee only", Enumerable.Range(0, 200).All(i => new[] { "pistol", "bat", "knife", "crowbar" }.Contains(CrewDef.StarterWeapon(i))));
-        T.True("Crew soldiers by size: car wash 2, small 3, mid 5, big 7", FrontDef.CrewSoldiers(mcontent.Front("carwash_handson")) == 2
-            && FrontDef.CrewSoldiers(new FrontDef { Tier = 0 }) == 3 && FrontDef.CrewSoldiers(new FrontDef { Tier = 1 }) == 5 && FrontDef.CrewSoldiers(new FrontDef { Tier = 2 }) == 7);
+        T.True("Crew soldiers by size: car wash 3, small 3, mid 5, big 8", FrontDef.CrewSoldiers(mcontent.Front("carwash_handson")) == 3
+            && FrontDef.CrewSoldiers(new FrontDef { Tier = 0 }) == 3 && FrontDef.CrewSoldiers(new FrontDef { Tier = 1 }) == 5 && FrontDef.CrewSoldiers(new FrontDef { Tier = 2 }) == 8);
         T.True("Aim gets sharper with size", CrewDef.FrontAccuracy(0) < CrewDef.FrontAccuracy(1) && CrewDef.FrontAccuracy(1) < CrewDef.FrontAccuracy(2));
         T.True("Hot streets don't toughen the car wash", Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 100) < Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 0) + 0.001);
 

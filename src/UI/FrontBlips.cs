@@ -26,6 +26,15 @@ namespace FrontsAndRivals.UI
         public bool ShowRivalFronts = true;
         public bool ShowForSaleFronts = true;
 
+        /// <summary>Flashes one front's map icon for ten seconds (the first-front introduction).</summary>
+        public void Flash(string frontId)
+        {
+            Entry en;
+            if (!_entries.TryGetValue(frontId, out en) || en.Blip == null || !en.Blip.Exists()) return;
+            en.Blip.IsFlashing = true;
+            en.FlashUntil = GTA.Game.GameTime + 10000;
+        }
+
         public void Refresh(Empire empire, ContentDb content)
         {
             if (empire == null) return;

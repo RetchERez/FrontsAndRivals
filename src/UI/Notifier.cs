@@ -23,6 +23,24 @@ namespace FrontsAndRivals.UI
 
         /// <summary>Drops everything still waiting to be sent (a new empire starting).</summary>
         public void Clear() { _queue.Clear(); }
+
+        /// <summary>A message kept for the Office's Messages page: GTA's own feed isn't archived, so the Office is.</summary>
+        public sealed class Logged { public string Sender, Subject, Message, When; }
+
+        public const int LogSize = 25;
+        private readonly System.Collections.Generic.List<Logged> _log = new System.Collections.Generic.List<Logged>();
+
+        /// <summary>Newest first.</summary>
+        public System.Collections.Generic.IList<Logged> Log { get { return _log; } }
+
+        /// <summary>Keeps a message for the Office without showing it again.</summary>
+        public void Remember(string sender, string subject, string message)
+        {
+            string when = "";
+            try { var t = GTA.World.CurrentTimeOfDay; when = t.Hours.ToString("00") + ":" + t.Minutes.ToString("00"); } catch { }
+            _log.Insert(0, new Logged { Sender = sender, Subject = subject, Message = message, When = when });
+            if (_log.Count > LogSize) _log.RemoveAt(_log.Count - 1);
+        }
         private Func<NoteSettings> _settings = () => new NoteSettings();
 
         /// <summary>True while a mission, cutscene or switch is on: queued messages wait.</summary>
@@ -33,6 +51,7 @@ namespace FrontsAndRivals.UI
         /// <summary>Queue a message from the world (warnings, results, texts). Filtered and spaced out by the settings.</summary>
         public void Send(NoteKind kind, string sender, string subject, string message)
         {
+            Remember(sender, subject, message);
             if (string.IsNullOrEmpty(message)) return;
             _queue.Enqueue(new Note { Kind = kind, Picture = "CHAR_DEFAULT", Sender = sender, Subject = subject, Message = message },
                            _settings(), Game.GameTime);

@@ -186,7 +186,7 @@ namespace FrontsAndRivals.Attacks
             bool live = _config.LiveDefense && !s.LiveDefenseOff;
             string text = "The " + crew.Name + " are hitting the " + front.ShortName + " right now. Your people can hold about " + minutes
                 + (minutes == 1 ? " minute." : " minutes.");
-            if (live) text += " Get there and hold the door yourself: the Broker pays $" + Economy.DefendBonus(e.FrontIncome(front.Id), _config.IncomeMultiplier).ToString("N0") + "."
+            if (live) text += " Get there and hold the door yourself for a $" + Economy.DefendBonus(e.FrontIncome(front.Id), _config.IncomeMultiplier).ToString("N0") + " bonus."
                 + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS.");
             _notifierPost(NoteKind.AttackWarning, "The Office", front.ShortName + " under attack", text);
             if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
@@ -344,7 +344,7 @@ namespace FrontsAndRivals.Attacks
                 {
                     int bonus = Economy.DefendBonus(e.FrontIncome(front.Id), _config.IncomeMultiplier);
                     Game.Player.Money += bonus;
-                    _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ". The Broker pays you $" + bonus.ToString("N0") + ".");
+                    _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ". Holding it yourself paid $" + bonus.ToString("N0") + ".");
                     Log.Write("Director: defended in person, bonus $" + bonus);
                 }
                 Sounds.Play(Cue.FrontDefended);
@@ -422,11 +422,39 @@ namespace FrontsAndRivals.Attacks
                 if (cs != null) { cs.Manpower = Math.Max(0, cs.Manpower - 1); cs.LastContactDay = e.State.Day; }
                 return;
             }
-            _claimFront = front.Id;
-            _claimCrew = crewId;
-            _claimUntil = _now() + ClaimWindowMs;
-            GTA.UI.Screen.ShowSubtitle("The " + front.ShortName + " is clear. Get to the door to claim it.", 5000);
-            Log.Write("Director: " + front.Id + " cleared, claim window open");
+            // Every soldier is down: the front is yours on the spot, unless it can't be taken yet.
+            if (e.OwnerOf(front.Id) != crewId) return;
+            if (Rules.Attacks.DugIn(e.State, e.Find(front.Id)))
+            {
+                GTA.UI.Screen.ShowHelpText("The " + front.ShortName + " is clear, but the " + CrewName(crewId) + " only just took it and their people will be back. Take it after midnight.", 8000, true, false);
+                return;
+            }
+            if (!e.Trusted(front))
+            {
+                GTA.UI.Screen.ShowHelpText("The " + front.ShortName + " is clear, but you're not big enough to hold it yet. Hold " + Economy.TrustNeeded(front.Tier) + " fronts first.", 8000, true, false);
+                return;
+            }
+            Claim(e, front, crewId);
+        }
+
+        private string CrewName(string id) { CrewDef c = _content.Crew(id); return c != null ? c.Name : "crew"; }
+
+        /// <summary>Takes the front: Story Mode's gold shard, the property chime, the establishing shot, then a text.</summary>
+        private void Claim(Empire e, FrontDef front, string crewId)
+        {
+            FrontState fs = e.Find(front.Id);
+            CrewDef crew = _content.Crew(crewId);
+            Rules.Attacks.TakeFront(e.State, e, fs, crewId);
+            Rules.Attacks.GracePeriod(e.State, front.Id, _now());
+            int joined = e.StarterCrew(front, _rng());
+            if (!CheckRuledAll(e)) _banners.Show("front taken", front.Name, true);
+            Sounds.Play(Cue.FrontTaken);
+            if (OnTaken != null) OnTaken(front);
+            _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is yours", joined > 0
+                ? "Two of the guys who work at the car wash want in. They've only got knives: arm them in the Office before the " + crew.Name + " come back."
+                : _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
+            Log.Write("Director: player took " + front.Id + " from " + crewId);
+            _changed();
         }
 
         // ---------------------------------------------------------------- raids
@@ -473,44 +501,9 @@ namespace FrontsAndRivals.Attacks
             _forceRequested = false;
         }
 
-        /// <summary>Every tick while the gate is open: the claim prompt at a cleared rival front's door.</summary>
-        public void UpdateFrame()
-        {
-            if (_claimFront == null) return;
-            Empire e = _empire();
-            if (e == null || _now() > _claimUntil || e.OwnerOf(_claimFront) != _claimCrew) { _claimFront = null; return; }
-            FrontDef front = _content.Front(_claimFront);
-            Vector3 p = Game.Player.Character.Position;
-            if (front.Door.DistanceTo(p.X, p.Y, p.Z) > ClaimRange) return;
-            if (Rules.Attacks.DugIn(e.State, e.Find(front.Id)))
-            {
-                GTA.UI.Screen.ShowHelpTextThisFrame("The " + front.ShortName + " is clear, but they only just took it. Claim it back after midnight.");
-                return;
-            }
-            if (!e.Trusted(front))
-            {
-                GTA.UI.Screen.ShowHelpTextThisFrame("The " + front.ShortName + " is clear, but the Broker won't back your claim until you hold " + Economy.TrustNeeded(front.Tier) + " fronts.");
-                return;
-            }
-            GTA.UI.Screen.ShowHelpTextThisFrame("Press ~INPUT_CONTEXT~ to claim the " + front.ShortName + ".");
-            if (!Game.IsControlJustPressed(Control.Context)) return;
-
-            FrontState fs = e.Find(front.Id);
-            CrewDef crew = _content.Crew(_claimCrew);
-            Rules.Attacks.TakeFront(e.State, e, fs, _claimCrew);
-            Rules.Attacks.GracePeriod(e.State, front.Id, _now());
-            int joined = e.StarterCrew(front, _rng());
-            _claimFront = null;
-            // Like finishing a job in Story Mode: the gold shard and the property chime over a shot of the building.
-            if (!CheckRuledAll(e)) _banners.Show("front taken", front.Name, true);
-            Sounds.Play(Cue.FrontTaken);
-            if (OnTaken != null) OnTaken(front);
-            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, joined > 0
-                ? "The car wash is yours, and two of the guys who work there want in. They've only got knives: arm them before the " + crew.Name + " come back."
-                : _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
-            Log.Write("Director: player took " + front.Id + " from " + crew.Name);
-            _changed();
-        }
+        /// <summary>Every tick while the gate is open. Fronts are claimed the moment their last soldier drops
+        /// (OnCrewGuardDown), so there's nothing to do here any more.</summary>
+        public void UpdateFrame() { }
 
         /// <summary>The endgame moment, the first time every front in the city is yours. Shows its banner
         /// and returns true then. The crews still recruit off the street and will try to take fronts back.</summary>
