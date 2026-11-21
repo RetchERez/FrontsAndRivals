@@ -11,6 +11,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
+- Start a new empire from Office > Settings (for a new story game); the old one is kept as empire.old.json
 - One-click front management: Fill empty posts and Arm this front on every front's page
 - First-time tips in GTA's help box (Office > Settings > Show tips again)
 - Bodyguards: call up to two of your guards from the Office to follow you around the city, on foot or in your car,

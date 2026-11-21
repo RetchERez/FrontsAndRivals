@@ -85,6 +85,7 @@ namespace FrontsAndRivals.Core
             _streamer.AlertOnFootRange = _config.RivalAlertRange;
             _blips.ShowForSaleFronts = _config.ShowForSaleFronts;
             _office = new OfficeMenu(_content, _config, () => _empire, () => _rng, EmpireChanged, SaveNow);
+            _office.StartOver = StartOver;
 
             try { _phone = PhoneHost.TryCreate(() => _office.OpenOffice()); Log.Write("Phone contact \"The Office\" added"); }
             catch (Exception ex) { _phone = null; Log.Write("Phone contact unavailable (is iFruitAddon2 installed?): " + ex.GetType().Name + ": " + ex.Message); }
@@ -277,6 +278,25 @@ namespace FrontsAndRivals.Core
             if (_empire == null) return;
             int back = _empire.Recover(ActiveNow());
             if (back > 0) { Log.Write(back + " injured guard(s) back on duty"); SaveNow(); }
+        }
+
+        /// <summary>Office > Settings > Start a new empire. The old one is copied to empire.old.json first.</summary>
+        private void StartOver()
+        {
+            if (_state == null) return;
+            try { SaveNow(); File.Copy(_saves.MainPath, Path.Combine(Path.GetDirectoryName(_saves.MainPath), "empire.old.json"), true); }
+            catch (Exception ex) { Log.Error("StartOver backup", ex); GTA.UI.Notification.Show("Fronts & Rivals: couldn't back up the old empire, nothing changed. See log."); return; }
+            ClearWorld("start over");
+            Tips.Clear();
+            _state = SaveService.NewEmpire();
+            _rng = new Rng(_state.RngState);
+            _activeBase = -_scheduler.ActiveMs; // the new empire's clock starts at zero
+            _empire = new Empire(_state, _content);
+            Nemesis.EnsureCrews(_state, _content, _rng);
+            _streamer.Attach(_empire, _config.ShowRivalFronts);
+            EmpireChanged();
+            Log.Write("Started a new empire (old one in empire.old.json)");
+            GTA.UI.Notification.Show("Fronts & Rivals: a fresh start. Your old empire is saved as empire.old.json.");
         }
 
         /// <summary>Did you do it? Shot, blown up or run over by a car you were driving.</summary>

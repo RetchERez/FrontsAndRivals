@@ -12,6 +12,7 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Office > Settings > Start a new empire (two presses; the old empire is kept as empire.old.json)
 - Fill empty posts (strongest free guards first) and Arm this front (everyone's next gun, total shown) on each front's page
 - First-time tips for the Office, posting, attacks, buying at the door and bodyguards; Show tips again in Settings
 - The Office shrinks to fit 4:3 and 5:4 screens, and shows 12 rows so a whole front page fits

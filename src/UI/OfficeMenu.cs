@@ -61,6 +61,10 @@ namespace FrontsAndRivals.UI
         /// <summary>Set when DevTools=true: Settings gets a "Dev tools" row (the controller's way in).</summary>
         public Action OpenDevTools;
 
+        /// <summary>Wipes the empire and starts again (Main keeps a copy of the old one).</summary>
+        public Action StartOver;
+        private bool _startOverArmed;
+
         public OfficeMenu(ContentDb content, Config config, Func<Empire> empire, Func<Random> rng, Action changed, Action save)
         {
             _content = content;
@@ -136,6 +140,7 @@ namespace FrontsAndRivals.UI
         private void CloseAll()
         {
             _open = false;
+            _startOverArmed = false;
             _closingAll = true;
             foreach (NativeMenu m in _panels) m.Visible = false;
             _closingAll = false;
@@ -497,6 +502,20 @@ namespace FrontsAndRivals.UI
             NativeItem tips = Row("Show tips again", "The short first-time tips (the Office, posting guards, attacks, buying, bodyguards) show again when they come up.", "");
             tips.Activated += (s, a) => { Tips.Reset(); Changed(false); GTA.UI.Notification.Show("Tips will show again."); };
             AddListRow(tips, null, false);
+
+            if (StartOver != null)
+            {
+                NativeItem fresh = Row(_startOverArmed ? "Start a new empire: select again to confirm" : "Start a new empire",
+                    "For a new story game, or to start over: every front, guard and rival goes back to day one. Your current empire is kept as empire.old.json.", "");
+                fresh.Activated += (s, a) =>
+                {
+                    if (!_startOverArmed) { _startOverArmed = true; _rebuild = true; return; }
+                    _startOverArmed = false;
+                    CloseAll();
+                    StartOver();
+                };
+                AddListRow(fresh, null, false);
+            }
 
             NativeItem version = Row("Version", "Fronts & Rivals, a free single-player mod for Grand Theft Auto V.", Main.ModVersion);
             version.Enabled = false;
