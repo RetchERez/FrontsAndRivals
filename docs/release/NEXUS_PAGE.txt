@@ -1,0 +1,119 @@
+NEXUS MODS UPLOAD SHEET - Fronts & Rivals 1.0.0
+===============================================
+
+Game: Grand Theft Auto V (nexusmods.com/gta5)
+Mod name: Fronts & Rivals
+Version: 1.0.0
+Category: Scripts (or Gameplay, whichever the GTA V section offers for script mods)
+Main file: dist/FrontsAndRivals-1.0.0.zip   (file name: Fronts & Rivals 1.0.0, category: Main Files)
+
+AI TAGS (required, apply both):
+ - AI-Generated Content  (Claude wrote most of the code)
+ - AI Media              (the page description was written with Claude)
+
+PERMISSIONS:
+ - AI training and forking: leave at "Ask Me" unless you want otherwise
+ - Assets from other creators: none bundled. Credits below link the data sources
+
+REQUIREMENTS (Nexus "Requirements" section, off-site links):
+ - Script Hook V - http://www.dev-c.com/gtav/scripthookv/
+ - Script Hook V .NET Enhanced - https://github.com/Chiheb-Bacha/ScriptHookVDotNetEnhanced/releases
+ - LemonUI - https://github.com/LemonUIbyLemon/LemonUI/releases
+ - iFruitAddon2 (optional) - https://github.com/Bob74/iFruitAddon2/releases
+
+SCREENSHOTS TO TAKE IN-GAME (unedited):
+ 1. The "front taken" banner over the building shot
+ 2. The Office menu open
+ 3. Your guards patrolling a front in your crew colour
+ 4. A rival crew hanging out in their colours (Dead Kings green, Hellfire orange, Vinewood blue)
+ 5. An attack: the hold timer and a convoy arriving
+
+SHORT SUMMARY (Nexus "Brief overview", 1-2 lines):
+Take Los Santos businesses from three rival crews, staff them with your own crew and hold them when the crews come back. A turf war that runs alongside the whole Story Mode playthrough.
+
+DESCRIPTION (Nexus uses BBCode, paste everything between the lines):
+----------------------------------------------------------------------
+[b]AI disclosure:[/b] Fronts & Rivals was designed, directed and playtested by Retch. Its code, data and this description were written with Claude, an AI assistant from Anthropic.
+
+[b]Fronts & Rivals[/b] turns Los Santos into a turf war you play alongside the whole story. Three rival crews hold every business in the city, and you take their fronts by force, staff them with your own crew and hold them when the crews come back for them. It plays like part of GTA V, with no chores, and everything pauses during missions.
+
+[size=4][b]Your Empire[/b][/size]
+[list]
+[*]29 real Los Santos businesses to take over, from car washes and liquor stores to motels, bars, clubs and factories
+[*]Every front starts in a rival crew's hands and nothing is for sale, so you take what you want by force
+[*]Small fronts are an easy start, while mid-size and big fronts pay more and fight much harder
+[*]Every front pays out at midnight, and fronts earn more the longer you hold them and the more you own
+[*]Upgrade your fronts with cameras, floodlights, reinforced doors and an armory, depending on their size
+[/list]
+
+[size=4][b]Your Crew[/b][/size]
+[list]
+[*]Hire recruits with names, faces, ranks and skills like the player's: Shooting, Strength, Stamina and Stealth
+[*]Guards improve the longer they work for you and unlock better guns as they rank up, from a knife to a carbine rifle
+[*]Body armour stays on them, and they heal and re-armour after every fight
+[*]Guards patrol around their front while someone always holds the door
+[*]Earn bodyguards as you grow, the first at 3 fronts and a second at 8
+[*]Send a raid of your best guards to take a rival front without you
+[*]Pick your crew's colour from 19 options and a style to wear it in: Street, Smart, Biker or Mixed
+[*]Your own crew hangs out, walks and cruises around the fronts you own
+[/list]
+
+[size=4][b]Rival Crews[/b][/size]
+[list]
+[*]The Dead Kings in forest green, Hellfire MC in orange and the Vinewood Elite in royal blue, each with a boss, lieutenants, guns and vehicles of their own
+[*]Every crew member wears their colour on a major piece of clothing, from streetwear to biker vests to suits
+[*]Crews hang out, walk the block and cruise their turf, fight each other in the street and sometimes draw the police
+[*]Now and then a crew member mugs someone, carjacks a driver, gets chased by the cops or bundles someone into a car
+[*]Their vehicles come in three tiers, from beaters to armoured luxury cars, depending on how badly they want revenge
+[*]Leaders who escape come back with scars and hold a grudge
+[/list]
+
+[size=4][b]Fights[/b][/size]
+[list]
+[*]Attacks come with no warning, and a timer shows how long your guards can hold
+[*]Race back and fight beside them for a bonus, or trust your guards
+[*]Everyone in a fight has twice the usual health, so firefights last
+[*]Take out every soldier at a front and it's yours on the spot, with a shot of the building and the mission passed banner
+[*]Fronts are taken on foot, since a soldier you run over is replaced by another from inside
+[*]Street heat rises with every front you take and cools each night, and the hotter it gets the harder the crews push back
+[/list]
+
+[size=4][b]Made For Story Mode[/b][/size]
+[list]
+[*]Balanced for Story Mode money and length, so it lasts your whole playthrough
+[*]Pauses during missions, cutscenes and character switches
+[*]The Office is a GTA-style menu on your phone, or hold Back/View (M on keyboard)
+[*]Full controller support, and difficulty from Relaxed to Brutal
+[/list]
+
+[size=4][b]Requirements[/b][/size]
+[list]
+[*]GTA V Enhanced, Story Mode, BattlEye disabled
+[*][url=http://www.dev-c.com/gtav/scripthookv/]Script Hook V[/url]
+[*][url=https://github.com/Chiheb-Bacha/ScriptHookVDotNetEnhanced/releases]Script Hook V .NET Enhanced[/url]
+[*][url=https://github.com/LemonUIbyLemon/LemonUI/releases]LemonUI[/url] (SHVDN3 build)
+[*][url=https://github.com/Bob74/iFruitAddon2/releases]iFruitAddon2[/url] (optional, adds the Office to your phone)
+[/list]
+
+[size=4][b]Install[/b][/size]
+[list=1]
+[*]Install the requirements
+[*]Copy the contents of the included scripts folder into your GTA V scripts folder
+[*]Start Story Mode, and after Franklin's first mission a help box points you to your first front
+[/list]
+
+[size=4][b]Known Issues[/b][/size]
+[list]
+[*]Some fronts have fewer guard posts where the street layout leaves no safe spot
+[*]Not yet tested on the Legacy edition
+[/list]
+
+[size=4][b]Credits[/b][/size]
+[list]
+[*]Clothing names and IDs: [url=https://github.com/root-cause/v-clothingnames]root-cause/v-clothingnames[/url] and [url=https://github.com/root-cause/v-besttorso]root-cause/v-besttorso[/url]
+[*]Ped and vehicle data: [url=https://github.com/DurtyFree/gta-v-data-dumps]DurtyFree/gta-v-data-dumps[/url]
+[*]LemonUI, iFruitAddon2, Script Hook V and Script Hook V .NET Enhanced, which are required but not included
+[/list]
+
+Single-player only. It switches itself off in GTA Online. Free, and not affiliated with Rockstar Games.
+----------------------------------------------------------------------
