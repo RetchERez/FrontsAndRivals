@@ -14,7 +14,7 @@ static class SettingsTests
         Config shipped = Config.Load(repoIni, w => warnings++);
         T.Check("Shipped INI parses with no warnings", warnings, 0, 0);
         T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton && shipped.EmpirePressure && shipped.FrontStaff);
-        T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 5 && shipped.RivalAlertRange == 35
+        T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 3 && shipped.RivalAlertRange == 35
             && shipped.LiveDefense && shipped.TurfFrequency == AttackFrequency.Normal && shipped.NotifyLevel == NoteLevel.All);
 
         var c = Config.FromIni(IniFile.Parse("[General]\nOfficeButton=false\n[Sound]\nEffects=false\n[Attacks]\nCooldownMinutes=90\nLiveDefense=false\nFirstAttackDelayMinutes=0\n"
@@ -71,7 +71,7 @@ static class SettingsTests
         T.True("Gap 0: back to back", q2.Next(nogap, 0) != null && q2.Next(nogap, 0) != null);
 
         T.Check("Front price uses the days setting", Economy.FrontPrice(new FrontDef { Income = 5000 }, 10), 50000, 0);
-        T.Check("The starter stays $15,000", Economy.FrontPrice(new FrontDef { Income = 4000, Starter = true }, 10), 15000, 0);
+        T.Check("The starter stays $10,000", Economy.FrontPrice(new FrontDef { Income = 4000, Starter = true }, 10), 10000, 0);
     }
 
     static Note N(NoteKind k, string msg) { return new Note { Kind = k, Message = msg, Sender = "s", Subject = "t" }; }

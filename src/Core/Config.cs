@@ -92,8 +92,8 @@ namespace FrontsAndRivals.Core
         // [Economy]
         public double IncomeMultiplier = 1.0;
         public double WageMultiplier = 1.0;
-        /// <summary>A front for sale costs this many days of its income (the starter car wash is always $15,000).</summary>
-        public int FrontPriceDays = 5;
+        /// <summary>A front for sale costs this many days of its income (the starter car wash is always $10,000).</summary>
+        public int FrontPriceDays = 3;
         // [Guards]
         public bool PermanentDeath = true;
         /// <summary>Fronts can't be lost: a failed defense damages the front (no income at the next midnight) and deaths become injuries.</summary>

@@ -245,8 +245,8 @@ static class AttackTests
         bool none = true;
         for (int i = 0; i < 50; i++) if (Turf.Nightly(weak, content, rng).Count > 0) none = false;
         T.True("Crews with fewer than 8 soldiers stay home", none);
-        T.Check("Starter price is $15,000", Economy.FrontPrice(content.Front("carwash_handson")), 15000, 0);
-        T.Check("Other fronts cost five days of income", Economy.FrontPrice(content.Front("motel_alta")), 4500 * 5, 0);
+        T.Check("Starter price is $10,000", Economy.FrontPrice(content.Front("carwash_handson")), 10000, 0);
+        T.Check("Other fronts cost three days of design income", Economy.FrontPrice(content.Front("motel_alta")), 4500 * 3, 0);
 
         T.Section("Text lines");
         var tokens = new Dictionary<string, string> { { "crew", "Crown Kings" }, { "front", "Car Wash" } };

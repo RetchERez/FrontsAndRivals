@@ -8,7 +8,15 @@ namespace FrontsAndRivals.Rules
 {
     public static class Economy
     {
-        public const int StarterFrontPrice = 15000; // the Broker's starter deal on the car wash, cheaper than any other front
+        public const int StarterFrontPrice = 10000; // the Broker's starter deal on the car wash, cheaper than any other front
+
+        /// <summary>Story Mode scale. A front pays about what a Story Mode property does (a small one about $7,000 a week,
+        /// like Smoke on the Water's $9,300) and the running costs scale with it. Front prices don't: like property, a
+        /// front takes a good while to pay for itself. fronts.json keeps the design-doc incomes; this brings them down.</summary>
+        public const double StoryScale = 0.25;
+
+        /// <summary>What a front pays a night before its bonuses.</summary>
+        public static int BaseIncome(FrontDef def) { return def == null ? 0 : (int)Math.Round(def.Income * StoryScale); }
 
         /// <summary>The Broker's first text waits until you can afford the car wash (and 2 minutes into free roam),
         /// so a broke early-story character isn't invited to something they can't buy.</summary>
@@ -18,7 +26,7 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise five days of its income.</summary>
-        public static int FrontPrice(FrontDef def) { return FrontPrice(def, 5); }
+        public static int FrontPrice(FrontDef def) { return FrontPrice(def, 3); }
 
         public static int FrontPrice(FrontDef def, int days) { return def.Starter ? StarterFrontPrice : def.Income * Math.Max(1, days); }
         public const int RecruitsPerDay = 4;
@@ -42,7 +50,7 @@ namespace FrontsAndRivals.Rules
         public static int HirePrice(Trait t, int overallSkill)
         {
             double f = 0.7 + 0.008 * Math.Max(0, Math.Min(100, overallSkill));
-            return (int)(Math.Round(HirePrice(t) * f / 50.0) * 50);
+            return (int)(Math.Round(HirePrice(t) * StoryScale * f / 25.0) * 25);
         }
 
         /// <summary>Hiring price, $2,500-$5,000 by trait; Nervous costs half.</summary>
@@ -107,17 +115,17 @@ namespace FrontsAndRivals.Rules
             return ("aeiouAEIOU".IndexOf(name[0]) >= 0 || name.StartsWith("SMG") ? "an " : "a ") + name;
         }
 
-        /// <summary>What each gun costs, balanced against fronts ($20,000-$60,000): taking a small front's four guards from
-        /// knives to SMGs costs about as much as the front itself. Rank gates the top of the ladder (MaxWeapon).</summary>
+        /// <summary>What each gun costs: its Story Mode Ammu-Nation price (GTABase). At Story Mode scale these fit:
+        /// a pistol is a third of a small front's night, a carbine about two nights. Rank gates the top (MaxWeapon).</summary>
         public static int WeaponPrice(Weapon w)
         {
             switch (w)
             {
                 case Weapon.Knife: return 0;
-                case Weapon.Pistol: return 750;
-                case Weapon.Shotgun: return 1500;
-                case Weapon.Smg: return 3000;
-                default: return 6000; // carbine rifle
+                case Weapon.Pistol: return 350;
+                case Weapon.Shotgun: return 550;
+                case Weapon.Smg: return 1300;
+                default: return 2100; // carbine rifle
             }
         }
 
@@ -204,7 +212,7 @@ namespace FrontsAndRivals.Rules
         /// <summary>Tonight's wage for one guard, with the big-crew surcharge.</summary>
         public static int WageFor(Rank r, int livingGuards, double wageMult)
         {
-            return (int)Math.Round(Wage(r) * PayrollFactor(livingGuards) * wageMult);
+            return (int)Math.Round(Wage(r) * StoryScale * PayrollFactor(livingGuards) * wageMult);
         }
 
         // ---- more fronts, more money ----
@@ -237,14 +245,14 @@ namespace FrontsAndRivals.Rules
         public static int UpgradePrice(int basePrice, int tier)
         {
             double f = tier >= 2 ? 2.5 : tier == 1 ? 1.5 : 1.0;
-            return (int)(Math.Round(basePrice * f / 500.0) * 500);
+            return (int)(Math.Round(basePrice * 0.5 * f / 250.0) * 250); // half the design price at Story Mode scale
         }
 
         /// <summary>What one front pays tonight.</summary>
         public static int FrontIncome(FrontDef def, FrontState f, int day, int frontsHeld, double incomeMult)
         {
             if (def == null) return 0;
-            return (int)Math.Round(def.Income * EstablishedFactor(day - (f != null ? f.HeldSinceDay : day)) * NetworkFactor(frontsHeld) * incomeMult);
+            return (int)Math.Round(def.Income * StoryScale * EstablishedFactor(day - (f != null ? f.HeldSinceDay : day)) * NetworkFactor(frontsHeld) * incomeMult);
         }
 
         public static Payout Midnight(EmpireState s, ContentDb content, long playerCash, double incomeMult, double wageMult)

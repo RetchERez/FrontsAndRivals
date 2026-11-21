@@ -162,10 +162,10 @@ static class Sim
         long wagesReserve = e.DailyWages() * 2;
 
         // Buy the cheapest front for sale the Broker trusts you with.
-        FrontDef buy = _content.Fronts.Where(f => e.CanBuy(f.Id) && e.Trusted(f)).OrderBy(f => Economy.FrontPrice(f, 5)).FirstOrDefault();
-        if (buy != null && cash - Economy.FrontPrice(buy, 5) > wagesReserve + 3000)
+        FrontDef buy = _content.Fronts.Where(f => e.CanBuy(f.Id) && e.Trusted(f)).OrderBy(f => Economy.FrontPrice(f, 3)).FirstOrDefault();
+        if (buy != null && cash - Economy.FrontPrice(buy, 3) > wagesReserve + 3000)
         {
-            int price = Economy.FrontPrice(buy, 5);
+            int price = Economy.FrontPrice(buy, 3);
             cash -= price; st.FrontSpend += price;
             e.SetOwner(buy.Id, Owners.Player);
             Attacks.GracePeriod(s, buy.Id, now);

@@ -149,7 +149,7 @@ static class FrontTests
         T.True("Before you own a front: walking up or shooting nearby doesn't start a fight", !StreamRules.CrewProvoked(false, true, true, false));
         T.True("...but hurting one of them does", StreamRules.CrewProvoked(false, false, false, true));
         T.True("Once you're in the game, walking up does", StreamRules.CrewProvoked(true, true, false, false));
-        T.True("Broker waits for $15,000", !Economy.BrokerReady(14999, 600000) && Economy.BrokerReady(15000, 600000));
+        T.True("Broker waits for $10,000", !Economy.BrokerReady(9999, 600000) && Economy.BrokerReady(10000, 600000));
         T.True("...and two minutes of free roam", !Economy.BrokerReady(1000000, 60000));
 
         T.Section("One-click front management");

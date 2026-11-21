@@ -405,7 +405,7 @@ namespace FrontsAndRivals.UI
                 string badge = owner == Owners.Player
                     ? (atk != null && atk.Front == def.Id ? "Under Attack" : GuardsAt(e, def) + "/" + def.Capacity + " guards")
                     : OwnerLabel(owner);
-                NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Select to manage.", badge + Open);
+                NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(Economy.BaseIncome(def)) + " a night. Select to manage.", badge + Open);
                 AddListRow(row, def, true);
             }
         }
@@ -598,7 +598,7 @@ namespace FrontsAndRivals.UI
 
         private static NativeStatsPanel FrontBars(double defense, int income)
         {
-            return new NativeStatsPanel(new NativeStatsInfo("Defense", Bar(defense, 300)), new NativeStatsInfo("Income", Bar(income, 12000)));
+            return new NativeStatsPanel(new NativeStatsInfo("Defense", Bar(defense, 300)), new NativeStatsInfo("Income", Bar(income, 3000)));
         }
 
         private void DetailFront(Empire e, FrontDef def)
@@ -608,19 +608,19 @@ namespace FrontsAndRivals.UI
             SetTitles(_detail, def.Name, def.Area.ToUpperInvariant() + " · " + OwnerLabel(owner).ToUpperInvariant());
 
             string pays;
-            int tonight = def.Income;
+            int tonight = Economy.BaseIncome(def);
             if (owner == Owners.Player)
             {
                 FrontState fsHeld = e.Find(def.Id);
                 int days = Math.Max(0, e.State.Day - fsHeld.HeldSinceDay);
                 tonight = e.FrontIncome(def.Id);
                 int est = (int)Math.Round((Economy.EstablishedFactor(days) - 1) * 100), net = (int)Math.Round((Economy.NetworkFactor(e.OwnedCount()) - 1) * 100);
-                pays = "Pays " + Money(tonight) + " tonight: " + Money(def.Income) + " base, +" + est + "% for " + days + (days == 1 ? " day" : " days") + " held (up to +30%), +"
+                pays = "Pays " + Money(tonight) + " tonight: " + Money(Economy.BaseIncome(def)) + " base, +" + est + "% for " + days + (days == 1 ? " day" : " days") + " held (up to +30%), +"
                      + net + "% from your other fronts.";
             }
-            else pays = "Pays " + Money(def.Income) + " a night to start, more the longer you hold it.";
+            else pays = "Pays " + Money(Economy.BaseIncome(def)) + " a night to start, more the longer you hold it.";
             NativeItem header = Info("Defense " + defense.ToString("0"), "Total power of the guards here, adjusted for night. " + pays, Money(tonight) + "/day");
-            header.Panel = FrontBars(defense, def.Income);
+            header.Panel = FrontBars(defense, Economy.BaseIncome(def));
             _detail.Add(header);
 
             if (owner == Owners.ForSale)

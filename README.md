@@ -17,6 +17,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - Guard posts and upgrades by size: small fronts take 2 guards and Cameras/Floodlights; mid-size 3 guards and Reinforced
   Doors too; the biggest 4 guards and an Armory
 - Difficulty from Relaxed to Brutal (Office > Settings), and Reset the City to take Los Santos again with the crew you built
+- A Story Mode economy: a front pays about what a Story Mode property does, with costs to match (IncomeMultiplier raises it)
 - More fronts, more money: fronts pay more the longer you hold them (up to +30%) and each one boosts the rest (up to +20%)
 - Progression that money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held),
   and new fronts get two quiet days
@@ -34,7 +35,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - Attacks come without warning: one alert when a front is hit, a timer showing how long your guards can hold, a GPS route, and a bonus for holding the door yourself
 - Crews never die out: they recruit off the street every night and come back for what you took
 - A weapon ladder: every guard starts with a knife and is armed one gun at a time, each a big step up:
-  pistol $750 (x1.0), pump shotgun $1,500 (x1.3), SMG $3,000 (x1.6), carbine rifle $6,000 (x2.0); the knife is x0.6
+  pistol $350 (x1.0), pump shotgun $550 (x1.3), SMG $1,300 (x1.6), carbine rifle $2,100 (x2.0), Ammu-Nation's own prices; the knife is x0.6
 - Three original crews (Crown Kings, Ironside MC, Velvet Syndicate), each with a named boss and three lieutenants
 - Attacks are already underway when you hear about them; within 300 m they become a live defense with convoys, timer bars and a door to hold
 - Take rival fronts by clearing their guards and claiming the door
@@ -72,7 +73,7 @@ Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2
 - When a front is hit, you can race there and fight beside your guards before they break, or leave it to them
 - Rival fronts show on the map in their crew's colour; their soldiers ignore you while you drive past, but walk up on foot, shoot nearby or hurt one of them and the whole front fights
 - Clear a rival front's soldiers, stand at the door and press **E** to claim it
-- Fronts that are for sale are bought in person at their door, like GTA's own properties, for five days of their takings (the car wash is the Broker's $15,000 starter)
+- Fronts that are for sale are bought in person at their door, like GTA's own properties, for a few weeks of their takings (the car wash is the Broker's $10,000 starter)
 
 ## Settings
 

@@ -7,11 +7,15 @@ First full release.
 - 29 real businesses as fronts across Los Santos, with guard posts placed from the game's navigation data
 - Crew territories (South LS, the east side, the west) and nightly turf moves: crews grab fronts for sale and fight each other for fronts
 - Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
-- Any front for sale can be bought in person at its door (five days of its income; the starter car wash is $15,000)
+- Any front for sale can be bought in person at its door (the starter car wash is $10,000)
 - The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
-  (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+  (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
+- Story Mode economy by default: a front pays about what a Story Mode property does (small ~$1,000 a night, about $7,000
+  a week; big ~$3,000), and wages, hiring and guns (Ammu-Nation prices) scale with it; fronts cost three days of their
+  design income (12 nights at Story Mode scale; the car wash $10,000). Story Mode properties are untouched and separate.
+  IncomeMultiplier in the INI raises it for anyone who wants more
 - Map: each front shows the game's own icon for its kind of business (Car Wash, Bar, Store, Nightclub, Jewel, Repair,
   Warehouse, Business), the for-sale icons while it's for sale, and flashes for a few seconds when it changes hands
 - Monte Carlo balance pass (tools/BalanceSim, the mod's own rules, 150 games per setting): raids now only take guards
@@ -39,7 +43,7 @@ First full release.
   only sells or backs claims on mid-size fronts once you hold 3 and the biggest once you hold 8; a front you just bought
   or took is left alone for two in-game days
 - Early game: rival soldiers ignore you until you own a front (unless you hurt one), and the Broker's first text waits
-  until your character has the $15,000 for the car wash
+  until your character has the $10,000 for the car wash
 - Office > Settings > Start a New Empire (two presses; the old empire is kept as empire.old.json)
 - Fill Empty Posts (strongest free guards first) and Arm This Front (everyone's next gun, total shown) on each front's page
 - First-time tips for the Office, posting, attacks, buying at the door and bodyguards; Show Tips Again in Settings
