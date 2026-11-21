@@ -206,11 +206,11 @@ namespace FrontsAndRivals.Spawn
 
         private void UpdateSlots(StreamedFront f, long now, int hour)
         {
-            for (int post = 0; post < f.Def.Posts.Count && post < FrontDef.MaxPosts; post++)
+            for (int post = 0; post < f.Def.Capacity; post++)
             {
                 Slot slot = f.Slots[post];
                 GuardState g = _empire.AtPost(f.Def.Id, post);
-                int wantId = (g != null && g.Status == GuardStatus.Active && !g.Escort) ? g.Id : 0; // bodyguards are with you
+                int wantId = (g != null && g.Status == GuardStatus.Active && !g.Escort && !_empire.OnRaid(g)) ? g.Id : 0; // with you, or out raiding
 
                 if (slot.Ped != null)
                 {
@@ -305,7 +305,7 @@ namespace FrontsAndRivals.Spawn
             if (f.CrewCount < 0)
             {
                 FrontState fs = _empire.Find(f.Def.Id);
-                int c = Math.Min(f.Def.Posts.Count, 2 + f.Def.Tier);
+                int c = f.Def.Capacity;
                 if (fs != null && fs.WeakUntilDay >= _empire.State.Day) c = Math.Max(1, c - 1);
                 f.CrewCount = Math.Min(c, Math.Max(0, cs.Manpower));
             }

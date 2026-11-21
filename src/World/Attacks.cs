@@ -90,6 +90,7 @@ namespace FrontsAndRivals.Rules
             if (cooldown >= 0 && cooldownMinutes > 0) cooldown = cooldownMinutes * Minute;
             else if (cooldown > 0 && pressure)
                 cooldown = Math.Min(cooldown, Math.Max(PressureFloorMs, (long)(cooldown * PressureCooldownFactor(HeldCount(s)))));
+            if (cooldown > 0) cooldown = (long)(cooldown * Difficulty.Cooldown(s.Difficulty));
             if (cooldown < 0 || s.Attack != null) return false;
             if (sinceLoadMs < firstDelayMinutes * Minute) return false;
             if (nowMs - s.LastAttackMs < cooldown) return false;
@@ -192,7 +193,8 @@ namespace FrontsAndRivals.Rules
 
             int squad = Resolver.SquadSize(fd.Tier, crew.Grudge, crew.Manpower, squadBonus);
             if (squad < 1) return null;
-            double a = Resolver.AttackStrength(squad, def.SoldierPower, Nemesis.LeaderBonus(leader), leader.LeaderTrait == LeaderTrait.Ruthless, crew.Grudge);
+            double a = Resolver.AttackStrength(squad, def.SoldierPower, Nemesis.LeaderBonus(leader), leader.LeaderTrait == LeaderTrait.Ruthless, crew.Grudge)
+                       * Difficulty.Strength(s.Difficulty);
             int minutes = HoldMinutes(holdBaseMinutes, empire.Defense(target.Id, hour), a, target.Cameras, crew.Id);
 
             return new AttackState
@@ -244,7 +246,7 @@ namespace FrontsAndRivals.Rules
             bool medic = false;
             foreach (GuardState g in s.Guards)
             {
-                if (g.Front != attack.Front || g.Status == GuardStatus.Dead || g.Escort) continue; // bodyguards are with you
+                if (g.Front != attack.Front || g.Status == GuardStatus.Dead || g.Escort || empire.OnRaid(g)) continue; // away from the front
                 posted.Add(g);
                 records.Add(Empire.Record(g));
                 if (g.Trait == (int)Trait.Medic && g.Status == GuardStatus.Active) medic = true;

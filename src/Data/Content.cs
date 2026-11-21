@@ -63,6 +63,12 @@ namespace FrontsAndRivals.Data
 
         public string ShortName { get { return string.IsNullOrEmpty(Short) ? Name : Short; } }
 
+        /// <summary>Guard posts by size: a small shop needs 2, a mid-size place 3, the biggest 4.</summary>
+        public static int PostsForTier(int tier) { return tier >= 2 ? 4 : tier == 1 ? 3 : 2; }
+
+        /// <summary>Posts actually used: by size, never more than the spots placed.</summary>
+        public int Capacity { get { return Math.Min(Posts == null ? 0 : Posts.Count, PostsForTier(Tier)); } }
+
         /// <summary>A front can be streamed once it has a door and at least one post.</summary>
         public bool IsScouted { get { return Door != null && Door.IsSet && Posts != null && Posts.Count > 0; } }
 
@@ -82,6 +88,8 @@ namespace FrontsAndRivals.Data
     public static class Owners
     {
         public const string Player = "player";
+
+        public static bool IsCrew(string owner) { return owner == CrownKings || owner == Ironside || owner == Velvet; }
         public const string ForSale = "forsale";
         public const string CrownKings = "CK";
         public const string Ironside = "IR";

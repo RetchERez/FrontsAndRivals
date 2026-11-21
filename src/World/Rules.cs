@@ -138,7 +138,8 @@ namespace FrontsAndRivals.Rules
         /// <summary>The same, plus extra attackers (empire-size pressure). Still never over 9 or the crew's manpower.</summary>
         public static int SquadSize(int frontTier, int grudge, int manpower, int bonus)
         {
-            int want = 2 + frontTier + (Math.Max(0, grudge) / 25) + Math.Max(0, bonus);
+            // A small front (2 guards) faces one fewer attacker, so two decent guards stand a fair chance.
+            int want = (frontTier == 0 ? 1 : 2) + frontTier + (Math.Max(0, grudge) / 25) + Math.Max(0, bonus);
             return Math.Max(0, Math.Min(9, Math.Min(manpower, want)));
         }
 

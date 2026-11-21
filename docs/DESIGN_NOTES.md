@@ -21,6 +21,9 @@ Each difference was a user decision or a simplification made to keep 1.0 finishe
 | Leader bonus lieutenant 25, boss 45; wages 500-2,000; fronts 6 days; roster 30; 3 recruits a day | Lieutenant 10, boss 30; wages 300-1,200; 5 days; roster 60; 4 a day; doors +20 | Balance pass: with the doc's numbers a fully prepared front won under half its fights and four-guard tier-0 fronts barely paid. Target win chances are locked in by RulesTests.BalanceTests |
 | Any weapon for any guard; any front for sale from day one | Guns unlock with rank; mid fronts need 3 held, big ones 8 (Broker's trust) | User: progression a rich late-story character can't skip with money |
 | Warning a few in-game hours before the hit | A rumour first, the warning LeadHours (12) later, then the hit; new fronts get two quiet days | User: attacks should build up over time |
+| Four posts at every front | 2 / 3 / 4 by size | User: a car wash doesn't need a nightclub's crew |
+| Rival fronts taken in person only | Plus raids from the Office, and a map waypoint that opens the front's page | User: send guards; use the native map |
+| No difficulty setting | Relaxed to Brutal, plus Reset the city (keep your crew) | User: replayability and a harder game |
 | Office: two levels, separate screens | Three side-by-side panels | User request: submenus visible at the same time |
 
 ## Needs in-game confirmation

@@ -69,6 +69,7 @@ namespace FrontsAndRivals.Attacks
             int hour = GTA.World.CurrentTimeOfDay.Hours;
 
             NemesisTexts(s, now);
+            if (s.Raid != null && now >= s.Raid.EndsMs) FinishRaid(e, hour, now);
 
             if (s.Attack == null)
             {
@@ -285,7 +286,7 @@ namespace FrontsAndRivals.Attacks
             CrewDef crew = _content.Crew(a.Crew);
             CrewMember leader = cs.Member(a.Leader);
             var guards = new List<GuardState>();
-            foreach (GuardState g in s.Guards) if (g.Front == a.Front && g.Status == GuardStatus.Active && !g.Escort) guards.Add(g);
+            foreach (GuardState g in s.Guards) if (g.Front == a.Front && g.Status == GuardStatus.Active && !g.Escort && !e.OnRaid(g)) guards.Add(g);
 
             Rules.Attacks.Outcome o = Rules.Attacks.Resolve(s, _content, e, a, _rng(), hour, now, e.PermanentDeath(_config.PermanentDeath), _config.ProtectedMode,
                 won, r.AttackersLost, InjuryRecoveryMs);
@@ -426,6 +427,36 @@ namespace FrontsAndRivals.Attacks
             _claimUntil = _now() + ClaimWindowMs;
             GTA.UI.Screen.ShowSubtitle("The " + front.ShortName + " is clear. Get to the door to claim it.", 5000);
             Log.Write("Director: " + front.Id + " cleared, claim window open");
+        }
+
+        // ---------------------------------------------------------------- raids
+
+        /// <summary>Word comes back from a raid: the front is yours, or your people come home beaten.</summary>
+        private void FinishRaid(Empire e, int hour, long now)
+        {
+            Rules.Raids.Outcome o = Rules.Raids.Resolve(e.State, _content, e, _rng(), hour, now, e.PermanentDeath(_config.PermanentDeath), InjuryRecoveryMs);
+            FrontDef front = _content.Front(o.FrontId);
+            CrewDef crew = _content.Crew(o.CrewId);
+            if (front == null || crew == null) { _changed(); return; }
+            var lost = new List<string>();
+            foreach (GuardState g in o.Dead) lost.Add(g.ShortName + " (dead)");
+            foreach (GuardState g in o.Injured) lost.Add(g.ShortName + " (hurt)");
+            string cost = lost.Count == 0 ? " Everyone came back." : " " + string.Join(", ", lost.ToArray()) + ".";
+            if (o.Won)
+            {
+                Sounds.Play(Cue.FrontTaken);
+                if (!CheckRuledAll(e)) _banners.Show("FRONT TAKEN", "Your crew took the " + front.Name + " from the " + crew.Name + ".");
+                _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is ours", "The raid worked: the " + crew.Name + " are out of the " + front.ShortName + "." + cost + " Post some guards there.");
+            }
+            else
+            {
+                Sounds.Play(Cue.FrontLost);
+                _notifierPost(NoteKind.AttackResult, "The Office", "Raid failed", "The " + crew.Name + " held the " + front.ShortName + "." + cost);
+            }
+            foreach (GuardState g in o.Dead)
+                _notifierPost(NoteKind.GuardDeath, "The Office", "Guard down", _content.Lines.Pick(_rng(), "guardDied", Tokens(crew, front, null, g.ShortName)));
+            Log.Write("Director: raid on " + o.FrontId + (o.Won ? " won" : " failed") + ", dead " + o.Dead.Count + ", hurt " + o.Injured.Count);
+            _changed();
         }
 
         /// <summary>A new empire (Office > Settings > Start a new empire): forget everything tied to the old one's clock.</summary>

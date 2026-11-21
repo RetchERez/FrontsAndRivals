@@ -121,6 +121,18 @@ namespace FrontsAndRivals.Data
         public const string Live = "live";
     }
 
+    /// <summary>Your guards out on a raid against a rival front.</summary>
+    [DataContract]
+    public sealed class RaidState
+    {
+        [DataMember(Name = "front", Order = 0)] public string Front;
+        [DataMember(Name = "crew", Order = 1)] public string Crew;
+        [DataMember(Name = "guards", Order = 2)] public List<int> GuardIds = new List<int>();
+        /// <summary>Free-roam ms when word comes back.</summary>
+        [DataMember(Name = "endsMs", Order = 3)] public long EndsMs;
+        [DataMember(Name = "odds", Order = 4)] public double Odds;
+    }
+
     [DataContract]
     public sealed class AttackState
     {

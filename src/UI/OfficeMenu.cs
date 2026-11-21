@@ -63,6 +63,17 @@ namespace FrontsAndRivals.UI
 
         /// <summary>Wipes the empire and starts again (Main keeps a copy of the old one).</summary>
         public Action StartOver;
+
+        /// <summary>Gives the city back to the crews but keeps your people (Main does the world side).</summary>
+        public Action ResetCity;
+        private bool _resetCityArmed;
+
+        /// <summary>Starts a raid on a rival front (Main supplies the clock). Returns false if it couldn't start.</summary>
+        public Func<FrontDef, bool> StartRaid;
+
+        /// <summary>The map waypoint landed on this front: the next time the Office opens, it opens on its page.</summary>
+        private string _openOn;
+        public void OpenOn(string frontId) { _openOn = frontId; }
         private bool _startOverArmed;
 
         public OfficeMenu(ContentDb content, Config config, Func<Empire> empire, Func<Random> rng, Action changed, Action save)
@@ -135,12 +146,29 @@ namespace FrontsAndRivals.UI
             });
             foreach (NativeMenu m in _panels) m.Visible = true;
             Focus(0);
+            if (_openOn != null)
+            {
+                string id = _openOn;
+                _openOn = null;
+                Safe("open on front", () =>
+                {
+                    _sections.SelectedIndex = (int)Section.Fronts; // rebuilds the list for Fronts
+                    for (int i = 0; i < _listKeys.Count; i++)
+                    {
+                        var key = _listKeys[i] as FrontDef;
+                        if (key != null && key.Id == id) { _list.SelectedIndex = i; break; }
+                    }
+                    Focus(1);
+                    FocusRight(1);
+                });
+            }
         }
 
         private void CloseAll()
         {
             _open = false;
             _startOverArmed = false;
+            _resetCityArmed = false;
             _closingAll = true;
             foreach (NativeMenu m in _panels) m.Visible = false;
             _closingAll = false;
@@ -161,6 +189,7 @@ namespace FrontsAndRivals.UI
             for (int i = 0; i < _panels.Length; i++) _panels[i].AcceptsInput = i == panel;
             _letGoArmed = 0;
             _startOverArmed = false;
+            _resetCityArmed = false;
             // Bottom-right control hints say exactly what each key does in this panel.
             NativeMenu m = _panels[panel];
             m.Buttons.Clear();
@@ -242,6 +271,7 @@ namespace FrontsAndRivals.UI
         {
             if (g.Status == GuardStatus.Injured) return "Injured";
             if (g.Escort) return "Bodyguard";
+            if (_empire() != null && _empire().OnRaid(g)) return "On a raid";
             if (!g.IsPosted) return "Reserve";
             FrontDef def = _content.Front(g.Front);
             return (def != null ? def.ShortName : g.Front) + " " + (g.Post + 1);
@@ -373,7 +403,7 @@ namespace FrontsAndRivals.UI
                 string owner = e.OwnerOf(def.Id);
                 AttackState atk = e.State.Attack;
                 string badge = owner == Owners.Player
-                    ? (atk != null && atk.Front == def.Id ? (atk.Phase == AttackPhase.Warning ? "Threatened" : "Under attack") : GuardsAt(e, def) + "/" + def.Posts.Count + " guards")
+                    ? (atk != null && atk.Front == def.Id ? (atk.Phase == AttackPhase.Warning ? "Threatened" : "Under attack") : GuardsAt(e, def) + "/" + def.Capacity + " guards")
                     : OwnerLabel(owner);
                 NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Select to manage.", badge + Open);
                 AddListRow(row, def, true);
@@ -450,6 +480,13 @@ namespace FrontsAndRivals.UI
         {
             SetTitles(_list, "Settings", "HOW FRONTS & RIVALS BEHAVES");
             string[] freq = { "Off", "Low", "Normal", "High" };
+            var diff = new NativeListItem<string>("Difficulty", "How hard the crews push. Higher: stronger attacks that come more often, better-defended rival "
+                + "fronts, and less time to get there. Relaxed x0.7 and half again the wait, Easy x0.85, Normal, Hard x1.2, Brutal x1.45 and attacks 30% sooner.",
+                Difficulty.Names);
+            diff.SelectedIndex = Difficulty.Clamp(e.State.Difficulty) + 2;
+            diff.ItemChanged += (s, a) => { e.State.Difficulty = diff.SelectedIndex - 2; Changed(false); };
+            AddListRow(diff, null, false);
+
             var f = new NativeListItem<string>("Attack frequency", "How often crews come for your fronts: Low every ~75 min, Normal ~45, High ~25. Off stops attacks.", freq);
             int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
             f.SelectedIndex = at < 0 ? 2 : at;
@@ -504,6 +541,21 @@ namespace FrontsAndRivals.UI
             NativeItem tips = Row("Show tips again", "The short first-time tips (the Office, posting guards, attacks, buying, bodyguards) show again when they come up.", "");
             tips.Activated += (s, a) => { Tips.Reset(); Changed(false); GTA.UI.Notification.Show("Tips will show again."); };
             AddListRow(tips, null, false);
+
+            if (ResetCity != null)
+            {
+                NativeItem again = Row(_resetCityArmed ? "Reset the city: select again to confirm" : "Reset the city",
+                    "Go again: every front returns to where it started and the crews come back at full strength. You keep your guards, "
+                    + "their ranks, skills and guns (all back in the reserve). Front upgrades are lost. Runs so far: " + e.State.CityResets + ".", "");
+                again.Activated += (s, a) =>
+                {
+                    if (!_resetCityArmed) { _resetCityArmed = true; _rebuild = true; return; }
+                    _resetCityArmed = false;
+                    CloseAll();
+                    ResetCity();
+                };
+                AddListRow(again, null, false);
+            }
 
             if (StartOver != null)
             {
@@ -581,7 +633,7 @@ namespace FrontsAndRivals.UI
             }
             else if (owner == Owners.Player)
             {
-                for (int post = 0; post < FrontDef.MaxPosts; post++) _detail.Add(PostRow(e, def, post));
+                for (int post = 0; post < def.Capacity; post++) _detail.Add(PostRow(e, def, post));
                 AddQuickActions(e, def);
             }
             else
@@ -593,6 +645,7 @@ namespace FrontsAndRivals.UI
                     : "Too big to take yet: the Broker backs a claim here once you hold " + need + " fronts. You hold " + e.OwnedCount() + ".", e.Trusted(def) ? "" : "Hold " + need);
                 held.Enabled = false;
                 _detail.Add(held);
+                AddRaidRow(e, def);
             }
 
             if (owner == Owners.Player) AddUpgrades(e, def);
@@ -647,6 +700,43 @@ namespace FrontsAndRivals.UI
         }
 
         // ---------- upgrades ----------
+
+        /// <summary>Send a crew: your strongest guards try to take this rival front without you.</summary>
+        private void AddRaidRow(Empire e, FrontDef def)
+        {
+            RaidState current = e.State.Raid;
+            if (current != null && current.Front == def.Id)
+            {
+                _detail.Add(Info("Raid under way", "Your people are hitting the " + def.ShortName + ". You'll hear in a few minutes. Odds when they left: about "
+                    + (int)Math.Round(current.Odds * 100) + "%.", "Out"));
+                NativeItem back = Row("Call them back", "Calls the raid off before it starts: nobody fights, everyone goes home to their posts.", "");
+                back.Activated += (s, a) => Safe("call back", () =>
+                {
+                    e.CancelRaid();
+                    GTA.UI.Notification.Show("Raid on the " + def.ShortName + " called off. Your people are heading home.");
+                    Changed(true);
+                });
+                _detail.Add(back);
+                return;
+            }
+            string blocked = e.RaidBlocked(def);
+            List<GuardState> team = e.RaidTeam();
+            var names = new List<string>();
+            foreach (GuardState g in team) names.Add(g.ShortName);
+            int odds = blocked == null ? (int)Math.Round(e.RaidOdds(def, Hour()) * 100) : 0;
+            NativeItem raid = Row("Send a crew", blocked ?? ("Sends your strongest: " + string.Join(", ", names.ToArray()) + ". About " + odds
+                + "% to take it. They're gone a few minutes and their posts stand empty meanwhile; if it goes wrong they can be hurt or killed."),
+                blocked == null ? odds + "%" : "");
+            raid.Enabled = blocked == null;
+            raid.Activated += (s, a) => Safe("raid", () =>
+            {
+                if (StartRaid == null || !StartRaid(def)) return;
+                Sounds.Play(Cue.Purchase);
+                GTA.UI.Notification.Show("Your crew is on the way to the " + def.ShortName + ".");
+                Changed(true);
+            });
+            _detail.Add(raid);
+        }
 
         /// <summary>One click instead of four: fill every empty post, or give everyone here their next gun.</summary>
         private void AddQuickActions(Empire e, FrontDef def)
@@ -739,7 +829,7 @@ namespace FrontsAndRivals.UI
             foreach (FrontDef def in _content.Fronts)
             {
                 if (!e.PlayerOwns(def.Id)) continue;
-                for (int post = 0; post < def.Posts.Count; post++)
+                for (int post = 0; post < def.Capacity; post++)
                 {
                     GuardState there = e.AtPost(def.Id, post);
                     if (g.Front == def.Id && g.Post == post) selected = labels.Count;

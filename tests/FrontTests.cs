@@ -85,6 +85,61 @@ static class FrontTests
         T.True("Kill one of your own: recruits want danger money", be.OfferPrice(offerNow) > calm);
         bs.Day += 2;
         T.True("...and it passes after a day", be.OfferPrice(offerNow) == calm);
+        T.Section("Guard posts by size, and raids");
+        T.True("Small fronts take 2 guards, mid 3, big 4", FrontDef.PostsForTier(0) == 2 && FrontDef.PostsForTier(1) == 3 && FrontDef.PostsForTier(2) == 4);
+        T.Check("The car wash has 2 posts", content.Front("carwash_handson").Capacity, 2, 0);
+        T.True("Small fronts face one fewer attacker", Resolver.SquadSize(0, 0, 10) == 1 && Resolver.SquadSize(1, 0, 10) == 3);
+        var rs = SaveService.NewEmpire();
+        var re = new Empire(rs, content);
+        Nemesis.EnsureCrews(rs, content, new Random(5));
+        re.SetOwner("carwash_handson", Owners.Player);
+        FrontDef target = null;
+        foreach (FrontDef d in content.Fronts) if (d.Tier == 0 && Owners.IsCrew(re.OwnerOf(d.Id))) { target = d; break; }
+        T.True("There's a small crew front to raid", target != null);
+        T.True("No team: the raid is blocked", re.RaidBlocked(target) != null);
+        for (int i = 0; i < 4; i++) { GuardState rg = re.Recruit(rng); rg.Rank = (int)Rank.Veteran; rg.Weapon = (int)Weapon.CarbineRifle; Stats.Set(rg, new[] { 70, 70, 70, 70 }); }
+        T.True("With guards it can go", re.RaidBlocked(target) == null && re.RaidTeam().Count == 4);
+        double odds = re.RaidOdds(target, 12);
+        T.True("Four armed veterans are favoured against a small front (" + (int)(odds * 100) + "%)", odds > 0.6);
+        T.True("Raid sent", re.StartRaid(target, 1000, 12) && rs.Raid != null && re.OnRaid(re.RaidTeam().Count == 0 ? rs.Guards[0] : rs.Guards[0]));
+        T.True("Raiders can't also be bodyguards, and don't defend their posts", !re.SetEscort(rs.Guards[0], true));
+        T.True("Only one raid at a time", re.RaidBlocked(target) != null);
+        int won = 0, trials = 300;
+        for (int t = 0; t < trials; t++)
+        {
+            var ts = SaveService.NewEmpire();
+            var te = new Empire(ts, content);
+            Nemesis.EnsureCrews(ts, content, new Random(t));
+            te.SetOwner("carwash_handson", Owners.Player);
+            for (int i = 0; i < 4; i++) { GuardState rg = te.Recruit(rng); rg.Rank = (int)Rank.Veteran; rg.Weapon = (int)Weapon.CarbineRifle; Stats.Set(rg, new[] { 70, 70, 70, 70 }); }
+            te.StartRaid(target, 0, 12);
+            Raids.Outcome ro = Raids.Resolve(ts, content, te, new Random(t * 7 + 1), 12, 200000, true, 1000);
+            if (ro.Won) { won++; if (te.OwnerOf(target.Id) != Owners.Player) won -= 1000; }
+            if (ts.Raid != null) won -= 1000;
+        }
+        T.True("Raids resolve, a win hands you the front (" + won + " of " + trials + " won)", won > trials * 0.55 && won < trials);
+
+        T.Section("Difficulty and resetting the city");
+        T.True("Difficulty: Normal is x1, Brutal pushes harder and sooner, Relaxed eases off",
+               Difficulty.Strength(0) == 1.0 && Difficulty.Strength(2) > 1.4 && Difficulty.Cooldown(2) < 1 && Difficulty.Strength(-2) < 0.8 && Difficulty.Cooldown(-2) > 1.4);
+        T.True("Old saves (step 0) read as Normal", Difficulty.Name(0) == "Normal" && Difficulty.Name(9) == "Brutal");
+        var ds = SaveService.NewEmpire();
+        var de = new Empire(ds, content);
+        Nemesis.EnsureCrews(ds, content, new Random(2));
+        de.SetOwner("carwash_handson", Owners.Player);
+        GuardState vet = de.Recruit(rng); vet.Rank = (int)Rank.Veteran; vet.Weapon = (int)Weapon.Smg;
+        GuardState vet2 = de.Recruit(rng);
+        double normalOdds = de.RaidOdds(target, 12);
+        ds.Difficulty = 2;
+        T.True("Brutal: rival fronts are harder to raid", de.RaidOdds(target, 12) < normalOdds);
+        ds.Difficulty = 0;
+        de.Assign(vet, "carwash_handson", 0);
+        de.FindFront("carwash_handson").Cameras = true;
+        de.ResetCity(new Random(3), 5000);
+        T.True("Reset the city: fronts go back to where they started", de.OwnerOf("carwash_handson") == content.Front("carwash_handson").StartOwner && !de.FindFront("carwash_handson").Cameras);
+        T.True("...you keep your people, ranks and guns, in the reserve", ds.Guards.Contains(vet) && vet.Rank == (int)Rank.Veteran && vet.Weapon == (int)Weapon.Smg && !vet.IsPosted);
+        T.True("...the crews come back and the run is counted", ds.Crews.Count == content.Crews.Count && ds.CityResets == 1 && ds.Attack == null);
+
         T.Section("Early-game safeguards");
         T.True("Before you own a front: walking up or shooting nearby doesn't start a fight", !StreamRules.CrewProvoked(false, true, true, false));
         T.True("...but hurting one of them does", StreamRules.CrewProvoked(false, false, false, true));
@@ -98,7 +153,7 @@ static class FrontTests
         qe.SetOwner("carwash_handson", Owners.Player);
         GuardState q1 = qe.Recruit(rng), q2 = qe.Recruit(rng), q3 = qe.Recruit(rng);
         Stats.Set(q1, new[] { 20, 20, 20, 20 }); Stats.Set(q2, new[] { 80, 80, 80, 80 }); Stats.Set(q3, new[] { 50, 50, 50, 50 });
-        int posts = content.Front("carwash_handson").Posts.Count;
+        int posts = content.Front("carwash_handson").Capacity;
         T.Check("All posts empty to start", qe.EmptyPosts("carwash_handson"), posts, 0);
         int placedNow = qe.FillPosts("carwash_handson");
         T.Check("Fill posts uses everyone free (up to the posts)", placedNow, Math.Min(3, posts), 0);
@@ -297,13 +352,13 @@ static class FrontTests
         T.True("Dead guards can't be posted", !e.Assign(g1, "carwash_handson", 0));
         T.True("Dead guards don't count as living", e.LivingCount() == 1);
 
-        e.Assign(g2, "carwash_handson", 2);
+        e.Assign(g2, "carwash_handson", 1);
         Stats.Set(g2, new[] { 50, 50, 50, 50 }); // average Stamina: the base recovery time
         e.GuardDown(g2, "x", false, 5000, 1000);
-        T.True("Injury: keeps the post, status injured", g2.Status == GuardStatus.Injured && g2.Post == 2);
+        T.True("Injury: keeps the post, status injured", g2.Status == GuardStatus.Injured && g2.Post == 1);
         T.Check("Not recovered before the time", e.Recover(5999), 0, 0);
         T.Check("Recovered after the time", e.Recover(6000), 1, 0);
-        T.True("Back on duty at the same post", g2.Status == GuardStatus.Active && e.AtPost("carwash_handson", 2) == g2);
+        T.True("Back on duty at the same post", g2.Status == GuardStatus.Active && e.AtPost("carwash_handson", 1) == g2);
 
         // Save round trip keeps guards and fronts; ids keep counting up.
         string dir = Path.Combine(Path.GetTempPath(), "fr_emp_" + Guid.NewGuid().ToString("N"));
@@ -314,7 +369,7 @@ static class FrontTests
             var back = saves.Load().State;
             T.Check("Guards survive save/load", back.Guards.Count, state.Guards.Count, 0);
             T.True("Front owner survives save/load", back.Fronts.Find(f => f.Id == "carwash_handson").Owner == Owners.Player);
-            T.True("Post survives save/load", back.Guards.Find(g => g.Id == g2.Id).Post == 2);
+            T.True("Post survives save/load", back.Guards.Find(g => g.Id == g2.Id).Post == 1);
             var e2 = new Empire(back, content);
             T.True("New ids continue after load", e2.Recruit(rng).Id > g2.Id);
         }

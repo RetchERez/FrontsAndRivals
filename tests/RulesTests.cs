@@ -59,11 +59,13 @@ static class RulesTests
         T.Section("Balance: a prepared front wins, a neglected one loses");
         var none = new FrontUpgrades();
         double lt = FrontsAndRivals.Rules.Nemesis.LieutenantBonus, boss = FrontsAndRivals.Rules.Nemesis.BossBonus;
-        double earlyA = Resolver.AttackStrength(2, 12, lt, false, 0);
+        double earlyA = Resolver.AttackStrength(Resolver.SquadSize(0, 0, 10), 12, lt, false, 0);
         double p1 = Resolver.WinChance(DefenseRating.Compute(Many(2, Rank.Recruit, Weapon.Knife), none, 12), earlyA);
-        double p2 = Resolver.WinChance(DefenseRating.Compute(Many(4, Rank.Recruit, Weapon.Pistol), none, 12), earlyA);
-        T.True("Start, 2 knife recruits vs the first squad: mostly lost (5-20%)", p1 >= 0.05 && p1 <= 0.20);
-        T.True("Car wash with 4 pistol recruits: favoured (50-70%)", p2 >= 0.50 && p2 <= 0.70);
+        double p2 = Resolver.WinChance(DefenseRating.Compute(Many(2, Rank.Recruit, Weapon.Pistol), none, 12), earlyA);
+        double p2b = Resolver.WinChance(DefenseRating.Compute(Many(2, Rank.Recruit, Weapon.Shotgun), none, 12), earlyA);
+        T.True("Small front, 2 knife recruits vs the first squad: mostly lost (15-35%)", p1 >= 0.15 && p1 <= 0.35);
+        T.True("2 pistol recruits: close to even (40-55%)", p2 >= 0.40 && p2 <= 0.55);
+        T.True("2 shotgun recruits: favoured (55-70%)", p2b >= 0.55 && p2b <= 0.70);
 
         double midA = Resolver.AttackStrength(5, 12, lt, false, 30);
         double p3 = Resolver.WinChance(DefenseRating.Compute(Many(4, Rank.Soldier, Weapon.Smg), new FrontUpgrades { Cameras = true }, 12), midA);

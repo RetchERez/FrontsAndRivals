@@ -86,6 +86,24 @@ namespace FrontsAndRivals.Core
             _blips.ShowForSaleFronts = _config.ShowForSaleFronts;
             _office = new OfficeMenu(_content, _config, () => _empire, () => _rng, EmpireChanged, SaveNow);
             _office.StartOver = StartOver;
+            _office.ResetCity = () =>
+            {
+                if (_empire == null) return;
+                ClearWorld("reset the city");
+                _director.Reset();
+                _notifier.Clear();
+                _empire.ResetCity(_rng, ActiveNow());
+                EmpireChanged();
+                Log.Write("City reset, run " + (_state.CityResets + 1));
+                _banners.Show("LOS SANTOS IS UP FOR GRABS", "The crews are back at full strength. Your people are waiting in the reserve.");
+            };
+            _office.StartRaid = def =>
+            {
+                if (_empire == null || !_empire.StartRaid(def, ActiveNow(), GTA.World.CurrentTimeOfDay.Hours)) return false;
+                Log.Write("Raid sent at " + def.Id);
+                SaveNow();
+                return true;
+            };
 
             try { _phone = PhoneHost.TryCreate(() => _office.OpenOffice()); Log.Write("Phone contact \"The Office\" added"); }
             catch (Exception ex) { _phone = null; Log.Write("Phone contact unavailable (is iFruitAddon2 installed?): " + ex.GetType().Name + ": " + ex.Message); }
@@ -116,6 +134,7 @@ namespace FrontsAndRivals.Core
             _scheduler.Add("Banners", "banners", 0, () => { _banners.Process(); _live.Draw(); }, runWhilePaused: true);
             _scheduler.Add("Prompts", "prompts", 0, PromptsTick);
             _scheduler.Add("HoldBar", "attack timer", 0, () => _director.DrawHold());
+            _scheduler.Add("Waypoint", "map waypoint", 1000, WaypointTick);
             _scheduler.Add("Clock", "income and recruits", 2000, ClockTick);
             if (_dev != null)
             {
@@ -279,6 +298,39 @@ namespace FrontsAndRivals.Core
             if (_empire == null) return;
             int back = _empire.Recover(ActiveNow());
             if (back > 0) { Log.Write(back + " injured guard(s) back on duty"); SaveNow(); }
+        }
+
+        private GTA.Math.Vector3 _lastWaypoint;
+        private bool _hadWaypoint;
+
+        /// <summary>The game's own map: drop a waypoint on a front and the Office opens on that front's page next time,
+        /// with Send a crew ready for a rival one.</summary>
+        private void WaypointTick()
+        {
+            if (_empire == null) return;
+            if (!Game.IsWaypointActive) { _hadWaypoint = false; return; }
+            GTA.Math.Vector3 w = GTA.World.WaypointPosition;
+            if (_hadWaypoint && Math.Abs(w.X - _lastWaypoint.X) < 2f && Math.Abs(w.Y - _lastWaypoint.Y) < 2f) return;
+            _hadWaypoint = true;
+            _lastWaypoint = w;
+            FrontDef best = null;
+            float bestD = 80f;
+            foreach (FrontDef def in _content.Fronts)
+            {
+                if (!def.Door.IsSet) continue;
+                float dx = def.Door.X - w.X, dy = def.Door.Y - w.Y;
+                float d = (float)Math.Sqrt(dx * dx + dy * dy);
+                if (d < bestD) { bestD = d; best = def; }
+            }
+            if (best == null) return;
+            _office.OpenOn(best.Id);
+            string owner = _empire.OwnerOf(best.Id);
+            if (Owners.IsCrew(owner))
+            {
+                CrewDef crew = _content.Crew(owner);
+                _notifier.Send(NoteKind.Staff, "The Office", best.ShortName, "Marked the " + best.Name + " (" + (crew != null ? crew.Name : owner)
+                    + "). Open the Office to send a crew, or drive there and take it yourself.");
+            }
         }
 
         /// <summary>Office > Settings > Start a new empire. The old one is copied to empire.old.json first.</summary>

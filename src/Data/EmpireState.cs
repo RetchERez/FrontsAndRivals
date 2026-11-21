@@ -51,7 +51,10 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "routeOff", Order = 30)] public bool RouteOff;           // Office: no GPS route to attacks
         [DataMember(Name = "ruledAll", Order = 31)] public bool RuledAll;           // held every front at least once
         [DataMember(Name = "fearUntilDay", Order = 32)] public int FearUntilDay = -1; // you killed one of your own: recruits want danger money
-        [DataMember(Name = "tipsSeen", Order = 33)] public int TipsSeen;              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "tipsSeen", Order = 33)] public int TipsSeen;
+        [DataMember(Name = "raid", Order = 34)] public RaidState Raid;              // your guards out on a raid, or null
+        [DataMember(Name = "difficulty", Order = 35)] public int Difficulty;        // Office: steps from Normal, -2 Relaxed .. +2 Brutal
+        [DataMember(Name = "cityResets", Order = 36)] public int CityResets;        // times you've reset the city and gone again              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]

@@ -29,7 +29,16 @@ namespace FrontsAndRivals.Rules
             {
                 if (Find(def.Id) == null) _s.Fronts.Add(new FrontState { Id = def.Id, Owner = def.StartOwner });
             }
+            // Posts now depend on a front's size: anyone standing on a post that no longer exists goes to the reserve.
+            foreach (GuardState g in _s.Guards)
+            {
+                if (!g.IsPosted) continue;
+                FrontDef def = _content.Front(g.Front);
+                if (def == null || g.Post >= def.Capacity) { g.Front = null; g.Post = GuardState.Reserve; }
+            }
         }
+
+        public FrontState FindFront(string frontId) { return Find(frontId); }
 
         public FrontState Find(string frontId)
         {
@@ -154,7 +163,7 @@ namespace FrontsAndRivals.Rules
         public List<GuardState> FreeGuards()
         {
             var free = new List<GuardState>();
-            foreach (GuardState g in _s.Guards) if (g.Status == GuardStatus.Active && !g.IsPosted && !g.Escort) free.Add(g);
+            foreach (GuardState g in _s.Guards) if (g.Status == GuardStatus.Active && !g.IsPosted && !g.Escort && !OnRaid(g)) free.Add(g);
             free.Sort((a, b) => Power(b).CompareTo(Power(a)));
             return free;
         }
@@ -164,7 +173,7 @@ namespace FrontsAndRivals.Rules
             FrontDef def = _content.Front(frontId);
             if (def == null) return 0;
             int n = 0;
-            for (int p = 0; p < def.Posts.Count && p < FrontDef.MaxPosts; p++) if (AtPost(frontId, p) == null) n++;
+            for (int p = 0; p < def.Capacity; p++) if (AtPost(frontId, p) == null) n++;
             return n;
         }
 
@@ -175,7 +184,7 @@ namespace FrontsAndRivals.Rules
             if (def == null || !PlayerOwns(frontId)) return 0;
             List<GuardState> free = FreeGuards();
             int placed = 0;
-            for (int p = 0; p < def.Posts.Count && p < FrontDef.MaxPosts && placed < free.Count; p++)
+            for (int p = 0; p < def.Capacity && placed < free.Count; p++)
                 if (AtPost(frontId, p) == null && Assign(free[placed], frontId, p)) placed++;
             return placed;
         }
@@ -203,6 +212,84 @@ namespace FrontsAndRivals.Rules
             return n;
         }
 
+        // ---- raids ----
+
+        public bool OnRaid(GuardState g) { return g != null && _s.Raid != null && _s.Raid.GuardIds.Contains(g.Id); }
+
+        /// <summary>Your strongest healthy guards (posted or not, never bodyguards), up to four.</summary>
+        public List<GuardState> RaidTeam()
+        {
+            var team = new List<GuardState>();
+            foreach (GuardState g in _s.Guards) if (g.Status == GuardStatus.Active && !g.Escort && !OnRaid(g)) team.Add(g);
+            team.Sort((a, b) => Power(b).CompareTo(Power(a)));
+            if (team.Count > Raids.MaxGuards) team.RemoveRange(Raids.MaxGuards, team.Count - Raids.MaxGuards);
+            return team;
+        }
+
+        /// <summary>Why a raid on this front can't go ahead, or null if it can.</summary>
+        public string RaidBlocked(FrontDef def)
+        {
+            if (def == null) return "Unknown front.";
+            string owner = OwnerOf(def.Id);
+            if (!Owners.IsCrew(owner)) return "Only fronts held by a rival crew can be raided.";
+            if (_s.Raid != null) return "A raid is already under way.";
+            if (Attacks.DugIn(_s, Find(def.Id))) return "They only just took it and they're dug in. After midnight.";
+            if (!Trusted(def)) return "Too big to take yet: hold " + Economy.TrustNeeded(def.Tier) + " fronts first.";
+            if (RaidTeam().Count == 0) return "Nobody fit to send. Hire some guards first.";
+            return null;
+        }
+
+        /// <summary>The odds of taking this front with the team you'd send right now.</summary>
+        public double RaidOdds(FrontDef def, int hour)
+        {
+            CrewState crew = Nemesis.Crew(_s, OwnerOf(def.Id));
+            CrewDef cd = _content.Crew(OwnerOf(def.Id));
+            var records = new List<GuardRecord>();
+            foreach (GuardState g in RaidTeam()) records.Add(Record(g));
+            int soldiers = Raids.Soldiers(def, Find(def.Id), crew, _s.Day);
+            if (soldiers == 0) return 0.95;
+            return Raids.WinChance(Raids.TeamPower(records, hour), Raids.CrewDefense(cd, soldiers) * Difficulty.Strength(_s.Difficulty));
+        }
+
+        /// <summary>Calls the crew back before word comes in: nobody fights, everyone goes home.</summary>
+        public void CancelRaid() { _s.Raid = null; }
+
+        /// <summary>Reset the city: every front goes back to where it started and the crews come back at full strength,
+        /// but you keep your people (ranks, skills, guns) for another run. Money stays with your character.</summary>
+        public void ResetCity(System.Random rng, long nowMs)
+        {
+            foreach (FrontState f in _s.Fronts)
+            {
+                FrontDef def = _content.Front(f.Id);
+                f.Owner = def != null ? def.StartOwner : Owners.ForSale;
+                f.TakenFrom = null;
+                f.Cameras = f.Doors = f.Floodlights = f.Armory = false;
+                f.Damaged = false;
+                f.WeakUntilDay = -1;
+                f.DugInUntilDay = 0;
+                f.HeldSinceDay = _s.Day;
+            }
+            foreach (GuardState g in _s.Guards) { g.Front = null; g.Post = GuardState.Reserve; g.Escort = false; }
+            _s.Crews.Clear();
+            Nemesis.EnsureCrews(_s, _content, rng);
+            _s.Attack = null;
+            _s.Raid = null;
+            _s.RuledAll = false;
+            _s.FrontAttackedMs.Clear();
+            _s.LastAttackMs = nowMs; // a normal wait before the first attack of the new run
+            _s.CityResets++;
+        }
+
+        /// <summary>Sends the team. They keep their posts (their fronts are a guard short until they're back).</summary>
+        public bool StartRaid(FrontDef def, long nowMs, int hour)
+        {
+            if (RaidBlocked(def) != null) return false;
+            var raid = new RaidState { Front = def.Id, Crew = OwnerOf(def.Id), EndsMs = nowMs + Raids.RaidMs, Odds = RaidOdds(def, hour) };
+            foreach (GuardState g in RaidTeam()) raid.GuardIds.Add(g.Id);
+            _s.Raid = raid;
+            return true;
+        }
+
         public int EscortCount()
         {
             int n = 0;
@@ -216,6 +303,7 @@ namespace FrontsAndRivals.Rules
             if (g == null) return false;
             if (!on) { g.Escort = false; return true; }
             if (OwnedCount() == 0) return false; // crews would fight them before you're even in the game
+            if (OnRaid(g)) return false;
             if (!FrontsAndRivals.Spawn.EscortRules.CanCall(g.Status == GuardStatus.Active, g.Escort, EscortCount())) return false;
             g.Escort = true;
             return true;
@@ -279,7 +367,7 @@ namespace FrontsAndRivals.Rules
             var posted = new List<GuardRecord>();
             foreach (GuardState g in _s.Guards)
             {
-                if (g.Front != frontId || g.Status == GuardStatus.Dead || g.Escort) continue; // a bodyguard is with you, not here
+                if (g.Front != frontId || g.Status == GuardStatus.Dead || g.Escort || OnRaid(g)) continue; // with you, or out on a raid
                 posted.Add(Record(g));
             }
             FrontState fs = Find(frontId);
@@ -383,7 +471,7 @@ namespace FrontsAndRivals.Rules
             if (g == null || g.Status == GuardStatus.Dead) return false;
             FrontDef def = _content.Front(frontId);
             if (def == null || !PlayerOwns(frontId)) return false;
-            if (post < 0 || post >= def.Posts.Count || post >= FrontDef.MaxPosts) return false;
+            if (post < 0 || post >= def.Capacity) return false;
             GuardState current = AtPost(frontId, post);
             if (current == g) return true;
             if (current != null) { current.Front = g.Front; current.Post = g.Post; } // swap places
