@@ -57,6 +57,10 @@ static class AttackTests
         T.True("Vinewood Elite's best are armoured", vsT.RidesFor(2).Contains("cognoscenti2") && vsT.RidesFor(2).Contains("schafter5"));
         T.True("A tier-2 Dead Kings convoy seats 9 (the Buccaneer seats 2)", mcontent.Crew("CK").ConvoyPlan(9, 2).Sum(m => mcontent.Crew("CK").SeatsOf(m)) >= 9);
 
+        T.True("Crew colours: Dead Kings forest green, Hellfire MC orange, Vinewood Elite royal blue", CrewColors.ForCrew("CK") == "forest" && CrewColors.ForCrew("IR") == "orange" && CrewColors.ForCrew("VS") == "blue");
+        T.True("Map blips match the colours", mcontent.Crew("CK").BlipColor == CrewColors.Get("forest").Blip && mcontent.Crew("IR").BlipColor == CrewColors.Get("orange").Blip && mcontent.Crew("VS").BlipColor == CrewColors.Get("blue").Blip);
+        T.True("Thirteen colours to pick from, white by default", CrewColors.All.Length == 13 && CrewColors.DefaultPlayer == "white" && CrewColors.Get("nonsense").Key == "white");
+
         T.Section("Street heat");
         var hs = SaveService.NewEmpire();
         var he = new Empire(hs, mcontent);

@@ -287,15 +287,9 @@ namespace FrontsAndRivals.UI
         /// <summary>An owner in its crew's map colour (yours in green), using the game's own text colour codes.</summary>
         private string OwnerColored(string owner)
         {
-            string c = "~s~";
-            switch (owner)
-            {
-                case Owners.Player: c = "~g~"; break;
-                case Owners.CrownKings: c = "~o~"; break; // orange on the map
-                case Owners.Ironside: c = "~r~"; break;   // red
-                case Owners.Velvet: c = "~b~"; break;     // light blue
-            }
-            return c + OwnerLabel(owner) + "~s~";
+            Empire e = _empire();
+            string key = owner == Owners.Player ? (e != null && e.State.CrewColor != null ? e.State.CrewColor : CrewColors.DefaultPlayer) : CrewColors.ForCrew(owner);
+            return CrewColors.Get(key).Text + OwnerLabel(owner) + "~s~";
         }
 
         private static NativeItem Info(string title, string description, string value)
@@ -489,7 +483,7 @@ namespace FrontsAndRivals.UI
                 string owner = e.OwnerOf(def.Id);
                 AttackState atk = e.State.Attack;
                 string badge = owner == Owners.Player
-                    ? (atk != null && atk.Front == def.Id ? "~r~Under Attack~s~" : "~g~Yours~s~  " + GuardsAt(e, def) + "/" + def.Capacity)
+                    ? (atk != null && atk.Front == def.Id ? "~r~Under Attack~s~" : OwnerColored(owner) + "  " + GuardsAt(e, def) + "/" + def.Capacity)
                     : OwnerColored(owner);
                 NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(Economy.BaseIncome(def)) + " a night. Select to manage.", badge + Open);
                 AddListRow(row, def, true);
@@ -585,6 +579,17 @@ namespace FrontsAndRivals.UI
             var blips = new NativeCheckboxItem("Map Blips", "Show fronts on the map and minimap.", !e.State.HideBlips);
             blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
             AddListRow(blips, null, false);
+
+            var color = new NativeListItem<string>("Crew Colour", "The colour your crew wears, and your fronts and bodyguards show on the map. Change it any time. "
+                + "The Dead Kings wear forest green, Hellfire MC orange and the Vinewood Elite royal blue.", CrewColors.Names().ToArray());
+            color.SelectedIndex = CrewColors.IndexOf(e.State.CrewColor ?? CrewColors.DefaultPlayer);
+            color.ItemChanged += (s, a) =>
+            {
+                e.State.CrewColor = CrewColors.All[color.SelectedIndex].Key;
+                if (CrewColors.TakenByRival(e.State.CrewColor)) GTA.UI.Notification.Show("Heads up: a rival crew already wears " + CrewColors.All[color.SelectedIndex].Name.ToLowerInvariant() + ".");
+                Changed(true);
+            };
+            AddListRow(color, null, false);
 
             var diff = new NativeListItem<string>("Difficulty", "How hard the crews push. Higher: stronger attacks that come more often, better-defended rival "
                 + "fronts, and less time to get there. Relaxed x0.7 and half again the wait, Easy x0.85, Normal, Hard x1.2, Brutal x1.45 and attacks 30% sooner.",

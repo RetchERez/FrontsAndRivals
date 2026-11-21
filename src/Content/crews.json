@@ -12,7 +12,7 @@
         "z": 29.0,
         "h": 0.0
       },
-      "blipColor": 51,
+      "blipColor": 52,
       "paint": 38,
       "boss": {
         "first": "Darnell",
@@ -134,7 +134,7 @@
         "z": 35.0,
         "h": 0.0
       },
-      "blipColor": 1,
+      "blipColor": 51,
       "paint": 40,
       "boss": {
         "first": "Walt",
@@ -252,7 +252,7 @@
         "z": 30.0,
         "h": 0.0
       },
-      "blipColor": 53,
+      "blipColor": 3,
       "paint": 74,
       "boss": {
         "first": "Celeste",

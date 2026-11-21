@@ -67,7 +67,7 @@ namespace FrontsAndRivals.UI
                 bool route = want.EndsWith("+route");
                 switch (route ? want.Substring(0, want.Length - 6) : want)
                 {
-                    case "yours": b.Color = BlipColor.Green; break;
+                    case "yours": b.Color = (BlipColor)CrewColors.Get(empire.State.CrewColor ?? CrewColors.DefaultPlayer).Blip; break;
                     case "threat": b.Color = BlipColor.Yellow; b.IsFlashing = true; break;
                     case "attack":
                         b.Color = BlipColor.Red; b.IsFlashing = true;

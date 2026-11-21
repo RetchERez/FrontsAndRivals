@@ -154,7 +154,7 @@ namespace FrontsAndRivals.Spawn
             }
 
             Blip b = ped.AddBlip();
-            b.Color = BlipColor.Blue;
+            b.Color = (BlipColor)CrewColors.Get(_empire() != null ? _empire().State.CrewColor ?? CrewColors.DefaultPlayer : CrewColors.DefaultPlayer).Blip; // your crew's colour
             b.Scale = 0.7f;
             b.Name = "Bodyguard";
             Log.Write("Escorts: " + g.FullName + " is with you");

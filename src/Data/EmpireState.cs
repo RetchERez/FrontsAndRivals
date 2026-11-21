@@ -58,7 +58,9 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "lastRaidDay", Order = 37)] public int LastRaidDay = -1;  // one raid a day
         [DataMember(Name = "lastHeldDay", Order = 38)] public int LastHeldDay;
         /// <summary>Street heat 0-100 (Rules.Heat): taking fronts raises it, every midnight cools it.</summary>
-        [DataMember(Name = "heat", Order = 39)] public int Heat;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "heat", Order = 39)] public int Heat;
+        /// <summary>Your crew's colour (Data.CrewColors key): your guards wear it, your fronts show it on the map.</summary>
+        [DataMember(Name = "crewColor", Order = 40)] public string CrewColor;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]

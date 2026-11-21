@@ -241,6 +241,9 @@ namespace FrontsAndRivals.Attacks
                 if (v == null) continue;
                 _registry.Track(v, Markers.MakePlate(_front.Number, _crew.Id));
                 Function.Call(Hash.SET_VEHICLE_COLOURS, v, _crew.Paint, _crew.Paint);
+                CrewColor paint = CrewColors.Get(CrewColors.ForCrew(_crew.Id)); // exactly the crew's colour, like its clothes
+                v.Mods.CustomPrimaryColor = System.Drawing.Color.FromArgb(paint.R, paint.G, paint.B);
+                v.Mods.CustomSecondaryColor = System.Drawing.Color.FromArgb(paint.R / 3, paint.G / 3, paint.B / 3);
                 // About twice as tough as a street car, like the people in it: not bulletproof, just not paper.
                 v.MaxHealth = 2000; v.Health = 2000;
                 v.BodyHealth = 2000f; v.EngineHealth = 2000f; v.PetrolTankHealth = 2000f;
