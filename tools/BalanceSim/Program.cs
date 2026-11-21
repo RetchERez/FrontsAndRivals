@@ -278,7 +278,6 @@ static class Sim
                 cs.Manpower = Math.Max(0, cs.Manpower - FrontDef.CrewSoldiers(t));
                 Attacks.TakeFront(s, e, e.Find(t.Id), crew);
                 Attacks.GracePeriod(s, t.Id, now);
-                e.StarterCrew(t, rng);
                 st.Assaults++;
             }
             else if (t != null) { st.AssaultsFailed++; cash = Math.Max(0, cash - 5000); nextAssault += 3 * 2 * 60000L; } // wasted: the hospital bill, and the trip back

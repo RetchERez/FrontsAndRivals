@@ -1,11 +1,11 @@
-NEXUS MODS UPLOAD SHEET - Fronts & Rivals 1.1.0
+NEXUS MODS UPLOAD SHEET - Fronts & Rivals 1.2.0
 ===============================================
 
 Game: Grand Theft Auto V (nexusmods.com/gta5)
 Mod name: Fronts & Rivals
-Version: 1.1.0
+Version: 1.2.0
 Category: Scripts (or Gameplay, whichever the GTA V section offers for script mods)
-Main file: dist/FrontsAndRivals-1.1.0.zip   (file name: Fronts & Rivals 1.1.0, category: Main Files)
+Main file: dist/FrontsAndRivals-1.2.0.zip   (file name: Fronts & Rivals 1.2.0, category: Main Files)
 
 AI TAGS (required, apply both):
  - AI-Generated Content  (Claude wrote most of the code)
@@ -52,7 +52,7 @@ DESCRIPTION (Nexus uses BBCode, paste everything between the lines):
 [*]Guards improve the longer they work for you and unlock better guns as they rank up, from a knife to a carbine rifle
 [*]Body armour stays on them, and they heal and re-armour after every fight
 [*]Guards patrol around their front while someone always holds the door
-[*]Earn bodyguards as you grow, the first at 3 fronts and a second at 8
+[*]Earn bodyguards as you grow, the first at 8 fronts and a second at 14
 [*]Send a raid of your best guards to take a rival front without you
 [*]Pick your crew's colour from 19 options and a style to wear it in: Street, Smart, Biker or Mixed
 [*]Your own crew hangs out, walks and cruises around the fronts you own
@@ -82,7 +82,7 @@ DESCRIPTION (Nexus uses BBCode, paste everything between the lines):
 [list]
 [*]Balanced for Story Mode money and length, so it lasts your whole playthrough
 [*]Pauses during missions, cutscenes and character switches
-[*]The Office is a GTA-style menu on your phone, or hold Back/View (M on keyboard)
+[*]The Office is a GTA-style menu: hold Back/View (M on keyboard), or call it from your phone with iFruitAddon2
 [*]Full controller support, and difficulty from Relaxed to Brutal
 [/list]
 

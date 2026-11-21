@@ -50,6 +50,10 @@ namespace FrontsAndRivals.Spawn
             Ped me = Game.Player.Character;
             if (me == null || !me.Exists() || me.IsDead) return; // wasted: wait for the respawn
 
+            // Below a bodyguard threshold after losing fronts: the extra ones head back to their posts.
+            foreach (GuardState back in e.TrimEscorts())
+                GTA.UI.Notification.Show(back.ShortName + " is heading back to their post: you need " + (EscortRules.Slots(e.OwnedCount()) == 0 ? EscortRules.FirstAt : EscortRules.SecondAt) + " fronts for that bodyguard.");
+
             // Bodyguards who were sent back, fired or hurt elsewhere leave.
             for (int i = _out.Count - 1; i >= 0; i--)
             {

@@ -18,7 +18,7 @@ namespace FrontsAndRivals.Core
 {
     public sealed class Main : Script
     {
-        public const string ModVersion = "1.1.0";
+        public const string ModVersion = "1.2.0";
         private const int SaveEveryMs = 120000;          // one in-game hour = 2 real minutes
         private const long InjuryRecoveryMs = 96L * 60000; // 2 in-game days = 96 real minutes of free roam
 
@@ -191,6 +191,9 @@ namespace FrontsAndRivals.Core
             if (!_config.OfficeButton) return;
             // Hold the Interaction Menu button (Back/View on a pad, M on keyboard) for half a second, like GTA Online.
             // A tap still changes the camera view; once the hold fires the camera change is blocked until you let go.
+            // The game never gets that key while the Office uses it, so it can't open anything of its own at the same time
+            // (SHVDN's IsControlPressed still reads a disabled control).
+            Game.DisableControlThisFrame(GTA.Control.InteractionMenu);
             if (_officeHold.Update(Game.IsControlPressed(GTA.Control.InteractionMenu), Game.GameTime))
             {
                 _office.Toggle();

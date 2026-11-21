@@ -62,12 +62,12 @@ static class FrontTests
         T.True("Women and men among recruits (" + women + " of " + people + " women)", women > 0 && women < people);
         T.Section("Bodyguards");
         T.True("Up to two, with room kept for a live fight", EscortRules.Fits(17, 28) && !EscortRules.Fits(18, 28) && EscortRules.Max == 2);
-        T.True("Bodyguards are earned: none under 3 fronts, one at 3, two at 8", EscortRules.Slots(2) == 0 && EscortRules.Slots(3) == 1 && EscortRules.Slots(7) == 1 && EscortRules.Slots(8) == 2);
-        T.True("...and only Soldiers or better", !EscortRules.CanCall(true, false, 0, 10, 0) && EscortRules.CanCall(true, false, 0, 10, 1) && !EscortRules.CanCall(true, false, 1, 5, 2));
+        T.True("Bodyguards are earned: none under 8 fronts, one at 8, two at 14", EscortRules.Slots(7) == 0 && EscortRules.Slots(8) == 1 && EscortRules.Slots(13) == 1 && EscortRules.Slots(14) == 2 && EscortRules.NextAt(9) == 14 && EscortRules.NextAt(14) == -1);
+        T.True("...and only Soldiers or better", !EscortRules.CanCall(true, false, 0, 10, 0) && EscortRules.CanCall(true, false, 0, 10, 1) && !EscortRules.CanCall(true, false, 1, 10, 2) && EscortRules.CanCall(true, false, 1, 14, 2));
         var bs = SaveService.NewEmpire();
         var be = new Empire(bs, content);
         be.SetOwner("carwash_handson", Owners.Player);
-        foreach (FrontDef fd in content.Fronts) if (be.OwnedCount() < 8 && fd.Tier == 0) be.SetOwner(fd.Id, Owners.Player); // 8 fronts: both bodyguards earned
+        foreach (FrontDef fd in content.Fronts) if (be.OwnedCount() < 14) be.SetOwner(fd.Id, Owners.Player); // 14 fronts: both bodyguards earned
         GuardState b1 = be.Recruit(rng), b2 = be.Recruit(rng), b3 = be.Recruit(rng);
         b1.Rank = b2.Rank = b3.Rank = 1; // Soldiers
         be.Assign(b1, "carwash_handson", 0); be.Assign(b2, "carwash_handson", 1);
@@ -76,6 +76,12 @@ static class FrontTests
         GuardState early = nobody.Recruit(rng);
         T.True("No bodyguards before you own a front", !nobody.SetEscort(early, true));
         T.True("Call two bodyguards", be.SetEscort(b1, true) && be.SetEscort(b2, true) && be.EscortCount() == 2);
+        foreach (FrontDef fd in content.Fronts) if (be.OwnedCount() > 9 && be.PlayerOwns(fd.Id) && fd.Id != "carwash_handson") be.SetOwner(fd.Id, Owners.CrownKings);
+        T.True("Drop to 9 fronts: one bodyguard goes back to their post", be.TrimEscorts().Count == 1 && be.EscortCount() == 1);
+        foreach (FrontDef fd in content.Fronts) if (be.OwnedCount() > 5 && be.PlayerOwns(fd.Id) && fd.Id != "carwash_handson") be.SetOwner(fd.Id, Owners.CrownKings);
+        T.True("Drop below 8: the last one goes back too", be.TrimEscorts().Count == 1 && be.EscortCount() == 0);
+        foreach (FrontDef fd in content.Fronts) if (be.OwnedCount() < 14) be.SetOwner(fd.Id, Owners.Player);
+        be.SetEscort(b1, true); be.SetEscort(b2, true); // back up to two for the rest of the checks
         T.True("A third is refused", !be.SetEscort(b3, true) && !b3.Escort);
         T.True("Their front is weaker while they're with you", be.Defense("carwash_handson", 12) < before);
         T.True("They keep their post", b1.Front == "carwash_handson" && b1.Post == 0);

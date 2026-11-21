@@ -287,7 +287,7 @@ namespace FrontsAndRivals.Rules
             {
                 foreach (FrontDef d in _content.Fronts)
                     if (d.Starter && Owners.IsCrew(OwnerOf(d.Id)))
-                        return new Hint { Title = "Take the " + d.ShortName, Text = "Only a couple of soldiers watch it in " + d.Area + ". Clear them out and claim the door; two of the car wash crew will work for you.", FrontId = d.Id };
+                        return new Hint { Title = "Take the " + d.ShortName, Text = "Only a few soldiers with pistols and bats watch it in " + d.Area + ". Take them out and it's yours, then hire people to guard it.", FrontId = d.Id };
                 return new Hint { Title = "Take a front", Text = "Clear a rival crew's soldiers at one of their small fronts and claim the door.", FrontId = null };
             }
             List<GuardState> free = FreeGuards();
@@ -404,6 +404,18 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>Calls a guard to follow you, or sends them back to their post. Returns false if not allowed.</summary>
+        /// <summary>Lost fronts and dropped below a bodyguard threshold: the newest bodyguards go back to their posts until
+        /// you're within your allowance again. Returns who was sent back.</summary>
+        public List<GuardState> TrimEscorts()
+        {
+            var back = new List<GuardState>();
+            int allowed = FrontsAndRivals.Spawn.EscortRules.Slots(OwnedCount());
+            var on = new List<GuardState>();
+            foreach (GuardState g in _s.Guards) if (g.Escort) on.Add(g);
+            for (int i = on.Count - 1; i >= 0 && on.Count - back.Count > allowed; i--) { on[i].Escort = false; back.Add(on[i]); }
+            return back;
+        }
+
         public bool SetEscort(GuardState g, bool on)
         {
             if (g == null) return false;

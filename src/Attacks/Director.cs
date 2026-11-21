@@ -446,13 +446,15 @@ namespace FrontsAndRivals.Attacks
             CrewDef crew = _content.Crew(crewId);
             Rules.Attacks.TakeFront(e.State, e, fs, crewId);
             Rules.Attacks.GracePeriod(e.State, front.Id, _now());
-            int joined = e.StarterCrew(front, _rng());
+            bool first = e.OwnedCount() == 1 && e.LivingCount() == 0;
             if (!CheckRuledAll(e)) _banners.Show("front taken", front.Name, true);
             Sounds.Play(Cue.FrontTaken);
             if (OnTaken != null) OnTaken(front);
-            _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is yours", joined > 0
-                ? "Two of the guys who work at the car wash want in. They've only got knives: arm them in the Office before the " + crew.Name + " come back."
+            _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is yours", first
+                ? "Nobody's guarding it yet. Open the Office, hire a couple of recruits and post them at the " + front.ShortName + " before the " + crew.Name + " come back."
                 : _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
+            // Your first front: once the shot is over, a help box shows how to staff it. Nobody comes free.
+            if (first) _firstFrontHelpAt = Game.GameTime + 5000;
             Log.Write("Director: player took " + front.Id + " from " + crewId);
             _changed();
         }
@@ -498,9 +500,17 @@ namespace FrontsAndRivals.Attacks
             _forceRequested = false;
         }
 
+        private int _firstFrontHelpAt;
+
         /// <summary>Every tick while the gate is open. Fronts are claimed the moment their last soldier drops
-        /// (OnCrewGuardDown), so there's nothing to do here any more.</summary>
-        public void UpdateFrame() { }
+        /// (OnCrewGuardDown); this only shows the first-front help box once the takeover shot is done.</summary>
+        public void UpdateFrame()
+        {
+            if (_firstFrontHelpAt == 0 || Game.GameTime < _firstFrontHelpAt) return;
+            _firstFrontHelpAt = 0;
+            GTA.UI.Screen.ShowHelpText("Your first front, and nobody's guarding it yet. Hold ~INPUT_INTERACTION_MENU~ to open the Office: "
+                + "hire recruits under Hire Recruits, then post them under Fronts. Your crew's colour and style are in Settings.", 20000, true, false);
+        }
 
         /// <summary>The endgame moment, the first time every front in the city is yours. Shows its banner
         /// and returns true then. The crews still recruit off the street and will try to take fronts back.</summary>

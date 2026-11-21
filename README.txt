@@ -1,4 +1,4 @@
-FRONTS & RIVALS 1.1
+FRONTS & RIVALS 1.2
 ===================
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
@@ -69,7 +69,8 @@ GETTING STARTED
                        second, or call The Office on your phone
   First front          Go to the Hands On Car Wash in Strawberry, take out
                        the three Dead Kings watching it (pistols and bats)
-                       and it's yours; two of the car wash workers join you
+                       and it's yours; then hire recruits in the Office
+                       and post them there
   Next Step            The line at the top of the Office always says what to
                        do next
   Guards               Hire and post them from the Office, then arm them and
@@ -82,7 +83,7 @@ GETTING STARTED
                        yours on the spot, or send a crew from the Office
 
 
-WHAT'S IN 1.1
+WHAT'S IN 1.2
 -------------
  - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels,
    diners, markets, factories and garages
@@ -117,7 +118,7 @@ WHAT'S IN 1.1
  - A weapon ladder: every guard starts with a knife and is armed one gun at a
    time at Ammu-Nation's prices; better guns unlock with rank
  - Body armour that stays on: guards heal and re-vest after every fight
- - Bodyguards you earn: the first at 3 fronts, a second at 8, Soldiers or
+ - Bodyguards you earn: the first at 8 fronts, a second at 14, Soldiers or
    better only; they follow you and fight at your side
  - Raids: send up to four reserve guards to take a rival front without you,
    with the odds shown first

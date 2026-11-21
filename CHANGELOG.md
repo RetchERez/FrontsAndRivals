@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 (2026-11-20)
+
+- Bodyguards are a perk of a real empire: the first at 8 fronts, the second at 14 (Soldiers or better). Lose fronts
+  and drop below a threshold, and the extra bodyguard heads back to their post with a note saying why
+- Your first front comes with nobody: you hire and post your own crew, and a help box shows how (hold Back/View or M
+  to open the Office, Hire Recruits, then post them under Fronts, colour and style in Settings)
+- The Office key is held back from the game while the Office uses it, so it can never open anything else at the same time
+
 ## 1.1.0 (2026-11-20)
 
 Fixes and balance from a full code review and a fact check of every game function, model, scenario and clothing ID

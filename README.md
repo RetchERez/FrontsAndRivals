@@ -1,4 +1,4 @@
-# Fronts & Rivals 1.1
+# Fronts & Rivals 1.2
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
@@ -34,14 +34,14 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 ## Getting started
 
 - **Open the Office:** hold Back/View on a controller (or M) for half a second, or call The Office on your phone
-- **Take your first front:** go to the Hands On Car Wash in Strawberry, take out the three Dead Kings watching it (pistols and bats) and it's yours on the spot; two of the car wash workers join you
+- **Take your first front:** go to the Hands On Car Wash in Strawberry, take out the three Dead Kings watching it (pistols and bats) and it's yours on the spot; then hire recruits in the Office and post them there
 - **Follow the Next Step line** at the top of the Office: it always says what to do next
 - **Hire and post guards** from the Office, then arm them and give them body armour
 - **Get paid at midnight:** every front pays out at in-game midnight, after wages
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
 - **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
-## What's in 1.1
+## What's in 1.2
 
 - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
 - Three original crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side and the Vinewood Elite out west; each has a boss and three lieutenants
@@ -56,7 +56,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Guards with skills like the player's (Shooting, Strength, Stamina and Stealth) that grow on the job; ranks, experience, traits and a memorial for the fallen
 - A weapon ladder: every guard starts with a knife and is armed one gun at a time at Ammu-Nation's prices; better guns unlock with rank
 - Body armour that stays on: guards heal and re-vest after every fight
-- Bodyguards you earn: your first at 3 fronts, a second at 8, Soldiers or better only; they follow you around the city and fight at your side
+- Bodyguards you earn: your first at 8 fronts, a second at 14, Soldiers or better only; they follow you around the city and fight at your side
 - Raids: send up to four reserve guards to take a rival front without you, with the odds shown first
 - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and the biggest 4; Cameras, Floodlights, Reinforced Doors and an Armory
 - A Story Mode economy: fronts pay about what Story Mode properties do; they pay more the longer you hold them and the more you own
