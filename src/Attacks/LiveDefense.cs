@@ -252,9 +252,9 @@ namespace FrontsAndRivals.Attacks
                 CrewColor paint = CrewColors.Get(CrewColors.ForCrew(_crew.Id)); // exactly the crew's colour, like its clothes
                 v.Mods.CustomPrimaryColor = System.Drawing.Color.FromArgb(paint.R, paint.G, paint.B);
                 v.Mods.CustomSecondaryColor = System.Drawing.Color.FromArgb(paint.R / 3, paint.G / 3, paint.B / 3);
-                // About twice as tough as a street car, like the people in it: not bulletproof, just not paper.
+                // Tougher than a street car: full health (1000 is the documented max) and no blowing up from a single explosion.
                 v.MaxHealth = 2000; v.Health = 2000;
-                v.BodyHealth = 2000f; v.EngineHealth = 2000f; v.PetrolTankHealth = 2000f;
+                v.BodyHealth = 1000f; v.EngineHealth = 1000f; v.PetrolTankHealth = 1000f; Function.Call(Hash.SET_VEHICLE_EXPLODES_ON_HIGH_EXPLOSION_DAMAGE, v, false);
                 v.PlaceOnGround();
                 _cars.Add(v);
                 int seats = Math.Min(_crew.SeatsOf(_convoy[c]), v.PassengerCapacity + 1);
@@ -290,7 +290,7 @@ namespace FrontsAndRivals.Attacks
                     ped.Health = ped.MaxHealth;
                     ped.BlockPermanentEvents = false;
                     Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 0, true);   // CA_USE_COVER
-                    Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true);  // CA_ALWAYS_FIGHT
+                    Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 5, true);   // CA_ALWAYS_FIGHT (citizenfx: CA_ALWAYS_FIGHT = 5)
                     Function.Call(Hash.SET_PED_FLEE_ATTRIBUTES, ped, 0, false);
                     _attackers.Add(ped);
                     if (placed == 0) _leader = ped;

@@ -140,7 +140,7 @@ namespace FrontsAndRivals.Spawn
             // A walkable spot a few metres behind you, so they walk up rather than appear in your face.
             Vector3 probe = me.Position - me.ForwardVector * 6f;
             var outPos = new OutputArgument();
-            Vector3 at = Function.Call<bool>(Hash.GET_SAFE_COORD_FOR_PED, probe.X, probe.Y, probe.Z, true, outPos, 0)
+            Vector3 at = Function.Call<bool>(Hash.GET_SAFE_COORD_FOR_PED, probe.X, probe.Y, probe.Z, true, outPos, 4 | 8)
                 ? outPos.GetResult<Vector3>() : probe;
             if (at.DistanceTo(me.Position) > 25f) at = probe;
 

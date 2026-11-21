@@ -337,7 +337,7 @@ namespace FrontsAndRivals.Spawn
                     CrewColor paint = CrewColors.Get(colourKey);
                     v.Mods.CustomPrimaryColor = System.Drawing.Color.FromArgb(paint.R, paint.G, paint.B);
                     v.Mods.CustomSecondaryColor = System.Drawing.Color.FromArgb(paint.R / 3, paint.G / 3, paint.B / 3);
-                    v.MaxHealth = 2000; v.Health = 2000; v.BodyHealth = 2000f; v.EngineHealth = 2000f; v.PetrolTankHealth = 2000f;
+                    v.MaxHealth = 2000; v.Health = 2000; v.BodyHealth = 1000f; v.EngineHealth = 1000f; v.PetrolTankHealth = 1000f; Function.Call(Hash.SET_VEHICLE_EXPLODES_ON_HIGH_EXPLOSION_DAMAGE, v, false);
                     v.PlaceOnGround();
                     if (g.Kind != HangoutKind.Cruise) v.IsEngineRunning = false;
                     g.Car = v;
@@ -451,7 +451,8 @@ namespace FrontsAndRivals.Spawn
                         g.Victim = Civilian(crook.Position, 45f);
                         if (g.Victim == null) { g.Crime = StreetCrime.None; return; }
                         crook.Task.ClearAll();
-                        crook.Task.GoTo(g.Victim, new Vector3(0f, -1.5f, 0f), 30000);
+                        // Walk up behind them (TASK_GOTO_ENTITY_OFFSET_XY: duration, radius, x, y, speed, flags).
+                        Function.Call(Hash.TASK_GOTO_ENTITY_OFFSET_XY, crook, g.Victim, 30000, 0.5f, 0f, -1.5f, 1.0f, 0);
                         g.Stage = 1; g.StageAt = now;
                     }
                     else if (g.Stage == 1)

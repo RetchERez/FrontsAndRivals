@@ -78,7 +78,7 @@ namespace FrontsAndRivals.Spawn
             {
                 if (chosen.Count >= AutoPosts.Wanted) return;
                 var outPos = new OutputArgument();
-                bool ok = Function.Call<bool>(Hash.GET_SAFE_COORD_FOR_PED, probe[0], probe[1], probe[2], true, outPos, flags);
+                bool ok = Function.Call<bool>(Hash.GET_SAFE_COORD_FOR_PED, probe[0], probe[1], probe[2], (flags & 1) != 0, outPos, flags); // pavement-only only when the pass asks for it
                 if (!ok) { reasons[0]++; continue; }
                 Vector3 spot = outPos.GetResult<Vector3>();
                 if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, spot.X, spot.Y, spot.Z, 0)) { reasons[1]++; continue; }

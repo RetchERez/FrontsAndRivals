@@ -296,7 +296,7 @@ namespace FrontsAndRivals.Spawn
                 {
                     double a = k * Math.PI / 4.0 + ring * Math.PI / 8.0;
                     var want = door + new Vector3((float)Math.Cos(a) * r, (float)Math.Sin(a) * r, 0f);
-                    Vector3 c = GTA.World.GetSafeCoordForPed(want, false, 0);
+                    Vector3 c = GTA.World.GetSafeCoordForPed(want, false, 4 | 8); // never inside a building or in water
                     if (c == Vector3.Zero) continue;
                     float d = c.DistanceTo(door);
                     if (c.DistanceTo(want) > 8f || Math.Abs(c.Z - door.Z) > 4f || d < 6f || d > 30f) continue;
@@ -540,7 +540,7 @@ namespace FrontsAndRivals.Spawn
                 CrewColor paint = CrewColors.Get(CrewColors.ForCrew(crew.Id));
                 car.Mods.CustomPrimaryColor = System.Drawing.Color.FromArgb(paint.R, paint.G, paint.B);
                 car.Mods.CustomSecondaryColor = System.Drawing.Color.FromArgb(paint.R / 3, paint.G / 3, paint.B / 3);
-                car.MaxHealth = 2000; car.Health = 2000; car.BodyHealth = 2000f; car.EngineHealth = 2000f; car.PetrolTankHealth = 2000f;
+                car.MaxHealth = 2000; car.Health = 2000; car.BodyHealth = 1000f; car.EngineHealth = 1000f; car.PetrolTankHealth = 1000f; Function.Call(Hash.SET_VEHICLE_EXPLODES_ON_HIGH_EXPLOSION_DAMAGE, car, false);
                 car.PlaceOnGround();
                 f.BackupCar = car;
                 int seats = Math.Min(StreamRules.BackupSize, car.PassengerCapacity + 1);

@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.1.0 (2026-11-20)
+
+Fixes and balance from a full code review and a fact check of every game function, model, scenario and clothing ID
+against primary sources (citizenfx natives docs, alloc8or's native DB, DurtyFree's game data dumps, root-cause's clothing
+datasets and the Script Hook V .NET source).
+
+- Car kills count again, but the whole front opens fire and calls for backup once a visit: a crew car with two more
+  soldiers about 20 seconds later, and the front isn't yours until they're down (it retries for 20 s if a car can't
+  spawn yet, so a car kill never hands you a front for free)
+- Street cops have their own police faction (they were landing on your side) and go after the crews
+- Bodyguards change to a new crew colour, style or gun on the spot
+- Hangouts: a car that fails to spawn never leaves an empty group blocking new ones, one bad group can't stop the
+  system, street crimes are chosen after the group's car, and street crew you kill with your car count
+- Crew vehicles: full documented health (1000 engine and tank) and no blowing up from a single explosion, instead of
+  values past the documented maximum; paint codes fixed to match the crew colours (racing green, orange, bright blue)
+- Attackers use the right "always fight" combat attribute (5, not 46)
+- Muggers walk up behind their victim (the offset was going to the side)
+- Dead Kings hoodies use the real Dark Green texture, so forest green differs from green
+- Patrol points and bodyguard arrivals never pick a spot inside a building or in water
+- The Office's Messages page is saved with your empire
+- Reset All Fronts and Start a New Empire open a Yes/No confirmation page, No selected first
+- Menu titles are fitted by their measured width, and menus are pinned top-left inside the safe zone
+- Settings changes run inside the menu's safety net
+- Recruits are rolled fresh every game (20-60 per skill, now and then a standout), and hiring costs $150-$700 by trait
+  and skill, about $250-$450 for a typical recruit
+
+Still to confirm in game (no source could settle these): that the clothing numbers from the Legacy edition match
+Enhanced exactly, and the women's "no undershirt" slot. Any piece the game rejects is skipped and written to the log.
+
 ## 1.0.0 (2026-11-20)
 
 First full release.
@@ -32,8 +61,8 @@ First full release.
 - Crew rides in three tiers, by revenge intensity (grudge plus half the street heat): Dead Kings Manana/Emperor, then
   Primo Custom/Tornado Custom, then Dominator/Buccaneer Custom; Hellfire MC Daemon/Hexer, then Zombie Chopper/Daemon
   Custom, then Nightblade/Gargoyle; Vinewood Elite Washington/Schafter, then Cognoscenti/Baller LE, then the armoured
-  Cognoscenti and Schafter V12. All in their crew's paint (the Vinewood Elite now a bright metallic blue) and about twice
-  as tough as a street car, for every crew alike
+  Cognoscenti and Schafter V12. All in their crew's paint (the Vinewood Elite now a bright metallic blue) and tougher than
+  a street car, for every crew alike
 - Bodyguards are earned: the first at 3 fronts, the second at 8, and only Soldiers or better. The guard page says
   what's needed for the next one
 - Easier to read: the Office is 540 wide; the main menu shows free guards and street heat (Cool / Warm / Hot /
