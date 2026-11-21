@@ -16,8 +16,6 @@ namespace FrontsAndRivals.Attacks
 {
     public sealed class Director
     {
-        private const long ClaimWindowMs = 60000;
-        private const float ClaimRange = 3f;
 
         private readonly ContentDb _content;
         private readonly Config _config;
@@ -34,9 +32,6 @@ namespace FrontsAndRivals.Attacks
         private long _nextPlanRoll;
         private AttackState _liveFailed; // a convoy that could not spawn: auto-resolve, don't retry every 2 s
         private bool _forceRequested;
-        private string _claimFront;
-        private string _claimCrew;
-        private long _claimUntil;
 
         public Director(ContentDb content, Config config, Func<Empire> empire, Func<Random> rng, Func<long> now, Func<long> sinceLoad,
                         Action changed, Banners banners, Notifier notifier, Streamer streamer, LiveDefense live)
@@ -494,9 +489,6 @@ namespace FrontsAndRivals.Attacks
         public void Reset()
         {
             _nextPlanRoll = 0;
-            _claimFront = null;
-            _claimCrew = null;
-            _claimUntil = 0;
             _liveFailed = null;
             _forceRequested = false;
         }
