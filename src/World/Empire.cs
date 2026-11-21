@@ -253,6 +253,22 @@ namespace FrontsAndRivals.Rules
             return Raids.WinChance(Raids.TeamPower(records, hour), Raids.CrewDefense(cd, soldiers) * Difficulty.Strength(_s.Difficulty));
         }
 
+        /// <summary>The Broker's starter deal: the car wash comes with two of the old owner's people, already on their posts
+        /// (knives only), so a broke early-story character isn't left with a front nobody guards. Only on a first front.</summary>
+        public int StarterCrew(FrontDef def, Random rng)
+        {
+            if (def == null || !def.Starter || LivingCount() > 0) return 0;
+            int n = 0;
+            for (int post = 0; post < def.Capacity && n < 2; post++)
+            {
+                GuardState g = Recruit(rng);
+                if (g == null) break;
+                Assign(g, def.Id, post);
+                n++;
+            }
+            return n;
+        }
+
         /// <summary>Calls the crew back before word comes in: nobody fights, everyone goes home.</summary>
         public void CancelRaid() { _s.Raid = null; }
 

@@ -33,6 +33,7 @@ static class Sim
 
     static ContentDb _content;
     static bool Trace;
+    static long StartCash = 50000;
 
     static int Main(string[] args)
     {
@@ -48,6 +49,18 @@ static class Sim
             new Policy { Name = "Normal", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 48, AssaultWin = 0.8, RaidSquad = 2 },
             new Policy { Name = "Aggressive", PresentAtAttack = 0.50, LiveWinBoost = 0.30, RaidMinOdds = 0.45, AssaultEveryHours = 24, AssaultWin = 0.85, RaidSquad = 4 },
         };
+        if (args.Length > 2 && args[2] == "story")
+        {
+            // Where you are in the story changes how much cash you start the mod with.
+            foreach (long c in new long[] { 10000, 50000, 5000000 })
+            {
+                StartCash = c;
+                Console.WriteLine("##### starting cash $" + c.ToString("N0"));
+                foreach (Policy p in policies)
+                    Report(p, 0, days, Enumerable.Range(0, runs).Select(seed => Play(p, 0, days, seed)).ToList());
+            }
+            return 0;
+        }
         if (args.Length > 2 && args[2] == "trace") { Trace = true; Play(policies[1], 0, days, 1); return 0; }
         foreach (int diff in new[] { -2, 0, 2 })
             foreach (Policy p in policies)
@@ -63,7 +76,7 @@ static class Sim
         var e = new Empire(s, _content);
         e.EnsureFronts();
         Nemesis.EnsureCrews(s, _content, rng);
-        long cash = 50000; // a mid-story character
+        long cash = StartCash; // 10k early story, 50k mid, millions after the heists
         var st = new Stats { FrontsByDay = new int[days + 1], NetByDay = new long[days + 1], CashByDay = new long[days + 1] };
         const long Min = 60000, Hour = 2 * Min;
         long now = 0;
@@ -163,12 +176,14 @@ static class Sim
 
         // Buy the cheapest front for sale the Broker trusts you with.
         FrontDef buy = _content.Fronts.Where(f => e.CanBuy(f.Id) && e.Trusted(f)).OrderBy(f => Economy.FrontPrice(f, 3)).FirstOrDefault();
-        if (buy != null && cash - Economy.FrontPrice(buy, 3) > wagesReserve + 3000)
+        bool firstFront = e.OwnedCount() == 0 && buy != null && buy.Starter;
+        if (buy != null && (firstFront ? cash >= Economy.FrontPrice(buy, 3) : cash - Economy.FrontPrice(buy, 3) > wagesReserve + 3000))
         {
             int price = Economy.FrontPrice(buy, 3);
             cash -= price; st.FrontSpend += price;
             e.SetOwner(buy.Id, Owners.Player);
             Attacks.GracePeriod(s, buy.Id, now);
+            e.StarterCrew(buy, rng);
         }
 
         // Hire when there are posts to fill.

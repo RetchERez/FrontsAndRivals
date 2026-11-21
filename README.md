@@ -92,6 +92,13 @@ Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the 
 - Rivals: `AlertRange` for how close you can walk to a rival front before its soldiers fight
 - Map: `ShowRivalFronts`, `ShowForSaleFronts`
 
+## Playing alongside the story
+
+Fronts & Rivals is built to run for your whole Story Mode playthrough. Everything pauses during missions, cutscenes,
+random events and character switches, and attacks only count free-roam time, so a long mission never costs you a front.
+Money is at Story Mode scale: early Franklin can buy the car wash (it comes with two guards) and grow slowly; Michael
+after the heists can buy what's for sale outright, but the other 24 fronts still have to be taken by force.
+
 ## Controller
 
 Everything works on a gamepad. **Hold Back/View for half a second** to open or close the Office (a quick tap still changes the camera), or call The Office from your phone. In the Office, the D-pad moves, **A** opens or selects, **B** goes back, and left/right on the D-pad changes a post or a setting. The claim prompt at a rival front's door shows your controller's button. With `DevTools=true`, the dev menu is under Office > Settings > Dev Tools, so it needs no keyboard either.

@@ -542,9 +542,12 @@ namespace FrontsAndRivals.Attacks
             Game.Player.Money -= price;
             e.SetOwner(front.Id, Owners.Player);
             Rules.Attacks.GracePeriod(e.State, front.Id, _now());
+            int stayed = e.StarterCrew(front, _rng());
             Sounds.Play(Cue.FrontTaken);
-            if (!CheckRuledAll(e)) _banners.Show("FRONT PURCHASED", "The " + front.Name + " is yours. Post some guards from the Office.");
-            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, "It's yours. Put some people on it before somebody else gets ideas.");
+            if (!CheckRuledAll(e)) _banners.Show("FRONT PURCHASED", "The " + front.Name + " is yours. " + (stayed > 0 ? "Two of the old crew stayed on." : "Post some guards from the Office."));
+            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, stayed > 0
+                ? "It's yours, and two of the old owner's people are staying on. They've only got knives: arm them before somebody gets ideas."
+                : "It's yours. Put some people on it before somebody else gets ideas.");
             Log.Write("Director: player bought " + front.Id + " at the door for " + price);
             _changed();
         }

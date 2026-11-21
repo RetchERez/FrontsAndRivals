@@ -12,6 +12,9 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
+- Playing alongside the story: the Broker's car wash comes with two of the old owner's people already posted, so a
+  broke early Franklin can hold it; simulated from early-story ($10,000), mid ($50,000) and post-heist ($5M) starts:
+  early players grow slower, rich ones still have to fight for 24 of the 29 fronts
 - Story Mode economy by default: a front pays about what a Story Mode property does (small ~$1,000 a night, about $7,000
   a week; big ~$3,000), and wages, hiring and guns (Ammu-Nation prices) scale with it; fronts cost three days of their
   design income (12 nights at Story Mode scale; the car wash $10,000). Story Mode properties are untouched and separate.

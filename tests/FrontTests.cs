@@ -146,6 +146,11 @@ static class FrontTests
         T.True("For sale uses the for-sale icons", WorkerRules.MapIcon("cafe_noodleexchange", true) == 375 && WorkerRules.MapIcon("factory_bagco", true) == 474);
 
         T.Section("Early-game safeguards");
+        var ss = SaveService.NewEmpire();
+        var se = new Empire(ss, content);
+        se.SetOwner("carwash_handson", Owners.Player);
+        T.Check("The starter car wash comes with two posted guards", se.StarterCrew(content.Front("carwash_handson"), rng), 2, 0);
+        T.True("...only the first time", se.StarterCrew(content.Front("carwash_handson"), rng) == 0 && se.LivingCount() == 2);
         T.True("Before you own a front: walking up or shooting nearby doesn't start a fight", !StreamRules.CrewProvoked(false, true, true, false));
         T.True("...but hurting one of them does", StreamRules.CrewProvoked(false, false, false, true));
         T.True("Once you're in the game, walking up does", StreamRules.CrewProvoked(true, true, false, false));

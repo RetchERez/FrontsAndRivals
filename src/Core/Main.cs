@@ -452,12 +452,7 @@ namespace FrontsAndRivals.Core
             _state.IntroSent = true;
             if (_empire.OwnedCount() > 0) return;
             _empire.SetOwner("carwash_handson", Owners.Player);
-            FrontDef wash = _content.Front("carwash_handson");
-            for (int post = 0; post < 2 && wash != null && post < wash.Posts.Count; post++)
-            {
-                GuardState g = _empire.Recruit(_rng);
-                if (g != null) _empire.Assign(g, wash.Id, post);
-            }
+            _empire.StarterCrew(_content.Front("carwash_handson"), _rng);
             Log.Write("SkipIntro: started with the car wash and 2 recruits");
             EmpireChanged();
         }
