@@ -499,8 +499,8 @@ namespace FrontsAndRivals.Core
             }
             if (nights > 0) EmpireChanged(); // quitters leave their posts
 
-            // The Broker's first message, 10 minutes into free roam on a new empire.
-            if (!_state.IntroSent && _scheduler.ActiveMs > 10 * 60000L && _empire.OwnedCount() == 0)
+            // The Broker's first message: once you can afford the car wash, on a new empire.
+            if (!_state.IntroSent && _empire.OwnedCount() == 0 && Economy.BrokerReady(Game.Player.Money, _scheduler.ActiveMs))
             {
                 _state.IntroSent = true;
                 _notifier.Send(NoteKind.Broker, "The Broker", "Business", _content.Lines.Pick(_rng, "brokerIntro", null));

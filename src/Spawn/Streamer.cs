@@ -359,20 +359,21 @@ namespace FrontsAndRivals.Spawn
         public float AlertOnFootRange = 35f;
         private const float AlertShotRange = 80f;
 
-        /// <summary>Crew soldiers stay calm while you drive past. They turn on you when you walk up to their door,
-        /// shoot nearby, or hurt one of them (or one of them was killed).</summary>
+        /// <summary>Crew soldiers stay calm while you drive past. Once you own a front they turn on you when you walk up
+        /// to their door or shoot nearby; before that, only if you hurt or kill one of them.</summary>
         private bool ShouldAlert(StreamedFront f, int count)
         {
             Ped player = Game.Player.Character;
-            if (!player.IsInVehicle() && f.Distance < AlertOnFootRange) return true;
-            if (player.IsShooting && f.Distance < AlertShotRange) return true;
-            for (int i = 0; i < count; i++)
+            bool hurt = false;
+            for (int i = 0; i < count && !hurt; i++)
             {
                 Slot s = f.Slots[i];
-                if (s.Killed) return true;
-                if (s.Ped != null && s.Ped.Exists() && !s.Ped.IsDead && s.Ped.Health < s.Ped.MaxHealth) return true;
+                if (s.Killed) hurt = true;
+                else if (s.Ped != null && s.Ped.Exists() && !s.Ped.IsDead && s.Ped.Health < s.Ped.MaxHealth) hurt = true;
             }
-            return false;
+            bool inTheGame = _empire != null && _empire.OwnedCount() > 0;
+            return StreamRules.CrewProvoked(inTheGame, !player.IsInVehicle() && f.Distance < AlertOnFootRange,
+                                            player.IsShooting && f.Distance < AlertShotRange, hurt);
         }
 
         private void Alert(StreamedFront f, int count)

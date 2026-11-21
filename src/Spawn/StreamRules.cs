@@ -10,6 +10,14 @@ namespace FrontsAndRivals.Spawn
         public const int RespawnDelayMs = 10000; // a guard deleted by another mod comes back after 10 s
         public const int ModelTimeoutMs = 5000;
 
+        /// <summary>Do a crew front's soldiers turn on you? Until you own a front you're nobody to them: only hurting
+        /// or killing one of them starts a fight. Once you're in the game, walking up or shooting nearby does too.</summary>
+        public static bool CrewProvoked(bool inTheGame, bool onFootNear, bool shootingNear, bool hurtOne)
+        {
+            if (hurtOne) return true;
+            return inTheGame && (onFootNear || shootingNear);
+        }
+
         /// <summary>Hysteresis: stream in under 250 m, out over 300 m, otherwise keep the current state.</summary>
         public static bool ShouldStream(bool streamedNow, float distance)
         {

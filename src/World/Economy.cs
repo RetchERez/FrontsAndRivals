@@ -10,6 +10,13 @@ namespace FrontsAndRivals.Rules
     {
         public const int StarterFrontPrice = 25000; // the Broker's starter price for the car wash
 
+        /// <summary>The Broker's first text waits until you can afford the car wash (and 2 minutes into free roam),
+        /// so a broke early-story character isn't invited to something they can't buy.</summary>
+        public static bool BrokerReady(long playerCash, long freeRoamMs)
+        {
+            return playerCash >= StarterFrontPrice && freeRoamMs > 2 * 60000L;
+        }
+
         /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise five days of its income.</summary>
         public static int FrontPrice(FrontDef def) { return FrontPrice(def, 5); }
 
