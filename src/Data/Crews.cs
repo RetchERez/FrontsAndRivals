@@ -37,21 +37,60 @@ namespace FrontsAndRivals.Data
         /// <summary>Seats in each of those vehicles (the game's own vehicle data): 2 on a motorcycle, 4 in a sedan.</summary>
         [DataMember(Name = "vehicleSeats")] public List<int> VehicleSeats;
 
+        /// <summary>Weak, normal and powerful rides (two models each), picked by how hard the crew is coming for you.</summary>
+        [DataMember(Name = "vehicleTiers")] public List<VehicleTierDef> VehicleTiers;
+
+        /// <summary>Revenge intensity, 0 weak / 1 normal / 2 powerful: grudge plus half the street heat. A crew that barely
+        /// knows you sends its beaters; one you've hurt badly, on blazing streets, rolls up in its best. Pure, tested.</summary>
+        public static int TierFor(int grudge, int heat)
+        {
+            int score = Math.Max(0, grudge) + Math.Max(0, heat) / 2;
+            return score < 25 ? 0 : score < 60 ? 1 : 2;
+        }
+
         public const int MaxConvoy = 6; // vehicles per attack, inside the 8-vehicle budget
 
         /// <summary>The convoy for a squad: the crew's two signature vehicles in turn until everyone has a seat.
         /// Hellfire MC rolls up on bikes, two to a bike. Pure, unit-tested.</summary>
-        public List<string> ConvoyPlan(int squad)
+        public List<string> ConvoyPlan(int squad) { return ConvoyPlan(squad, -1); }
+
+        /// <summary>The convoy for a squad from one tier's two rides, alternating until everyone has a seat
+        /// (tier -1: the crew's signature pair).</summary>
+        public List<string> ConvoyPlan(int squad, int tier)
         {
             var plan = new List<string>();
-            if (Vehicles == null || Vehicles.Count == 0) return plan;
+            List<string> rides = RidesFor(tier);
+            if (rides == null || rides.Count == 0) return plan;
             int seated = 0;
             for (int i = 0; seated < Math.Max(1, squad) && plan.Count < MaxConvoy; i++)
             {
-                plan.Add(Vehicles[i % Vehicles.Count]);
-                seated += SeatsFor(i % Vehicles.Count);
+                string m = rides[i % rides.Count];
+                plan.Add(m);
+                seated += SeatsOf(m);
             }
             return plan;
+        }
+
+        public List<string> RidesFor(int tier)
+        {
+            if (tier >= 0 && VehicleTiers != null && VehicleTiers.Count > 0)
+            {
+                VehicleTierDef t = VehicleTiers[Math.Min(tier, VehicleTiers.Count - 1)];
+                if (t != null && t.Vehicles != null && t.Vehicles.Count > 0) return t.Vehicles;
+            }
+            return Vehicles;
+        }
+
+        /// <summary>Seats in a vehicle model, from the crew's own data (2 on a bike, 4 in a sedan; 4 if unknown).</summary>
+        public int SeatsOf(string model)
+        {
+            if (VehicleTiers != null)
+                foreach (VehicleTierDef t in VehicleTiers)
+                    if (t != null && t.Vehicles != null)
+                        for (int i = 0; i < t.Vehicles.Count; i++)
+                            if (t.Vehicles[i] == model && t.Seats != null && i < t.Seats.Count && t.Seats[i] > 0) return t.Seats[i];
+            if (Vehicles != null) { int k = Vehicles.IndexOf(model); if (k >= 0) return SeatsFor(k); }
+            return 4;
         }
 
         public int SeatsFor(int index)
@@ -168,6 +207,13 @@ namespace FrontsAndRivals.Data
             Log.Add(line);
             while (Log.Count > 8) Log.RemoveAt(0);
         }
+    }
+
+    [DataContract]
+    public sealed class VehicleTierDef
+    {
+        [DataMember(Name = "vehicles")] public List<string> Vehicles;
+        [DataMember(Name = "seats")] public List<int> Seats;
     }
 
     [DataContract]

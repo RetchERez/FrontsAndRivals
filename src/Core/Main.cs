@@ -77,6 +77,7 @@ namespace FrontsAndRivals.Core
             Nemesis.Names = _content.Names; // new crew lieutenants draw from the same name pool
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
             _live = new LiveDefense(_registry, _streamer);
+            _live.Heat = () => _state != null ? _state.Heat : 0;
             _live.Grudge = id => { CrewState c = _state != null ? Nemesis.Crew(_state, id) : null; return c != null ? c.Grudge : 0; };
             _workers = new Workers(_registry, _content, () => _empire);
             _escorts = new Escorts(_registry, () => _empire, OnBodyguardDown);

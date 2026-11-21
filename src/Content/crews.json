@@ -88,6 +88,38 @@
       "explosives": [
         "grenade",
         "molotov"
+      ],
+      "vehicleTiers": [
+        {
+          "vehicles": [
+            "manana",
+            "emperor"
+          ],
+          "seats": [
+            4,
+            4
+          ]
+        },
+        {
+          "vehicles": [
+            "primo2",
+            "tornado5"
+          ],
+          "seats": [
+            4,
+            4
+          ]
+        },
+        {
+          "vehicles": [
+            "dominator",
+            "buccaneer2"
+          ],
+          "seats": [
+            4,
+            2
+          ]
+        }
       ]
     },
     {
@@ -174,6 +206,38 @@
       "explosives": [
         "molotov",
         "pipebomb"
+      ],
+      "vehicleTiers": [
+        {
+          "vehicles": [
+            "daemon",
+            "hexer"
+          ],
+          "seats": [
+            2,
+            2
+          ]
+        },
+        {
+          "vehicles": [
+            "zombieb",
+            "daemon2"
+          ],
+          "seats": [
+            2,
+            2
+          ]
+        },
+        {
+          "vehicles": [
+            "nightblade",
+            "gargoyle"
+          ],
+          "seats": [
+            2,
+            2
+          ]
+        }
       ]
     },
     {
@@ -189,7 +253,7 @@
         "h": 0.0
       },
       "blipColor": 53,
-      "paint": 54,
+      "paint": 74,
       "boss": {
         "first": "Celeste",
         "nick": "",
@@ -266,6 +330,38 @@
       "explosives": [
         "grenadelauncher",
         "rpg"
+      ],
+      "vehicleTiers": [
+        {
+          "vehicles": [
+            "washington",
+            "schafter2"
+          ],
+          "seats": [
+            4,
+            4
+          ]
+        },
+        {
+          "vehicles": [
+            "cognoscenti",
+            "baller3"
+          ],
+          "seats": [
+            4,
+            4
+          ]
+        },
+        {
+          "vehicles": [
+            "cognoscenti2",
+            "schafter5"
+          ],
+          "seats": [
+            4,
+            4
+          ]
+        }
       ]
     }
   ]

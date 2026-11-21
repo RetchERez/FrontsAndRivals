@@ -50,6 +50,13 @@ static class AttackTests
         T.True("Aim gets sharper with size", CrewDef.FrontAccuracy(0) < CrewDef.FrontAccuracy(1) && CrewDef.FrontAccuracy(1) < CrewDef.FrontAccuracy(2));
         T.True("Hot streets don't toughen the car wash", Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 100) < Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 0) + 0.001);
 
+        T.True("Revenge tiers: a fresh crew sends beaters, a furious one on hot streets its best", CrewDef.TierFor(0, 0) == 0 && CrewDef.TierFor(30, 20) == 1 && CrewDef.TierFor(50, 100) == 2);
+        CrewDef irT = mcontent.Crew("IR"), vsT = mcontent.Crew("VS");
+        T.True("Every crew has three tiers of two rides", mcontent.Crews.All(c => c.VehicleTiers != null && c.VehicleTiers.Count == 3 && c.VehicleTiers.All(t => t.Vehicles.Count == 2 && t.Seats.Count == 2)));
+        T.True("Hellfire MC stays on bikes at every tier", irT.VehicleTiers.All(t => t.Seats.All(n => n == 2)));
+        T.True("Vinewood Elite's best are armoured", vsT.RidesFor(2).Contains("cognoscenti2") && vsT.RidesFor(2).Contains("schafter5"));
+        T.True("A tier-2 Dead Kings convoy seats 9 (the Buccaneer seats 2)", mcontent.Crew("CK").ConvoyPlan(9, 2).Sum(m => mcontent.Crew("CK").SeatsOf(m)) >= 9);
+
         T.Section("Street heat");
         var hs = SaveService.NewEmpire();
         var he = new Empire(hs, mcontent);

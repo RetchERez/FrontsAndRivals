@@ -9,6 +9,11 @@ First full release.
   thing to do and goes straight there. Short banner titles that always fit; GTA's own menu arrow
   (the old arrow character drew as a white block); owners in their crew's colour on the Fronts list; a Messages page
   that keeps every text and alert to read again
+- Crew rides in three tiers, by revenge intensity (grudge plus half the street heat): Dead Kings Manana/Emperor, then
+  Primo Custom/Tornado Custom, then Dominator/Buccaneer Custom; Hellfire MC Daemon/Hexer, then Zombie Chopper/Daemon
+  Custom, then Nightblade/Gargoyle; Vinewood Elite Washington/Schafter, then Cognoscenti/Baller LE, then the armoured
+  Cognoscenti and Schafter V12. All in their crew's paint (the Vinewood Elite now a bright metallic blue) and about twice
+  as tough as a street car, for every crew alike
 - Bodyguards are earned: the first at 3 fronts, the second at 8, and only Soldiers or better. The guard page says
   what's needed for the next one
 - Easier to read: the Office is 540 wide; the main menu shows free guards and street heat (Cool / Warm / Hot /

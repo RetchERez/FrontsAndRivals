@@ -66,6 +66,10 @@ namespace FrontsAndRivals.Attacks
         private readonly Dictionary<Vehicle, int> _stuckSince = new Dictionary<Vehicle, int>();
         private readonly List<Blip> _pedBlips = new List<Blip>();
         private List<string> _convoy = new List<string>();
+        private int _tier;
+
+        /// <summary>Street heat now (Main supplies it): part of how hard a crew comes for you.</summary>
+        public Func<int> Heat;
         private int _grudge;
         private bool _explosiveGiven;
         /// <summary>How much a crew hates you right now (Main sets it): angrier crews bring heavier guns.</summary>
@@ -111,7 +115,9 @@ namespace FrontsAndRivals.Attacks
             // Request models: one car model per car, ped models for the squad.
             _models.Clear();
             // The crew's own rides: Ironside on bikes (two up), the others in their signature cars.
-            _convoy = crew.ConvoyPlan(attack.Squad);
+            _tier = CrewDef.TierFor(_grudge, Heat != null ? Heat() : 0); // weak / normal / powerful rides by revenge intensity
+            _convoy = crew.ConvoyPlan(attack.Squad, _tier);
+            Log.Write("LiveDefense: " + crew.Id + " convoy tier " + _tier + ": " + string.Join(", ", _convoy.ToArray()));
             foreach (string vehicle in _convoy) _models.Add(new Model(vehicle));
             for (int i = 0; i < attack.Squad; i++) _models.Add(new Model(i == 0 && leader != null && leader.Model != null ? leader.Model : crew.Models[i % crew.Models.Count]));
             foreach (Model m in _models) if (m.IsValid) m.Request();
@@ -235,9 +241,12 @@ namespace FrontsAndRivals.Attacks
                 if (v == null) continue;
                 _registry.Track(v, Markers.MakePlate(_front.Number, _crew.Id));
                 Function.Call(Hash.SET_VEHICLE_COLOURS, v, _crew.Paint, _crew.Paint);
+                // About twice as tough as a street car, like the people in it: not bulletproof, just not paper.
+                v.MaxHealth = 2000; v.Health = 2000;
+                v.BodyHealth = 2000f; v.EngineHealth = 2000f; v.PetrolTankHealth = 2000f;
                 v.PlaceOnGround();
                 _cars.Add(v);
-                int seats = Math.Min(_crew.SeatsFor(c % _crew.Vehicles.Count), v.PassengerCapacity + 1);
+                int seats = Math.Min(_crew.SeatsOf(_convoy[c]), v.PassengerCapacity + 1);
                 for (int seat = 0; seat < seats && placed < squad; seat++)
                 {
                     if (!_registry.CanSpawnPed) break;
