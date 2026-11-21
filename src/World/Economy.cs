@@ -217,6 +217,21 @@ namespace FrontsAndRivals.Rules
         /// +1.5% on all fronts per front past the first, up to +20%. More fronts always means more money, never runaway.</summary>
         public static double NetworkFactor(int frontsHeld) { return 1.0 + Math.Min(0.2, 0.015 * Math.Max(0, frontsHeld - 1)); }
 
+        /// <summary>Which upgrades a front can take, by size: small shops Cameras and Floodlights; mid-size places add
+        /// Reinforced Doors; the big ones add an Armory. (Anything bought before this rule stays.)</summary>
+        public static bool CanInstall(string upgrade, int tier)
+        {
+            switch (upgrade)
+            {
+                case "Cameras": case "Floodlights": return true;
+                case "Reinforced Doors": return tier >= 1;
+                case "Armory": return tier >= 2;
+                default: return false;
+            }
+        }
+
+        public static int UpgradeSlots(int tier) { return tier >= 2 ? 4 : tier == 1 ? 3 : 2; }
+
         /// <summary>Front upgrades cost more on bigger businesses: x1 small, x1.5 mid-size, x2.5 big. Kitting out a club
         /// stays a real decision even when the money is rolling in.</summary>
         public static int UpgradePrice(int basePrice, int tier)

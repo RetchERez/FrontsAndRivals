@@ -23,7 +23,8 @@ First full release.
   between attacks x1.5 to x0.7
 - Reset the City: every front back to its start, crews back at full strength, your guards kept with ranks, skills and guns
 - More fronts, more money: a front pays +3% for every day you hold it (up to +30%, reset if you lose it), and every
-  front you hold adds +1.5% to all of them (up to +20%); upgrades cost x1 / x1.5 / x2.5 by front size; rival crews defend
+  front you hold adds +1.5% to all of them (up to +20%); upgrades by front size (small: Cameras, Floodlights; mid-size adds Reinforced Doors; big adds the Armory), costing
+  x1 / x1.5 / x2.5; rival crews defend
   their own fronts at x1.5 against raids; wages are cheap (150 / 250 / 350 / 500) and only bite with a
   big crew: past 12 guards each extra one adds 4% to everyone's wage (up to x3); the defend-it-yourself bonus is tonight's take, bonuses included
 - A front you lose is dug in until the next midnight before you can claim it back

@@ -787,20 +787,21 @@ namespace FrontsAndRivals.UI
             if (owned.Count > 0)
             {
                 NativeItem have = Info("Upgrades", "Installed here: " + string.Join(", ", owned.ToArray()) + ". They stay with the building, even if it changes hands.",
-                    owned.Count + " of 4");
+                    owned.Count + " of " + Math.Max(owned.Count, Economy.UpgradeSlots(def.Tier)));
                 have.Enabled = false;
                 _detail.Add(have);
             }
             int t = def.Tier;
-            AddUpgrade(fs, "Cameras", Economy.UpgradePrice(15000, t), "+10% defense, and you see trouble sooner: your people hold 2 minutes longer when the front is hit.", fs.Cameras, () => fs.Cameras = true);
-            AddUpgrade(fs, "Reinforced Doors", Economy.UpgradePrice(20000, t), "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
-            AddUpgrade(fs, "Floodlights", Economy.UpgradePrice(10000, t), "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
-            AddUpgrade(fs, "Armory", Economy.UpgradePrice(30000, t), "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
+            AddUpgrade(fs, t, "Cameras", Economy.UpgradePrice(15000, t), "+10% defense, and you see trouble sooner: your people hold 2 minutes longer when the front is hit.", fs.Cameras, () => fs.Cameras = true);
+            AddUpgrade(fs, t, "Reinforced Doors", Economy.UpgradePrice(20000, t), "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
+            AddUpgrade(fs, t, "Floodlights", Economy.UpgradePrice(10000, t), "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
+            AddUpgrade(fs, t, "Armory", Economy.UpgradePrice(30000, t), "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
         }
 
-        private void AddUpgrade(FrontState fs, string name, int price, string effect, bool owned, Action install)
+        private void AddUpgrade(FrontState fs, int tier, string name, int price, string effect, bool owned, Action install)
         {
             if (owned) return; // listed together on the Upgrades line
+            if (!Economy.CanInstall(name, tier)) return; // too small a place for it
             NativeItem row = Row(name, effect + " Permanent, even if the front changes hands.", Money(price));
             row.Activated += (s, a) => Safe("upgrade", () =>
             {

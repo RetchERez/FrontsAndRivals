@@ -14,6 +14,8 @@ static class EconomyTests
         T.True("Payroll: base up to 12 guards, +4% each after, capped x3", Economy.PayrollFactor(12) == 1.0 && Math.Abs(Economy.PayrollFactor(22) - 1.4) < 1e-9 && Economy.PayrollFactor(200) == 3.0);
         T.True("Established: +3% a day, capped at +30%", Math.Abs(Economy.EstablishedFactor(4) - 1.12) < 1e-9 && Economy.EstablishedFactor(30) == 1.3 && Economy.EstablishedFactor(0) == 1.0);
         T.True("Network: +1.5% per extra front, capped at +20%", Economy.NetworkFactor(1) == 1.0 && Math.Abs(Economy.NetworkFactor(5) - 1.06) < 1e-9 && Economy.NetworkFactor(29) == 1.2);
+        T.True("Small fronts: Cameras and Floodlights only", Economy.CanInstall("Cameras", 0) && Economy.CanInstall("Floodlights", 0) && !Economy.CanInstall("Reinforced Doors", 0) && !Economy.CanInstall("Armory", 0));
+        T.True("Mid-size add Reinforced Doors, big add the Armory", Economy.CanInstall("Reinforced Doors", 1) && !Economy.CanInstall("Armory", 1) && Economy.CanInstall("Armory", 2) && Economy.UpgradeSlots(2) == 4);
         T.True("Upgrades cost more on bigger fronts", Economy.UpgradePrice(30000, 0) == 30000 && Economy.UpgradePrice(30000, 1) == 45000 && Economy.UpgradePrice(30000, 2) == 75000);
         bool alwaysMore = true;
         for (int n = 1; n < 29; n++) if (Economy.NetworkFactor(n + 1) * (n + 1) <= Economy.NetworkFactor(n) * n) alwaysMore = false;
