@@ -87,6 +87,7 @@ namespace FrontsAndRivals.Core
             _workers = new Workers(_registry, _content, () => _empire);
             _escorts = new Escorts(_registry, () => _empire, OnBodyguardDown);
             _hangouts = new Hangouts(_registry, _content, () => _empire);
+            _hangouts.PoliceOn = () => _config.PoliceRespond;
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
             _director.OnTaken = def => // set after the Director exists

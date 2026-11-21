@@ -64,6 +64,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Crews on their streets, like Saints Row: a crew's people hang out, walk the block or cruise around their turf in their colours, and your own crew does the same around your fronts
 - Every crew member wears their crew colour on a major piece of clothing, and your guards wear yours in the style you pick: Street, Smart, Biker or Mixed
 - Fronts are taken on foot: a soldier you run over is replaced by another from inside
+- A rougher city: now and then crew members mug people, carjack drivers, get chased by the police or bundle someone into a car, rival crews shoot it out on turf borders, and the cops sometimes turn up to break it up
 - Staff at the front you're near: a cashier on the phone, a janitor sweeping, a chef on a smoke break
 - A big, mixed cast of ordinary Los Santos street people, women and men, with nicknames for only some of them
 - Difficulty from Relaxed to Brutal, Reset the City to take Los Santos again with the crew you built, and Start a New Empire for a new story game
@@ -117,6 +118,16 @@ Delete `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `scripts\FrontsAndRi
 
 - The Office contact sits at the end of the phone's contact list; that's where iFruitAddon2 puts mod contacts so story contacts are never overwritten
 - A few fronts have fewer than four guard posts where the street layout leaves no safe spot
+
+## How this was made
+
+Fronts & Rivals was designed, directed and playtested by Retch, and its code, data and documentation were written with Claude, an AI assistant from Anthropic. The crew clothing numbers come from the community datasets credited below.
+
+## Credits
+
+- Clothing names and IDs: [root-cause/v-clothingnames](https://github.com/root-cause/v-clothingnames) and [root-cause/v-besttorso](https://github.com/root-cause/v-besttorso)
+- Ped and vehicle data: [DurtyFree/gta-v-data-dumps](https://github.com/DurtyFree/gta-v-data-dumps)
+- Menus: [LemonUI](https://github.com/LemonUIbyLemon/LemonUI); phone contact: [iFruitAddon2](https://github.com/Bob74/iFruitAddon2); scripting: Script Hook V and Script Hook V .NET Enhanced
 
 ## For developers
 

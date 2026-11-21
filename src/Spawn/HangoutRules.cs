@@ -8,6 +8,9 @@ namespace FrontsAndRivals.Spawn
 {
     public enum HangoutKind { HangOut, Walk, Cruise }
 
+    /// <summary>What a rival crew group gets up to on the street, now and then.</summary>
+    public enum StreetCrime { None, Mugging, Carjack, Shooting, Chase, Kidnap }
+
     public static class HangoutRules
     {
         public const float TurfRange = 600f;       // a crew front this close to a spot makes it that crew's turf
@@ -19,6 +22,24 @@ namespace FrontsAndRivals.Spawn
         public const float ClashGap = 18f;         // how far apart the two sides start
 
         public static bool Clash(int roll) { return Math.Abs(roll) % 100 < ClashChancePct; }
+
+        /// <summary>At most one street crime at a time, and three minutes between them, so the city feels rough without
+        /// turning into a war zone.</summary>
+        public const int CrimeCooldownMs = 180000;
+        public const int PoliceChancePct = 40;     // cops show up at a street fight
+        public const int PoliceDelayMs = 25000;    // after it kicks off
+
+        /// <summary>A walking crew member: mugging 15%, carjacking 12%, a shooting 5%. A crew car: a police chase 18%,
+        /// a kidnapping 8%. Otherwise nothing.</summary>
+        public static StreetCrime CrimeFor(HangoutKind kind, int roll)
+        {
+            int r = Math.Abs(roll) % 100;
+            if (kind == HangoutKind.Walk) return r < 15 ? StreetCrime.Mugging : r < 27 ? StreetCrime.Carjack : r < 32 ? StreetCrime.Shooting : StreetCrime.None;
+            if (kind == HangoutKind.Cruise) return r < 18 ? StreetCrime.Chase : r < 26 ? StreetCrime.Kidnap : StreetCrime.None;
+            return StreetCrime.None;
+        }
+
+        public static bool PoliceCome(int roll) { return Math.Abs(roll) % 100 < PoliceChancePct; }
 
         public static readonly string[] Scenarios =
         {

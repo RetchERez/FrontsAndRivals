@@ -183,6 +183,10 @@ static class FrontTests
 
         T.True("Street fights on turf borders, now and then", Enumerable.Range(0, 100).Count(i => HangoutRules.Clash(i)) == HangoutRules.ClashChancePct);
 
+        T.True("Street crime is occasional: most groups do nothing", Enumerable.Range(0, 100).Count(i => HangoutRules.CrimeFor(HangoutKind.Walk, i) == StreetCrime.None) == 68
+            && Enumerable.Range(0, 100).Count(i => HangoutRules.CrimeFor(HangoutKind.Cruise, i) == StreetCrime.None) == 74 && HangoutRules.CrimeFor(HangoutKind.HangOut, 1) == StreetCrime.None);
+        T.True("...one at a time, three minutes apart, and cops come to 40% of street fights", HangoutRules.CrimeCooldownMs == 180000 && Enumerable.Range(0, 100).Count(i => HangoutRules.PoliceCome(i)) == 40);
+
         T.Section("Crew outfits");
         var od = OutfitData.Load(System.IO.Path.Combine(content.ContentDir, "outfits.json"));
         T.True("Outfit data loads", od != null && od.Styles != null && od.Styles.Count >= 7);

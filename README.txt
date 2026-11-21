@@ -207,5 +207,18 @@ KNOWN ISSUES
    no safe spot
 
 
+HOW THIS WAS MADE
+-----------------
+Designed, directed and playtested by Retch. The code, data and documentation
+were written with Claude, an AI assistant from Anthropic.
+
+CREDITS
+-------
+ - Clothing names and IDs: github.com/root-cause/v-clothingnames and
+   github.com/root-cause/v-besttorso
+ - Ped and vehicle data: github.com/DurtyFree/gta-v-data-dumps
+ - LemonUI, iFruitAddon2, Script Hook V, Script Hook V .NET Enhanced
+
+
 If something goes wrong, scripts\FrontsAndRivals\FrontsAndRivals.log records
 what happened; include it with any bug report.
