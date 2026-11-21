@@ -127,10 +127,17 @@ WHAT'S IN 1.0
    pay more the longer you hold them and the more you own
  - Progression money can't skip: guns unlock with rank, bigger fronts need a
    bigger empire (3 and 8 fronts held) and new fronts get two quiet days
- - Crews on their streets, like Saints Row: a crew's people hang out, walk the block or cruise around their turf in their colours, and your own crew does the same around your fronts
-- Every crew member wears their crew colour on a major piece of clothing, and your guards wear yours in the style you pick: Street, Smart, Biker or Mixed
-- Fronts are taken on foot: a soldier you run over is replaced by another from inside
-- Staff at the front you're near: a cashier on the phone, a janitor sweeping,
+ - Crews on their streets, like Saints Row: a crew's people hang out, walk the
+   block or cruise around their turf in their colours, and your own crew does
+   the same around your fronts
+ - Every crew member wears their crew colour on a major piece of clothing, and
+   your guards wear yours in the style you pick: Street, Smart, Biker or Mixed
+ - Fronts are taken on foot: a soldier you run over is replaced by another from
+   inside
+ - A rougher city: now and then crew members mug people, carjack drivers, get
+   chased by the police or bundle someone into a car, rival crews shoot it out
+   on turf borders, and the cops sometimes turn up
+ - Staff at the front you're near: a cashier on the phone, a janitor sweeping,
    a chef on a smoke break
  - A big, mixed cast of ordinary Los Santos street people, women and men, with
    nicknames for only some of them
