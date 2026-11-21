@@ -117,7 +117,8 @@ WHAT'S IN 1.0
  - A weapon ladder: every guard starts with a knife and is armed one gun at a
    time at Ammu-Nation's prices; better guns unlock with rank
  - Body armour that stays on: guards heal and re-vest after every fight
- - Bodyguards: call up to two guards to follow you and fight at your side
+ - Bodyguards you earn: the first at 3 fronts, a second at 8, Soldiers or
+   better only; they follow you and fight at your side
  - Raids: send up to four reserve guards to take a rival front without you,
    with the odds shown first
  - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and

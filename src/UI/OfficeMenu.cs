@@ -34,7 +34,7 @@ namespace FrontsAndRivals.UI
     public sealed class OfficeMenu
     {
         private const int Rows = 12;          // like the game's own menus: scrolls past twelve rows
-        private const float MenuWidth = 500f; // a little wider than the Interaction Menu (431) so names and values never touch
+        private const float MenuWidth = 540f; // wider than the Interaction Menu (431): GTA's own font and size, with room so names and values never touch
         private const string Open = "";
 
         private enum Section { Overview, Fronts, Guards, Hire, Rivals, Messages, Settings }
@@ -236,6 +236,28 @@ namespace FrontsAndRivals.UI
             catch (Exception ex) { Log.Error("Office " + where, ex); }
         }
 
+        /// <summary>Strong / Fair / Weak against a typical attack on a front this size, from the same rules as the game.</summary>
+        private string DefenseWord(Empire e, FrontDef def, double defense)
+        {
+            if (defense <= 0) return "~r~None~s~";
+            double worst = 1.0;
+            foreach (CrewDef crew in _content.Crews)
+            {
+                CrewState cs = Nemesis.Crew(e.State, crew.Id);
+                int grudge = cs != null ? cs.Grudge : 0;
+                int squad = Resolver.SquadSize(def.Tier, grudge, cs != null ? cs.Manpower : 10);
+                double attack = Resolver.AttackStrength(squad, crew.SoldierPower, 10, false, grudge) * Difficulty.Strength(e.State.Difficulty);
+                worst = Math.Min(worst, Resolver.WinChance(defense, attack));
+            }
+            return worst >= 0.7 ? "~g~Strong~s~" : worst >= 0.45 ? "~y~Fair~s~" : "~r~Weak~s~";
+        }
+
+        private static string HeatColored(int heat)
+        {
+            string label = Rules.Heat.Label(heat);
+            return (heat < 15 ? "~b~" : heat < 40 ? "~y~" : heat < 70 ? "~o~" : "~r~") + label + "~s~";
+        }
+
         /// <summary>Set by Main: the message log (newest first).</summary>
         public Func<IList<Notifier.Logged>> Messages;
 
@@ -365,11 +387,14 @@ namespace FrontsAndRivals.UI
             _sectionKeys.Add(null);
 
             AddSection(Section.Fronts, "Fronts", "Every business in the city, who holds it, and yours to manage.", e.OwnedCount() + " of " + _content.Fronts.Count);
-            AddSection(Section.Guards, "Guards", "Your people: their post, rank, gun and skills.", e.LivingCount() + (injured > 0 ? " (" + injured + " Hurt)" : ""));
+            int free = e.FreeGuards().Count;
+            AddSection(Section.Guards, "Guards", "Your people: their post, rank, gun and skills. Free guards are in the reserve, ready to post.",
+                e.LivingCount() + (free > 0 ? " · " + free + " Free" : "") + (injured > 0 ? " · " + injured + " Hurt" : ""));
             AddSection(Section.Hire, "Hire Recruits", Economy.RecruitsPerDay + " new faces turn up every morning at 06:00. Hire them before midnight.", e.State.Offers.Count + " Today");
             int maxGrudge = 0;
             foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
-            AddSection(Section.Rivals, "Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge);
+            AddSection(Section.Rivals, "Rivals", "The three crews and their leaders. Street heat rises with every front you take and cools each night: the hotter it is, the sooner they hit back.",
+                "Heat: " + HeatColored(e.State.Heat));
             AddSection(Section.Messages, "Messages", "Every text and alert from Fronts & Rivals, newest first, so you can read them again.", (Messages != null ? Messages().Count : 0).ToString());
             AddSection(Section.Overview, "Overview", "Income, wages, street heat and your people at a glance.", Money(net) + "/day");
             AddSection(Section.Settings, "Settings", "Difficulty, attacks, notifications, sound, map icons and more.", "");
@@ -677,7 +702,8 @@ namespace FrontsAndRivals.UI
                      + net + "% from your other fronts.";
             }
             else pays = "Pays " + Money(Economy.BaseIncome(def)) + " a night to start, more the longer you hold it.";
-            NativeItem header = Info("Defense " + defense.ToString("0"), "Total power of the guards here, adjusted for night. " + pays, Money(tonight) + "/day");
+            string rating = owner == Owners.Player ? DefenseWord(e, def, defense) : "";
+            NativeItem header = Info(owner == Owners.Player ? "Defense: " + rating : "Pays", (owner == Owners.Player ? "How well the guards here would hold off a typical attack right now (night is harder). " : "") + pays, Money(tonight) + "/day");
             header.Panel = FrontBars(defense, Economy.BaseIncome(def));
             _detail.Add(header);
 
@@ -923,14 +949,19 @@ namespace FrontsAndRivals.UI
             });
             _detail.Add(postItem);
 
-            int escorts = e.EscortCount();
-            var guard = new NativeCheckboxItem("Bodyguard",
-                "On: they leave their post and stay at your side, on foot or in your car, and fight whoever comes for you. Up to "
-                + FrontsAndRivals.Spawn.EscortRules.Max + ". Off: back to their post. Not during missions.", g.Escort);
-            guard.Enabled = g.Status == GuardStatus.Active && e.OwnedCount() > 0 && (g.Escort || escorts < FrontsAndRivals.Spawn.EscortRules.Max);
+            int escorts = e.EscortCount(), held = e.OwnedCount();
+            int slots = FrontsAndRivals.Spawn.EscortRules.Slots(held), nextAt = FrontsAndRivals.Spawn.EscortRules.NextAt(held);
+            bool trusted = FrontsAndRivals.Spawn.EscortRules.Trusted(g.Rank);
+            string why = slots == 0 ? "Bodyguards come with a bigger empire: your first at " + FrontsAndRivals.Spawn.EscortRules.FirstAt + " fronts (you hold " + held + ")."
+                : !trusted ? "Only a Soldier or better can watch your back. " + g.ShortName + " is still a Recruit."
+                : !g.Escort && escorts >= slots ? "You have " + slots + (slots == 1 ? " bodyguard" : " bodyguards") + " already." + (nextAt > 0 ? " Another at " + nextAt + " fronts." : "")
+                : "On: they leave their post and stay at your side, on foot or in your car, and fight whoever comes for you. Off: back to their post. You can have "
+                  + slots + (nextAt > 0 ? " now, another at " + nextAt + " fronts." : ".");
+            var guard = new NativeCheckboxItem("Bodyguard", why, g.Escort);
+            guard.Enabled = g.Escort || (g.Status == GuardStatus.Active && trusted && escorts < slots);
             guard.CheckboxChanged += (s, a) => Safe("bodyguard", () =>
             {
-                if (!e.SetEscort(g, guard.Checked)) { GTA.UI.Notification.Show("You already have " + FrontsAndRivals.Spawn.EscortRules.Max + " bodyguards."); }
+                if (!e.SetEscort(g, guard.Checked)) { GTA.UI.Notification.Show(why); }
                 else
                 {
                     GTA.UI.Notification.Show(guard.Checked ? g.ShortName + " is on the way to you." : g.ShortName + " is heading back to their post.");

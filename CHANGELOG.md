@@ -9,6 +9,10 @@ First full release.
   thing to do and goes straight there. Short banner titles that always fit; GTA's own menu arrow
   (the old arrow character drew as a white block); owners in their crew's colour on the Fronts list; a Messages page
   that keeps every text and alert to read again
+- Bodyguards are earned: the first at 3 fronts, the second at 8, and only Soldiers or better. The guard page says
+  what's needed for the next one
+- Easier to read: the Office is 540 wide; the main menu shows free guards and street heat (Cool / Warm / Hot /
+  Blazing, coloured); a front's defense reads Strong, Fair or Weak against a typical attack instead of a number
 - No Broker: the first-front introduction is a GTA help box (and the car wash's map icon flashes); other messages come
   from the Office or the street. A front is yours the moment its last soldier drops, with no trip to the door
 - Everyone in a fight (your guards, bodyguards, crew soldiers and attackers) has twice an ordinary ped's health

@@ -56,7 +56,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Guards with skills like the player's (Shooting, Strength, Stamina and Stealth) that grow on the job; ranks, experience, traits and a memorial for the fallen
 - A weapon ladder: every guard starts with a knife and is armed one gun at a time at Ammu-Nation's prices; better guns unlock with rank
 - Body armour that stays on: guards heal and re-vest after every fight
-- Bodyguards: call up to two guards to follow you around the city and fight at your side
+- Bodyguards you earn: your first at 3 fronts, a second at 8, Soldiers or better only; they follow you around the city and fight at your side
 - Raids: send up to four reserve guards to take a rival front without you, with the odds shown first
 - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and the biggest 4; Cameras, Floodlights, Reinforced Doors and an Armory
 - A Story Mode economy: fronts pay about what Story Mode properties do; they pay more the longer you hold them and the more you own

@@ -62,10 +62,14 @@ static class FrontTests
         T.True("Women and men among recruits (" + women + " of " + people + " women)", women > 0 && women < people);
         T.Section("Bodyguards");
         T.True("Up to two, with room kept for a live fight", EscortRules.Fits(17, 28) && !EscortRules.Fits(18, 28) && EscortRules.Max == 2);
+        T.True("Bodyguards are earned: none under 3 fronts, one at 3, two at 8", EscortRules.Slots(2) == 0 && EscortRules.Slots(3) == 1 && EscortRules.Slots(7) == 1 && EscortRules.Slots(8) == 2);
+        T.True("...and only Soldiers or better", !EscortRules.CanCall(true, false, 0, 10, 0) && EscortRules.CanCall(true, false, 0, 10, 1) && !EscortRules.CanCall(true, false, 1, 5, 2));
         var bs = SaveService.NewEmpire();
         var be = new Empire(bs, content);
         be.SetOwner("carwash_handson", Owners.Player);
+        foreach (FrontDef fd in content.Fronts) if (be.OwnedCount() < 8 && fd.Tier == 0) be.SetOwner(fd.Id, Owners.Player); // 8 fronts: both bodyguards earned
         GuardState b1 = be.Recruit(rng), b2 = be.Recruit(rng), b3 = be.Recruit(rng);
+        b1.Rank = b2.Rank = b3.Rank = 1; // Soldiers
         be.Assign(b1, "carwash_handson", 0); be.Assign(b2, "carwash_handson", 1);
         double before = be.Defense("carwash_handson", 12);
         var nobody = new Empire(SaveService.NewEmpire(), content);

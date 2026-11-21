@@ -410,7 +410,7 @@ namespace FrontsAndRivals.Rules
             if (!on) { g.Escort = false; return true; }
             if (OwnedCount() == 0) return false; // crews would fight them before you're even in the game
             if (OnRaid(g)) return false;
-            if (!FrontsAndRivals.Spawn.EscortRules.CanCall(g.Status == GuardStatus.Active, g.Escort, EscortCount())) return false;
+            if (!FrontsAndRivals.Spawn.EscortRules.CanCall(g.Status == GuardStatus.Active, g.Escort, EscortCount(), OwnedCount(), g.Rank)) return false;
             g.Escort = true;
             return true;
         }
