@@ -12,6 +12,11 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
+- Story-length pacing (60-day Monte Carlo): attacks wait 60 free-roam minutes on Normal (Low 90, High 35); crews now
+  and then sell a front they can't hold so the market keeps about two for sale; raids are a fair fight (crews defend at
+  x1.8: ~32% early, ~58% mid, ~73% late); a normal player holds ~15 fronts by day 30 and ~22 by day 40
+- Office Overview starts with a Next Step line (defend, buy, post, hire, arm, raid, grow), and selecting it goes there
+- More settings: Difficulty (starting), Raids, Bodyguards, PurchaseShot and Tips in the INI
 - Buying a front plays a short establishing shot of the building with the banner, like buying Story Mode property
   (3.5 seconds, HUD hidden, any button skips, never blocks the game, always hands the camera back)
 - Story Mode return rate: fronts for sale are priced like Story Mode property (about 20 weeks to pay back, ~5% a week;

@@ -88,6 +88,11 @@ namespace FrontsAndRivals.Core
         // [Map] (ShowRivalFronts below)
         public bool ShowForSaleFronts = true;
         public bool FrontStaff = true;
+        public string Difficulty = "Normal";   // starting difficulty for a new empire (Office > Settings changes it later)
+        public bool Raids = true;              // Send a Crew on rival fronts
+        public bool Bodyguards = true;         // guards can follow you
+        public bool PurchaseShot = true;       // the establishing shot when you buy a front
+        public bool Tips = true;               // first-time tips
         public bool ArrivalCamera = true;
         // [Economy]
         public double IncomeMultiplier = 1.0;
@@ -144,6 +149,16 @@ namespace FrontsAndRivals.Core
             c.RivalAlertRange = Int(ini, "Rivals", "AlertRange", c.RivalAlertRange, 5, 150, warn);
             c.ShowForSaleFronts = Bool(ini, "Map", "ShowForSaleFronts", c.ShowForSaleFronts, warn);
             c.FrontStaff = Bool(ini, "Map", "FrontStaff", c.FrontStaff, warn);
+            c.Raids = Bool(ini, "Guards", "Raids", c.Raids, warn);
+            c.Bodyguards = Bool(ini, "Guards", "Bodyguards", c.Bodyguards, warn);
+            c.PurchaseShot = Bool(ini, "General", "PurchaseShot", c.PurchaseShot, warn);
+            c.Tips = Bool(ini, "General", "Tips", c.Tips, warn);
+            string diff = ini.Get("Attacks", "Difficulty");
+            if (!string.IsNullOrEmpty(diff))
+            {
+                if (Array.IndexOf(new[] { "relaxed", "easy", "normal", "hard", "brutal" }, diff.Trim().ToLowerInvariant()) >= 0) c.Difficulty = diff.Trim();
+                else if (warn != null) warn("Config: Attacks.Difficulty '" + diff + "' is not Relaxed/Easy/Normal/Hard/Brutal, using Normal");
+            }
             c.FrontPriceDays = Int(ini, "Economy", "FrontPriceDays", c.FrontPriceDays, 1, 100, warn);
             c.ArrivalCamera = Bool(ini, "Attacks", "ArrivalCamera", c.ArrivalCamera, warn);
             c.IncomeMultiplier = Double(ini, "Economy", "IncomeMultiplier", c.IncomeMultiplier, 0, 100, warn);

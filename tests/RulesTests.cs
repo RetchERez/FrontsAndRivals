@@ -60,9 +60,9 @@ static class RulesTests
         double early = Raids.WinChance(DefenseRating.Compute(Many(3, Rank.Recruit, Weapon.Pistol), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 12 }, 2));
         double mid = Raids.WinChance(DefenseRating.Compute(Many(3, Rank.Soldier, Weapon.Smg), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 12 }, 3));
         double late = Raids.WinChance(DefenseRating.Compute(Many(4, Rank.Veteran, Weapon.CarbineRifle), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 16 }, 4));
-        T.True("Early raid (3 pistol recruits vs a small front): a gamble, 30-50% (" + (int)(early * 100) + "%)", early >= 0.30 && early <= 0.50);
-        T.True("Mid-game raid (3 SMG soldiers vs a mid front): a good bet, 60-75% (" + (int)(mid * 100) + "%)", mid >= 0.60 && mid <= 0.75);
-        T.True("Late raid (4 carbine veterans vs a big front): strong, 75-90% (" + (int)(late * 100) + "%)", late >= 0.75 && late <= 0.90);
+        T.True("Early raid (3 pistol recruits vs a small front): a long shot, 25-45% (" + (int)(early * 100) + "%)", early >= 0.25 && early <= 0.45);
+        T.True("Mid-game raid (3 SMG soldiers vs a mid front): a fair fight, 50-65% (" + (int)(mid * 100) + "%)", mid >= 0.50 && mid <= 0.65);
+        T.True("Late raid (4 carbine veterans vs a big front): strong, 65-85% (" + (int)(late * 100) + "%)", late >= 0.65 && late <= 0.85);
     }
 
     /// <summary>The balance pass's target fights (Crown Kings, soldier power 12). Preparation should win, neglect should lose.</summary>

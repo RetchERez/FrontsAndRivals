@@ -150,18 +150,21 @@ namespace FrontsAndRivals.UI
             {
                 string id = _openOn;
                 _openOn = null;
-                Safe("open on front", () =>
-                {
-                    _sections.SelectedIndex = (int)Section.Fronts; // rebuilds the list for Fronts
-                    for (int i = 0; i < _listKeys.Count; i++)
-                    {
-                        var key = _listKeys[i] as FrontDef;
-                        if (key != null && key.Id == id) { _list.SelectedIndex = i; break; }
-                    }
-                    Focus(1);
-                    FocusRight(1);
-                });
+                Safe("open on front", () => JumpToFront(id));
             }
+        }
+
+        /// <summary>Straight to a front's page (a map waypoint, the Next Step row).</summary>
+        private void JumpToFront(string id)
+        {
+            _sections.SelectedIndex = (int)Section.Fronts; // rebuilds the list for Fronts
+            for (int i = 0; i < _listKeys.Count; i++)
+            {
+                var key = _listKeys[i] as FrontDef;
+                if (key != null && key.Id == id) { _list.SelectedIndex = i; break; }
+            }
+            Focus(1);
+            FocusRight(1);
         }
 
         private void CloseAll()
@@ -357,6 +360,14 @@ namespace FrontsAndRivals.UI
         private void ListOverview(Empire e)
         {
             SetTitles(_list, "Overview", "THIS IS YOUR OUTFIT");
+            Empire.Hint next = e.NextStep(_config.Raids);
+            NativeItem step = Row("Next Step: " + next.Title, next.Text + (next.FrontId != null ? " Select to go to it." : ""), next.FrontId != null ? Open.Trim() : "");
+            if (next.FrontId != null)
+            {
+                string target = next.FrontId;
+                step.Activated += (s, a) => Safe("next step", () => JumpToFront(target));
+            }
+            AddListRow(step, null, false);
             int income = e.DailyIncome(), wages = e.DailyWages();
             int injured = 0, fallen = 0;
             foreach (GuardState g in e.State.Guards)
@@ -507,7 +518,7 @@ namespace FrontsAndRivals.UI
             diff.ItemChanged += (s, a) => { e.State.Difficulty = diff.SelectedIndex - 2; Changed(false); };
             AddListRow(diff, null, false);
 
-            var f = new NativeListItem<string>("Attack Frequency", "How often crews come for your fronts: Low every ~75 min, Normal ~45, High ~25. Off stops attacks.", freq);
+            var f = new NativeListItem<string>("Attack Frequency", "How often crews come for your fronts, in free-roam time: Low about every 90 minutes, Normal 60, High 35. Off stops attacks.", freq);
             int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
             f.SelectedIndex = at < 0 ? 2 : at;
             f.ItemChanged += (s, a) => { e.State.Frequency = f.SelectedItem; Changed(false); };
@@ -649,7 +660,7 @@ namespace FrontsAndRivals.UI
                     : "Too big to take yet: the Broker backs a claim here once you hold " + need + " fronts. You hold " + e.OwnedCount() + ".", e.Trusted(def) ? "" : "Hold " + need);
                 held.Enabled = false;
                 _detail.Add(held);
-                AddRaidRow(e, def);
+                if (_config.Raids) AddRaidRow(e, def);
             }
 
             if (owner == Owners.Player) AddUpgrades(e, def);
@@ -875,7 +886,7 @@ namespace FrontsAndRivals.UI
                 }
                 Changed(true);
             });
-            _detail.Add(guard);
+            if (_config.Bodyguards) _detail.Add(guard);
 
             int price = e.WeaponUpgradePrice(g);
             Weapon w = (Weapon)g.Weapon;

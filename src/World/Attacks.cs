@@ -25,9 +25,10 @@ namespace FrontsAndRivals.Rules
             switch ((frequency ?? "Normal").ToLowerInvariant())
             {
                 case "off": return -1;
-                case "low": return 75 * Minute;
-                case "high": return 25 * Minute;
-                default: return 45 * Minute;
+                // Calm enough to play the story alongside: about one hit an hour of free roam on Normal.
+                case "low": return 90 * Minute;
+                case "high": return 35 * Minute;
+                default: return 60 * Minute;
             }
         }
 

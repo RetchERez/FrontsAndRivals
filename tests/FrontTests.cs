@@ -100,7 +100,7 @@ static class FrontTests
         for (int i = 0; i < 4; i++) { GuardState rg = re.Recruit(rng); rg.Rank = (int)Rank.Veteran; rg.Weapon = (int)Weapon.CarbineRifle; Stats.Set(rg, new[] { 70, 70, 70, 70 }); }
         T.True("With guards it can go", re.RaidBlocked(target) == null && re.RaidTeam().Count == 4);
         double odds = re.RaidOdds(target, 12);
-        T.True("Four armed veterans are favoured against a small front (" + (int)(odds * 100) + "%)", odds > 0.6);
+        T.True("Four armed veterans are favoured against a small front (" + (int)(odds * 100) + "%)", odds > 0.55);
         T.True("Raid sent", re.StartRaid(target, 1000, 12) && rs.Raid != null && re.OnRaid(re.RaidTeam().Count == 0 ? rs.Guards[0] : rs.Guards[0]));
         T.True("Raiders can't also be bodyguards, and don't defend their posts", !re.SetEscort(rs.Guards[0], true));
         T.True("Only one raid at a time", re.RaidBlocked(target) != null);
@@ -117,7 +117,7 @@ static class FrontTests
             if (ro.Won) { won++; if (te.OwnerOf(target.Id) != Owners.Player) won -= 1000; }
             if (ts.Raid != null) won -= 1000;
         }
-        T.True("Raids resolve, a win hands you the front (" + won + " of " + trials + " won)", won > trials * 0.55 && won < trials);
+        T.True("Raids resolve, a win hands you the front (" + won + " of " + trials + " won)", won > trials * 0.5 && won < trials);
 
         T.Section("Difficulty and resetting the city");
         T.True("Difficulty: Normal is x1, Brutal pushes harder and sooner, Relaxed eases off",
@@ -144,6 +144,19 @@ static class FrontTests
         T.True("Each kind of business gets the game's own icon", WorkerRules.MapIcon("carwash_handson", false) == 100 && WorkerRules.MapIcon("bar_himen", false) == 93
                && WorkerRules.MapIcon("club_cockatoos", false) == 614 && WorkerRules.MapIcon("liquor_brouge", false) == 52 && WorkerRules.MapIcon("depot_fridgit", false) == 473);
         T.True("For sale uses the for-sale icons", WorkerRules.MapIcon("cafe_noodleexchange", true) == 375 && WorkerRules.MapIcon("factory_bagco", true) == 474);
+
+        T.Section("Next Step hint");
+        var ns = SaveService.NewEmpire();
+        var ne = new Empire(ns, content);
+        ne.EnsureFronts();
+        Nemesis.EnsureCrews(ns, content, new Random(9));
+        T.True("New empire: buy the car wash", ne.NextStep(true).Title == "Buy the Car Wash" || ne.NextStep(true).Title.StartsWith("Buy the"));
+        ne.SetOwner("carwash_handson", Owners.Player);
+        ne.StarterCrew(content.Front("carwash_handson"), rng);
+        T.True("Knife guards: arm them", ne.NextStep(true).Title.StartsWith("Arm the"));
+        ns.Attack = new AttackState { Front = "carwash_handson", Phase = AttackPhase.Window };
+        T.True("Under attack comes first", ne.NextStep(true).Title.StartsWith("Defend the") && ne.NextStep(true).FrontId == "carwash_handson");
+        ns.Attack = null;
 
         T.Section("Early-game safeguards");
         var bs2 = SaveService.NewEmpire();

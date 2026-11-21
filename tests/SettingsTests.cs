@@ -13,7 +13,7 @@ static class SettingsTests
         int warnings = 0;
         Config shipped = Config.Load(repoIni, w => warnings++);
         T.Check("Shipped INI parses with no warnings", warnings, 0, 0);
-        T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton && shipped.EmpirePressure && shipped.FrontStaff);
+        T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton && shipped.EmpirePressure && shipped.FrontStaff && shipped.Raids && shipped.Bodyguards && shipped.PurchaseShot && shipped.Tips && shipped.Difficulty == "Normal");
         T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 35 && shipped.RivalAlertRange == 35
             && shipped.LiveDefense && shipped.TurfFrequency == AttackFrequency.Normal && shipped.NotifyLevel == NoteLevel.All);
 
@@ -30,7 +30,7 @@ static class SettingsTests
         long now = 200 * 60000L;
         s.LastAttackMs = now - 60 * 60000L;
         T.True("Cooldown 90 min: no attack after 60 min", !Attacks.CanPlan(s, now, now, "Normal", 90, 10));
-        T.True("Cooldown 0 uses Frequency (45 min): attack allowed after 60 min", Attacks.CanPlan(s, now, now, "Normal", 0, 10));
+        T.True("Cooldown 0 uses Frequency (60 min): attack allowed after 61 min", Attacks.CanPlan(s, now + 60000, now, "Normal", 0, 10));
         T.True("Frequency Off still blocks a custom cooldown", !Attacks.CanPlan(s, now, now, "Off", 5, 10));
         T.True("First attack delay 0: attacks right after loading", Attacks.CanPlan(s, now, 1000, "Normal", 0, 0));
         T.Check("Turf Off: no moves", Turf.ChanceFor("Off"), 0, 0);

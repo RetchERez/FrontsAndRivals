@@ -49,6 +49,37 @@ static class Sim
             new Policy { Name = "Normal", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 48, AssaultWin = 0.8, RaidSquad = 2 },
             new Policy { Name = "Aggressive", PresentAtAttack = 0.50, LiveWinBoost = 0.30, RaidMinOdds = 0.45, AssaultEveryHours = 24, AssaultWin = 0.85, RaidSquad = 4 },
         };
+        if (args.Length > 2 && args[2] == "city")
+        {
+            // No player at all: how the crews and the market move the map on their own, night by night.
+            var forSale = new double[days + 1]; var byCrew = new Dictionary<string, double[]>(); double moves = 0, wins = 0;
+            foreach (CrewDef cd in _content.Crews) byCrew[cd.Id] = new double[days + 1];
+            for (int seed = 0; seed < runs; seed++)
+            {
+                var rng = new Random(seed);
+                EmpireState s = SaveService.NewEmpire();
+                var e = new Empire(s, _content);
+                e.EnsureFronts();
+                Nemesis.EnsureCrews(s, _content, rng);
+                for (int d = 0; d <= days; d++)
+                {
+                    forSale[d] += s.Fronts.Count(f => f.Owner == Owners.ForSale);
+                    foreach (var kv in byCrew) kv.Value[d] += s.Fronts.Count(f => f.Owner == kv.Key);
+                    s.Day++;
+                    Nemesis.Daily(s, s.Day);
+                    foreach (CrewState crew in s.Crews) Nemesis.Rebuild(s, _content, crew, rng, s.Day);
+                    foreach (Turf.Move m in Turf.Nightly(s, _content, rng, Turf.ChanceFor("Normal"))) { moves++; if (m.Success) wins++; }
+                    Turf.Market(s, _content, rng);
+                }
+            }
+            Console.WriteLine("city alone, " + runs + " runs: turf moves/night " + (moves / runs / days).ToString("0.00") + ", successful " + Pct(moves > 0 ? wins / moves : 0));
+            foreach (int d in new[] { 0, 3, 7, 15, 30, 45, days })
+            {
+                if (d > days) continue;
+                Console.WriteLine("  day " + d + ": for sale " + (forSale[d] / runs).ToString("0.0") + "   " + string.Join("   ", byCrew.Select(kv => kv.Key + " " + (kv.Value[d] / runs).ToString("0.0"))));
+            }
+            return 0;
+        }
         if (args.Length > 2 && args[2] == "story")
         {
             // Where you are in the story changes how much cash you start the mod with.
@@ -158,6 +189,7 @@ static class Sim
         Nemesis.Daily(s, s.Day);
         foreach (CrewState crew in s.Crews) Nemesis.Rebuild(s, _content, crew, rng, s.Day);
         Turf.Nightly(s, _content, rng, Turf.ChanceFor("Normal"));
+        Turf.Market(s, _content, rng);
         Economy.Payout pay = Economy.Midnight(s, _content, cash, 1.0, 1.0);
         e.DayOnDuty();
         st.Quits += pay.Quit.Count;

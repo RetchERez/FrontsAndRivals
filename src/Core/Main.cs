@@ -80,13 +80,13 @@ namespace FrontsAndRivals.Core
             _escorts = new Escorts(_registry, () => _empire, OnBodyguardDown);
             _director.OnPurchased = def =>
             {
-                try { _shot.Play(def); }
+                try { if (_config.PurchaseShot) _shot.Play(def); }
                 catch (Exception ex) { _shot.End(); Log.Error("Purchase shot", ex); }
             };
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
             _notifier.UseSettings(NoteSettingsNow);
-            Tips.State = () => _state;
+            Tips.State = () => _config.Tips ? _state : null;
             Sounds.Enabled = () => _config.SoundEffects && (_state == null || !_state.SoundOff);
             _streamer.AlertOnFootRange = _config.RivalAlertRange;
             _blips.ShowForSaleFronts = _config.ShowForSaleFronts;
@@ -248,7 +248,7 @@ namespace FrontsAndRivals.Core
             try { _blips.Refresh(_empire, _content); } catch (Exception ex) { Log.Error("Blips", ex); }
             Log.Write("Empire: " + _empire.LivingCount() + " guards, " + _state.Fronts.Count + " fronts tracked");
 
-            if (loaded.Source == "new") SaveNow(); // create the file right away
+            if (loaded.Source == "new") { _state.Difficulty = DifficultyStep(_config.Difficulty); SaveNow(); } // create the file right away
             if (_saves.Locked) GTA.UI.Notification.Show("Fronts & Rivals: your save is from a newer version, so saving is off. See log.");
         }
 
@@ -347,6 +347,13 @@ namespace FrontsAndRivals.Core
             }
         }
 
+        private static int DifficultyStep(string name)
+        {
+            int i = Array.IndexOf(Difficulty.Names, name);
+            if (i < 0) for (int k = 0; k < Difficulty.Names.Length; k++) if (string.Equals(Difficulty.Names[k], name, StringComparison.OrdinalIgnoreCase)) i = k;
+            return i < 0 ? 0 : i - 2;
+        }
+
         /// <summary>Office > Settings > Start a new empire. The old one is copied to empire.old.json first.</summary>
         private void StartOver()
         {
@@ -359,6 +366,7 @@ namespace FrontsAndRivals.Core
             _director.Reset();
             _placer.ResetAll();
             _state = SaveService.NewEmpire();
+            _state.Difficulty = DifficultyStep(_config.Difficulty);
             _rng = new Rng(_state.RngState);
             _activeBase = -_scheduler.ActiveMs; // the new empire's clock starts at zero
             _empire = new Empire(_state, _content);
@@ -552,6 +560,16 @@ namespace FrontsAndRivals.Core
                 {
                     Log.Write("Broker rescue: the car wash is for sale again");
                     _notifier.Send(NoteKind.Broker, "The Broker", "Back in business", "Rough few days. I've bought the Hands On Car Wash back off whoever had it. It's yours if you want it, same price as before.");
+                }
+                FrontState sold = Turf.Market(_state, _content, _rng);
+                if (sold != null)
+                {
+                    FrontDef sd = _content.Front(sold.Id);
+                    CrewState seller = null;
+                    foreach (CrewState c in _state.Crews) if (c.LastMove != null && c.LastMove.StartsWith("Sold the " + sd.ShortName)) seller = c;
+                    CrewDef sellerDef = seller != null ? _content.Crew(seller.Id) : null;
+                    Log.Write("Market: " + sold.Id + " is for sale" + (seller != null ? " (sold by " + seller.Id + ")" : ""));
+                    _notifier.Send(NoteKind.StreetWord, "Street word", sd.Area, "The " + (sellerDef != null ? sellerDef.Name : "crew") + " couldn't hold the " + sd.ShortName + ". It's on the market.");
                 }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
                 foreach (GuardState up in _empire.DayOnDuty())

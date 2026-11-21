@@ -12,6 +12,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
 - Start a New Empire from Office > Settings (for a new story game); the old one is kept as empire.old.json
+- A Next Step line at the top of the Office that always says what to do next
 - Raids: send your four strongest guards to take a rival front without you (odds shown first, call them back any time);
   drop a waypoint on a front on GTA's own map and the Office opens on that front's page
 - Guard posts and upgrades by size: small fronts take 2 guards and Cameras/Floodlights; mid-size 3 guards and Reinforced

@@ -24,13 +24,24 @@ static class AttackTests
         var s = new EmpireState();
         for (int i = 0; i < 15; i++) s.Fronts.Add(new FrontState { Id = "f" + i, Owner = Owners.Player });
         long now = 100 * 60000L;
-        s.LastAttackMs = now - 32 * 60000L; // 32 min since the last attack
-        T.True("15 fronts, pressure on: 32 min is long enough on Normal", Attacks.CanPlan(s, now, now, "Normal", 0, 10, true));
-        T.True("15 fronts, pressure off: still waits 45 min", !Attacks.CanPlan(s, now, now, "Normal", 0, 10, false));
-        T.True("Exact CooldownMinutes is kept as set", !Attacks.CanPlan(s, now, now, "Normal", 40, 10, true));
+        s.LastAttackMs = now - 42 * 60000L; // 42 min since the last attack
+        T.True("15 fronts, pressure on: 42 min is long enough on Normal", Attacks.CanPlan(s, now, now, "Normal", 0, 10, true));
+        T.True("15 fronts, pressure off: still waits 60 min", !Attacks.CanPlan(s, now, now, "Normal", 0, 10, false));
+        T.True("Exact CooldownMinutes is kept as set", !Attacks.CanPlan(s, now, now, "Normal", 50, 10, true));
         var g2s = new EmpireState();
         Attacks.GracePeriod(g2s, "x", 1000);
         T.True("A new front gets a grace period", g2s.FrontAttackedMs["x"] == 1000 && Attacks.SameFrontDelayMs >= 2 * 24 * Attacks.GameHourMs);
+        var mcontent = new ContentDb(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "Content")), null);
+        mcontent.Load();
+        var ms = SaveService.NewEmpire();
+        var me2 = new Empire(ms, mcontent);
+        me2.EnsureFronts();
+        Nemesis.EnsureCrews(ms, mcontent, new Random(4));
+        foreach (FrontState f in ms.Fronts) if (f.Owner == Owners.ForSale && f.Id != "carwash_handson") f.Owner = "CK";
+        int sold = 0;
+        for (int n = 0; n < 40; n++) if (Turf.Market(ms, mcontent, new Random(n)) != null) sold++;
+        int onSale = ms.Fronts.Count(f => f.Owner == Owners.ForSale);
+        T.True("The market refills when it runs dry, up to two (" + onSale + " on sale)", sold > 0 && onSale <= Turf.MarketTarget);
         T.True("Labels: Unknown at 0, Marked at 20", Attacks.PressureLabel(0) == "Unknown" && Attacks.PressureLabel(20) == "Marked");
     }
 
@@ -62,9 +73,9 @@ static class AttackTests
         T.True("Traits parsed (King D is Ruthless)", ck.Boss.LeaderTrait == LeaderTrait.Ruthless);
 
         T.Section("Attack planning");
-        T.Check("Normal cooldown 45 min", Attacks.CooldownMs("Normal"), 45 * 60000, 0);
-        T.Check("Low cooldown 75 min", Attacks.CooldownMs("Low"), 75 * 60000, 0);
-        T.Check("High cooldown 25 min", Attacks.CooldownMs("High"), 25 * 60000, 0);
+        T.Check("Normal cooldown 60 min", Attacks.CooldownMs("Normal"), 60 * 60000, 0);
+        T.Check("Low cooldown 90 min", Attacks.CooldownMs("Low"), 90 * 60000, 0);
+        T.Check("High cooldown 35 min", Attacks.CooldownMs("High"), 35 * 60000, 0);
         T.Check("Off disables attacks", Attacks.CooldownMs("Off"), -1, 0);
         long now = 100 * 60000;
         T.True("No fronts owned: no attack", !Attacks.CanPlan(s, now, now, "Normal"));

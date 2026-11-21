@@ -253,6 +253,53 @@ namespace FrontsAndRivals.Rules
             return Raids.WinChance(Raids.TeamPower(records, hour), Raids.CrewDefense(cd, soldiers) * Difficulty.Strength(_s.Difficulty));
         }
 
+        /// <summary>What to do next, for the top of the Office (like the game's own objective text). Title, a line of
+        /// explanation, and the front it's about (or null). Most urgent first.</summary>
+        public sealed class Hint { public string Title, Text, FrontId; }
+
+        public Hint NextStep(bool raidsOn)
+        {
+            AttackState a = _s.Attack;
+            if (a != null && a.Phase != AttackPhase.Warning)
+            {
+                FrontDef af = _content.Front(a.Front);
+                return new Hint { Title = "Defend the " + (af != null ? af.ShortName : "front"), Text = "It's under attack right now. Get there before your people break.", FrontId = a.Front };
+            }
+            if (OwnedCount() == 0)
+            {
+                foreach (FrontDef d in _content.Fronts)
+                    if (d.Starter && CanBuy(d.Id))
+                        return new Hint { Title = "Buy the " + d.ShortName, Text = "The Broker's starter deal in " + d.Area + ". Go to the door and buy it; two of the old crew come with it.", FrontId = d.Id };
+                return new Hint { Title = "Take a front", Text = "Clear a rival crew's soldiers at one of their small fronts and claim the door.", FrontId = null };
+            }
+            List<GuardState> free = FreeGuards();
+            foreach (FrontDef d in _content.Fronts)
+                if (PlayerOwns(d.Id) && EmptyPosts(d.Id) > 0 && free.Count > 0)
+                    return new Hint { Title = "Post guards at the " + d.ShortName, Text = EmptyPosts(d.Id) + " empty post(s). Open it and choose Fill Empty Posts.", FrontId = d.Id };
+            int empty = 0;
+            foreach (FrontDef d in _content.Fronts) if (PlayerOwns(d.Id)) empty += EmptyPosts(d.Id);
+            if (empty > 0 && _s.Offers.Count > 0)
+                return new Hint { Title = "Hire recruits", Text = empty + " post(s) stand empty. Today's recruits are in Hire Recruits.", FrontId = null };
+            foreach (FrontDef d in _content.Fronts)
+                if (PlayerOwns(d.Id) && ArmFrontPrice(d.Id) > 0)
+                    foreach (GuardState g in _s.Guards)
+                        if (g.Front == d.Id && g.Weapon == (int)Weapon.Knife)
+                            return new Hint { Title = "Arm the " + d.ShortName, Text = "Guards there only have knives. Open it and choose Arm This Front.", FrontId = d.Id };
+            if (raidsOn && _s.Raid == null)
+            {
+                FrontDef best = null;
+                double bestOdds = 0;
+                foreach (FrontDef d in _content.Fronts)
+                    if (RaidBlocked(d) == null) { double o = RaidOdds(d, 12); if (o > bestOdds) { bestOdds = o; best = d; } }
+                if (best != null && bestOdds >= 0.5)
+                    return new Hint { Title = "Raid the " + best.ShortName, Text = "About " + (int)Math.Round(bestOdds * 100) + "% with your reserve. Open it and choose Send a Crew, or go and take it yourself.", FrontId = best.Id };
+            }
+            int held = OwnedCount();
+            if (held < 3) return new Hint { Title = "Grow to 3 fronts", Text = "Holding 3 earns the Broker's trust for mid-size fronts. Take small crew fronts or buy one.", FrontId = null };
+            if (held < 8) return new Hint { Title = "Grow to 8 fronts", Text = "Holding 8 opens the biggest businesses: clubs, factories and depots.", FrontId = null };
+            return new Hint { Title = "Hold the city", Text = "Keep your fronts staffed and armed. The crews never stay gone for long.", FrontId = null };
+        }
+
         /// <summary>The Broker's starter deal: the car wash comes with two of the old owner's people, already on their posts
         /// (knives only), so a broke early-story character isn't left with a front nobody guards. Only on a first front.</summary>
         public int StarterCrew(FrontDef def, Random rng)

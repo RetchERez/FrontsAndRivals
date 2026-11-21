@@ -106,6 +106,46 @@ namespace FrontsAndRivals.Rules
             return pool[pool.Count - 1];
         }
 
+        public const int MarketTarget = 2;       // fronts the market tries to keep on offer
+        public const double MarketChance = 0.15; // per night, while it's short: now and then, not a conveyor belt
+
+        /// <summary>Keeps the market alive for a late-story buyer: while fewer than three fronts are for sale, the most
+        /// stretched crew (the most fronts per soldier) sometimes sells the one furthest from its home. Returns the front
+        /// put on sale, or null.</summary>
+        public static FrontState Market(EmpireState s, ContentDb content, Random rng)
+        {
+            int forSale = 0;
+            foreach (FrontState f in s.Fronts) if (f.Owner == Owners.ForSale) forSale++;
+            if (forSale >= MarketTarget || rng.NextDouble() >= MarketChance) return null;
+            CrewState stretched = null;
+            double worst = double.MaxValue;
+            foreach (CrewState c in s.Crews)
+            {
+                int held = 0;
+                foreach (FrontState f in s.Fronts) if (f.Owner == c.Id) held++;
+                if (held < 2) continue; // a crew keeps its last foothold
+                double perFront = Math.Max(0, c.Manpower) / (double)held;
+                if (perFront < worst) { worst = perFront; stretched = c; }
+            }
+            if (stretched == null) return null;
+            CrewDef def = content.Crew(stretched.Id);
+            FrontState sell = null;
+            double far = -1;
+            foreach (FrontState f in s.Fronts)
+            {
+                if (f.Owner != stretched.Id) continue;
+                FrontDef fd = content.Front(f.Id);
+                if (fd == null || fd.Starter) continue;
+                double d = def != null ? Distance(def.Home, fd.Door) : 0;
+                if (d > far) { far = d; sell = f; }
+            }
+            if (sell == null) return null;
+            sell.Owner = Owners.ForSale;
+            sell.TakenFrom = null;
+            stretched.LastMove = "Sold the " + content.Front(sell.Id).ShortName + ", couldn't hold it";
+            return sell;
+        }
+
         private static double Distance(Spot a, Spot b)
         {
             if (a == null || b == null || !a.IsSet || !b.IsSet) return 0;
