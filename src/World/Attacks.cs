@@ -330,6 +330,10 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>The player claims a crew front at its door.</summary>
+        /// <summary>A front you just bought or took is left alone for a while (SameFrontDelayMs, two in-game days),
+        /// so you can staff it before anyone comes for it.</summary>
+        public static void GracePeriod(EmpireState s, string frontId, long nowMs) { s.FrontAttackedMs[frontId] = nowMs; }
+
         public static void TakeFront(EmpireState s, Empire empire, FrontState front, string fromCrew)
         {
             empire.SetOwner(front.Id, Owners.Player);

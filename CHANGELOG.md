@@ -12,6 +12,10 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Progression: guns unlock with rank (Recruits up to the shotgun, Soldiers the SMG, Veterans the carbine); the Broker
+  only sells or backs claims on mid-size fronts once you hold 3 and the biggest once you hold 8; attacks build up over
+  most of a day (a rumour, then the warning LeadHours=12 in-game hours later, then the hit); a front you just bought or
+  took is left alone for two in-game days
 - Early game: rival soldiers ignore you until you own a front (unless you hurt one), and the Broker's first text waits
   until your character has the $25,000 for the car wash
 - Office > Settings > Start a new empire (two presses; the old empire is kept as empire.old.json)

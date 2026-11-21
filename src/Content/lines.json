@@ -1,4 +1,10 @@
 {
+  "rumor": [
+    "The {crew} have been watching the {front}. Nothing yet, but they're curious.",
+    "Saw a couple of {crew} cars parked across from the {front} a while. Just looking, for now.",
+    "Somebody from the {crew} was asking who runs the {front}. Thought you'd want to know.",
+    "The {crew} are counting heads at the {front}. That's how it starts."
+  ],
   "warning": [
     "Word is the {crew} want the {front}. Tonight.",
     "Heads up. {crew} cars keep circling the {front}. Something's coming.",

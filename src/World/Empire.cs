@@ -190,7 +190,7 @@ namespace FrontsAndRivals.Rules
         public int ArmFrontPrice(string frontId)
         {
             int total = 0;
-            foreach (GuardState g in AtFront(frontId)) { int p = WeaponUpgradePrice(g); if (p > 0) total += p; }
+            foreach (GuardState g in AtFront(frontId)) { int p = WeaponUpgradePrice(g); if (p > 0 && !WeaponLocked(g)) total += p; }
             return total;
         }
 
@@ -198,7 +198,7 @@ namespace FrontsAndRivals.Rules
         public int ArmFront(string frontId)
         {
             int n = 0;
-            foreach (GuardState g in AtFront(frontId)) if (WeaponUpgradePrice(g) > 0) { UpgradeWeapon(g); n++; }
+            foreach (GuardState g in AtFront(frontId)) if (WeaponUpgradePrice(g) > 0 && !WeaponLocked(g)) { UpgradeWeapon(g); n++; }
             return n;
         }
 
@@ -237,8 +237,17 @@ namespace FrontsAndRivals.Rules
 
         public void UpgradeWeapon(GuardState g)
         {
-            if (g != null && g.Weapon < (int)DefenseRating.TopWeapon) g.Weapon++;
+            if (g != null && g.Weapon < (int)DefenseRating.TopWeapon && !WeaponLocked(g)) g.Weapon++;
         }
+
+        /// <summary>Their next gun needs a higher rank than they have (Economy.MaxWeapon).</summary>
+        public static bool WeaponLocked(GuardState g)
+        {
+            return g != null && g.Weapon < (int)DefenseRating.TopWeapon && (Weapon)(g.Weapon + 1) > Economy.MaxWeapon((Rank)g.Rank);
+        }
+
+        /// <summary>Does the Broker trust you with this front yet? (Economy.TrustNeeded)</summary>
+        public bool Trusted(FrontDef def) { return def == null || OwnedCount() >= Economy.TrustNeeded(def.Tier); }
 
         /// <summary>Buying only works for fronts that are for sale (the starter car wash).</summary>
         public bool CanBuy(string frontId) { return OwnerOf(frontId) == Owners.ForSale; }

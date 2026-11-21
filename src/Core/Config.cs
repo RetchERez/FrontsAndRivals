@@ -67,6 +67,7 @@ namespace FrontsAndRivals.Core
         // [Attacks]
         public AttackFrequency Frequency = AttackFrequency.Normal;
         public int WarningHours = 3;
+        public int LeadHours = 12;
         public bool PoliceRespond = true;
         /// <summary>False: attacks always resolve on their own, even when you're there.</summary>
         public bool LiveDefense = true;
@@ -130,6 +131,7 @@ namespace FrontsAndRivals.Core
             c.SoundEffects = Bool(ini, "Sound", "Effects", c.SoundEffects, warn);
             c.Frequency = Enum(ini, "Attacks", "Frequency", c.Frequency, warn);
             c.WarningHours = Int(ini, "Attacks", "WarningHours", c.WarningHours, 1, 24, warn);
+            c.LeadHours = Int(ini, "Attacks", "LeadHours", c.LeadHours, 0, 48, warn);
             c.PoliceRespond = Bool(ini, "Attacks", "PoliceRespond", c.PoliceRespond, warn);
             c.LiveDefense = Bool(ini, "Attacks", "LiveDefense", c.LiveDefense, warn);
             c.EmpirePressure = Bool(ini, "Attacks", "EmpirePressure", c.EmpirePressure, warn);

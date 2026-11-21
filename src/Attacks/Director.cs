@@ -95,6 +95,7 @@ namespace FrontsAndRivals.Attacks
                 return;
             }
 
+            if (a.Phase == AttackPhase.Warning && !a.Warned && now >= a.WarnAt) Warn(e, a, hour, now);
             if (a.Phase == AttackPhase.Warning && now >= a.WarnEnds)
             {
                 a.Phase = AttackPhase.Window;
@@ -161,13 +162,40 @@ namespace FrontsAndRivals.Attacks
             int bonus = _config.EmpirePressure ? Rules.Attacks.PressureSquadBonus(Rules.Attacks.HeldCount(s)) : 0;
             AttackState a = Rules.Attacks.Plan(s, _content, e, _rng(), _config.WarningHours, hour, now, bonus);
             if (a == null) { if (force) DevNotice("No crew can attack right now (do you own a front?)."); return; }
-            if (force) { a.WarnEnds = now + 30000; a.WindowEnds = a.WarnEnds + Rules.Attacks.WindowMs; }
+            if (force) { a.WarnEnds = now + 30000; a.WindowEnds = a.WarnEnds + Rules.Attacks.WindowMs; a.WarnAt = now; }
+            else
+            {
+                // The build-up: a rumour now, the real warning LeadHours later, then the hit.
+                long lead = _config.LeadHours * Rules.Attacks.GameHourMs;
+                a.WarnAt = now + lead;
+                a.WarnEnds += lead;
+                a.WindowEnds += lead;
+            }
             s.Attack = a;
             CrewDef crew = _content.Crew(a.Crew);
             CrewMember leader = Nemesis.Crew(s, a.Crew).Member(a.Leader);
             FrontDef front = _content.Front(a.Front);
             Log.Write("Director: " + crew.Name + " led by " + leader.DisplayName + " will hit " + a.Front + " (squad " + a.Squad + ", A " + a.Strength.ToString("0") + ")");
 
+            Nemesis.Crew(s, a.Crew).LastMove = "Watching your " + front.ShortName;
+            if (a.WarnAt > now)
+            {
+                _notifierPost(NoteKind.StreetWord, "Street word", front.ShortName, _content.Lines.Pick(_rng(), "rumor", Tokens(crew, front, leader, null)));
+                _changed();
+                return;
+            }
+            Warn(e, a, hour, now);
+        }
+
+        /// <summary>The rumour firms up: the real warning, the call to come defend, and the crew's taunt.</summary>
+        private void Warn(Empire e, AttackState a, int hour, long now)
+        {
+            EmpireState s = e.State;
+            a.Warned = true;
+            CrewDef crew = _content.Crew(a.Crew);
+            CrewMember leader = Nemesis.Crew(s, a.Crew).Member(a.Leader);
+            FrontDef front = _content.Front(a.Front);
+            if (crew == null || front == null) return;
             var tokens = Tokens(crew, front, leader, null);
             _notifierPost(NoteKind.AttackWarning, "Street word", front.ShortName, _content.Lines.Pick(_rng(), "warning", tokens));
             Sounds.Play(Cue.AttackWarning);
@@ -181,7 +209,7 @@ namespace FrontsAndRivals.Attacks
                     "They hit around " + hitHour.ToString("00") + ":00. Be there and hold the door yourself: the Broker pays $" + defendBonus.ToString("N0") + " for it."
                     + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS."));
             }
-            if (leader.LeaderTrait == LeaderTrait.Showboat)
+            if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
                 _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(_rng(), "taunt", tokens));
             Nemesis.Crew(s, a.Crew).LastMove = "Planning a hit on your " + front.ShortName;
             _changed();
@@ -405,12 +433,18 @@ namespace FrontsAndRivals.Attacks
             FrontDef front = _content.Front(_claimFront);
             Vector3 p = Game.Player.Character.Position;
             if (front.Door.DistanceTo(p.X, p.Y, p.Z) > ClaimRange) return;
+            if (!e.Trusted(front))
+            {
+                GTA.UI.Screen.ShowHelpTextThisFrame("The " + front.ShortName + " is clear, but the Broker won't back your claim until you hold " + Economy.TrustNeeded(front.Tier) + " fronts.");
+                return;
+            }
             GTA.UI.Screen.ShowHelpTextThisFrame("Press ~INPUT_CONTEXT~ to claim the " + front.ShortName + ".");
             if (!Game.IsControlJustPressed(Control.Context)) return;
 
             FrontState fs = e.Find(front.Id);
             CrewDef crew = _content.Crew(_claimCrew);
             Rules.Attacks.TakeFront(e.State, e, fs, _claimCrew);
+            Rules.Attacks.GracePeriod(e.State, front.Id, _now());
             _claimFront = null;
             if (!CheckRuledAll(e)) _banners.Show("FRONT TAKEN", "The " + front.Name + " is yours.");
             Sounds.Play(Cue.FrontTaken);
@@ -440,6 +474,11 @@ namespace FrontsAndRivals.Attacks
                 if (d <= BuyRange) { front = def; break; }
             }
             if (front == null) return;
+            if (!e.Trusted(front))
+            {
+                GTA.UI.Screen.ShowHelpTextThisFrame("The Broker won't sell you the " + front.Name + " until you hold " + Economy.TrustNeeded(front.Tier) + " fronts.");
+                return;
+            }
             int price = Economy.FrontPrice(front, _config.FrontPriceDays);
             GTA.UI.Screen.ShowHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy the " + front.Name + " for $" + price.ToString("N0") + ".");
             if (!Game.IsControlJustPressed(Control.Context)) return;
@@ -450,6 +489,7 @@ namespace FrontsAndRivals.Attacks
             }
             Game.Player.Money -= price;
             e.SetOwner(front.Id, Owners.Player);
+            Rules.Attacks.GracePeriod(e.State, front.Id, _now());
             Sounds.Play(Cue.FrontTaken);
             if (!CheckRuledAll(e)) _banners.Show("FRONT PURCHASED", "The " + front.Name + " is yours. Post some guards from the Office.");
             _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, "It's yours. Put some people on it before somebody else gets ideas.");

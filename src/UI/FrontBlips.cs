@@ -74,7 +74,7 @@ namespace FrontsAndRivals.UI
             if (owner == Owners.Player)
             {
                 if (empire.State.HideBlips) return null;
-                if (attack != null && attack.Front == def.Id)
+                if (attack != null && attack.Front == def.Id && (attack.Warned || attack.Phase != AttackPhase.Warning))
                     return (attack.Phase == AttackPhase.Warning ? "threat" : "attack") + (empire.State.RouteOff ? "" : "+route");
                 return "yours";
             }

@@ -136,6 +136,9 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "windowEnds", Order = 7)] public long WindowEnds;
         /// <summary>The crew already waited 90 s for you once (saved, so a reload can't repeat it).</summary>
         [DataMember(Name = "waited", Order = 8)] public bool Waited;
+        /// <summary>Free-roam ms when word of the attack firms up into a warning (the rumour comes at planning).</summary>
+        [DataMember(Name = "warnAt", Order = 9)] public long WarnAt;
+        [DataMember(Name = "warned", Order = 10)] public bool Warned;
     }
 
     /// <summary>Text templates with tokens like {front} and {crew}. Built-in fallbacks if lines.json is missing.</summary>
@@ -190,6 +193,7 @@ namespace FrontsAndRivals.Data
             switch (moment)
             {
                 case "warning": return "Word is the {crew} want the {front}. Tonight.";
+                case "rumor": return "The {crew} have been watching the {front}. Nothing yet, but they're curious.";
                 case "held": return "{guard} and the others held the {front}.";
                 case "lost": return "We lost the {front}. {leader} is running it now.";
                 case "guardDied": return "{guard} didn't make it out of the {front}.";

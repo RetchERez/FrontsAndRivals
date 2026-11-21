@@ -109,8 +109,8 @@ namespace FrontsAndRivals.Rules
             return ("aeiouAEIOU".IndexOf(name[0]) >= 0 || name.StartsWith("SMG") ? "an " : "a ") + name;
         }
 
-        /// <summary>What each step costs. Balanced against front income ($4,000-$12,000 a day): a pistol is a few
-        /// hours of one front, a carbine about a day and a half. $11,250 takes a guard from the knife to the carbine.</summary>
+        /// <summary>What each gun costs, balanced against fronts ($20,000-$60,000): taking a small front's four guards from
+        /// knives to SMGs costs about as much as the front itself. Rank gates the top of the ladder (MaxWeapon).</summary>
         public static int WeaponPrice(Weapon w)
         {
             switch (w)
@@ -122,6 +122,34 @@ namespace FrontsAndRivals.Rules
                 default: return 6000; // carbine rifle
             }
         }
+
+        // ---- 2. guns unlock with rank ----
+
+        /// <summary>The best gun a guard of this rank will carry: Recruits up to the pump shotgun, Soldiers the SMG,
+        /// Veterans and Lieutenants the carbine rifle.</summary>
+        public static Weapon MaxWeapon(Rank r)
+        {
+            switch (r)
+            {
+                case Rank.Recruit: return Weapon.Shotgun;
+                case Rank.Soldier: return Weapon.Smg;
+                default: return Weapon.CarbineRifle;
+            }
+        }
+
+        /// <summary>The rank a guard needs before they can carry this gun.</summary>
+        public static Rank RankFor(Weapon w)
+        {
+            if (w <= Weapon.Shotgun) return Rank.Recruit;
+            if (w == Weapon.Smg) return Rank.Soldier;
+            return Rank.Veteran;
+        }
+
+        // ---- 3. the Broker's trust ----
+
+        /// <summary>Fronts you must already hold before the Broker sells you, or backs your claim on, a front of this tier:
+        /// small ones from the start, mid-size from 3, the biggest (clubs, factories, depots) from 8.</summary>
+        public static int TrustNeeded(int tier) { return tier >= 2 ? 8 : tier == 1 ? 3 : 0; }
 
         /// <summary>XP needed for the next rank, or -1 at Lieutenant.</summary>
         public static int NextRankXp(Rank r)

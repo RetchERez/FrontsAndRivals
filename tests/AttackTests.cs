@@ -29,6 +29,9 @@ static class AttackTests
         T.True("15 fronts, pressure on: 32 min is long enough on Normal", Attacks.CanPlan(s, now, now, "Normal", 0, 10, true));
         T.True("15 fronts, pressure off: still waits 45 min", !Attacks.CanPlan(s, now, now, "Normal", 0, 10, false));
         T.True("Exact CooldownMinutes is kept as set", !Attacks.CanPlan(s, now, now, "Normal", 40, 10, true));
+        var g2s = new EmpireState();
+        Attacks.GracePeriod(g2s, "x", 1000);
+        T.True("A new front gets a grace period", g2s.FrontAttackedMs["x"] == 1000 && Attacks.SameFrontDelayMs >= 2 * 24 * Attacks.GameHourMs);
         T.True("Labels: Unknown at 0, Marked at 20", Attacks.PressureLabel(0) == "Unknown" && Attacks.PressureLabel(20) == "Marked");
     }
 

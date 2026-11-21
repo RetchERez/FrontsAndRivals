@@ -559,8 +559,11 @@ namespace FrontsAndRivals.UI
 
             if (owner == Owners.ForSale)
             {
+                int need = Economy.TrustNeeded(def.Tier);
                 NativeItem price = Info("For sale", (def.Starter ? "The Broker's starter price. " : _config.FrontPriceDays + " days of its takings. ")
-                    + "Go to the door and buy it in person. Set a waypoint below.", Money(Economy.FrontPrice(def, _config.FrontPriceDays)));
+                    + (e.Trusted(def) ? "Go to the door and buy it in person. Set a waypoint below."
+                                      : "The Broker only sells this one to someone holding " + need + " fronts. You hold " + e.OwnedCount() + "."),
+                    e.Trusted(def) ? Money(Economy.FrontPrice(def, _config.FrontPriceDays)) : "Hold " + need);
                 _detail.Add(price);
             }
             else if (owner == Owners.Player)
@@ -570,7 +573,9 @@ namespace FrontsAndRivals.UI
             }
             else
             {
-                NativeItem held = Row("Held by the " + OwnerLabel(owner), "Clear their soldiers, then claim the door to take it.", "");
+                int need = Economy.TrustNeeded(def.Tier);
+                NativeItem held = Row("Held by the " + OwnerLabel(owner), e.Trusted(def) ? "Clear their soldiers, then claim the door to take it."
+                    : "Too big to take yet: the Broker backs a claim here once you hold " + need + " fronts. You hold " + e.OwnedCount() + ".", e.Trusted(def) ? "" : "Hold " + need);
                 held.Enabled = false;
                 _detail.Add(held);
             }
@@ -646,7 +651,8 @@ namespace FrontsAndRivals.UI
             _detail.Add(fill);
 
             int cost = e.ArmFrontPrice(def.Id);
-            NativeItem arm = Row("Arm this front", cost > 0 ? "Every guard here steps up to their next gun, all at once." : "Nobody here needs a better gun (or nobody is posted).",
+            NativeItem arm = Row("Arm this front", cost > 0 ? "Every guard here steps up to their next gun, all at once (as far as their rank allows)."
+                : "Nobody here can carry a better gun yet: they're at the best their rank allows, or nobody is posted.",
                 cost > 0 ? Money(cost) : "");
             arm.Enabled = cost > 0;
             arm.Activated += (s, a) => Safe("arm", () =>
@@ -756,7 +762,14 @@ namespace FrontsAndRivals.UI
             int price = e.WeaponUpgradePrice(g);
             Weapon w = (Weapon)g.Weapon;
             NativeItem weapon;
-            if (price > 0)
+            if (price > 0 && Empire.WeaponLocked(g))
+            {
+                Weapon locked = w + 1;
+                weapon = Row("Next gun: " + Economy.WeaponName(locked), "Carries " + Economy.WithArticle(w) + ". Only a " + Economy.RankName(Economy.RankFor(locked))
+                    + " or higher is trusted with " + Economy.WithArticle(locked) + ". Ranks come from fights.", Economy.RankName(Economy.RankFor(locked)));
+                weapon.Enabled = false;
+            }
+            else if (price > 0)
             {
                 Weapon nextGun = w + 1;
                 weapon = Row("Buy " + Economy.WithArticle(nextGun),
@@ -775,7 +788,7 @@ namespace FrontsAndRivals.UI
                 e.UpgradeWeapon(g);
                 Changed(true);
             });
-            weapon.Enabled = price > 0;
+            weapon.Enabled = price > 0 && !Empire.WeaponLocked(g);
             _detail.Add(weapon);
 
             NativeItem letGo = Row(_letGoArmed == g.Id ? "Fire " + g.First + ": select again to confirm" : "Fire",

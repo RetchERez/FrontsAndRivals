@@ -25,6 +25,9 @@ static class EconomyTests
         T.Check("Carbine rifle can't be upgraded", Economy.UpgradePrice(Weapon.CarbineRifle), -1, 0);
         T.True("Articles read right", Economy.WithArticle(Weapon.Smg) == "an SMG" && Economy.WithArticle(Weapon.Shotgun) == "a pump shotgun" && Economy.WithArticle(Weapon.CarbineRifle) == "a carbine rifle");
         T.Check("Knife to carbine: $11,250 a guard", Economy.FullLadderPrice(), 11250, 0);
+        T.True("Four guards to SMGs costs about a small front", Math.Abs(4 * (750 + 1500 + 3000) - 4500 * 5) < 2000);
+        T.True("Guns unlock with rank", Economy.MaxWeapon(Rank.Recruit) == Weapon.Shotgun && Economy.MaxWeapon(Rank.Soldier) == Weapon.Smg && Economy.MaxWeapon(Rank.Veteran) == Weapon.CarbineRifle);
+        T.True("Broker trust: small 0, mid 3, big 8", Economy.TrustNeeded(0) == 0 && Economy.TrustNeeded(1) == 3 && Economy.TrustNeeded(2) == 8);
         bool bigSteps = true;
         for (Weapon w = Weapon.Knife; w < DefenseRating.TopWeapon; w++) if (DefenseRating.WeaponPower(w + 1) < DefenseRating.WeaponPower(w) * 1.2) bigSteps = false;
         T.True("Every step up the ladder is at least +20%", bigSteps);
@@ -97,6 +100,9 @@ static class EconomyTests
         T.True("INI off can't be overridden on", !e2.PermanentDeath(false));
         e2.UpgradeWeapon(g);
         T.True("Weapon upgrade: knife -> pistol, next is the shotgun", g.Weapon == (int)Weapon.Pistol && e2.WeaponUpgradePrice(g) == 1500);
+        for (int i = 0; i < 10; i++) e2.UpgradeWeapon(g);
+        T.True("A Recruit stops at the shotgun", g.Weapon == (int)Weapon.Shotgun && Empire.WeaponLocked(g));
+        g.Rank = (int)Rank.Veteran;
         for (int i = 0; i < 10; i++) e2.UpgradeWeapon(g);
         T.True("Carbine rifle is the top tier", g.Weapon == (int)Weapon.CarbineRifle && e2.WeaponUpgradePrice(g) == -1);
         e2.LetGo(g);
