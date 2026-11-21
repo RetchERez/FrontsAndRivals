@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Monte Carlo balance simulator. Compiles the mod's own pure rules files (the same list as tests/), never GTA. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/World/Rules.cs" />
+    <Compile Include="../../src/Core/Log.cs" />
+    <Compile Include="../../src/Core/FailureWindow.cs" />
+    <Compile Include="../../src/Core/Scheduler.cs" />
+    <Compile Include="../../src/Core/Rng.cs" />
+    <Compile Include="../../src/Core/Config.cs" />
+    <Compile Include="../../src/Data/EmpireState.cs" />
+    <Compile Include="../../src/Data/Migrations.cs" />
+    <Compile Include="../../src/Data/SaveService.cs" />
+    <Compile Include="../../src/Spawn/Markers.cs" />
+    <Compile Include="../../src/Dev/DevFormat.cs" />
+    <Compile Include="../../src/Data/Content.cs" />
+    <Compile Include="../../src/World/Empire.cs" />
+    <Compile Include="../../src/Spawn/StreamRules.cs" />
+    <Compile Include="../../src/Spawn/WorkerRules.cs" />
+    <Compile Include="../../src/Spawn/EscortRules.cs" />
+    <Compile Include="../../src/Spawn/AutoPosts.cs" />
+    <Compile Include="../../src/World/Economy.cs" />
+    <Compile Include="../../src/World/Stats.cs" />
+    <Compile Include="../../src/World/Raids.cs" />
+    <Compile Include="../../src/World/Difficulty.cs" />
+    <Compile Include="../../src/World/Nemesis.cs" />
+    <Compile Include="../../src/World/Attacks.cs" />
+    <Compile Include="../../src/World/Turf.cs" />
+    <Compile Include="../../src/Core/NotifyQueue.cs" />
+    <Compile Include="../../src/Core/HoldButton.cs" />
+    <Compile Include="../../src/Data/Crews.cs" />
+  </ItemGroup>
+</Project>

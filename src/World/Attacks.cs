@@ -33,7 +33,7 @@ namespace FrontsAndRivals.Rules
 
         // ---- Empire-size pressure: the bigger you get, the more the crews come for you ----
         // Up to 3 fronts: the base timing. Each front past 3 makes attacks about 4% more frequent, down to 55% of the
-        // cooldown (45 min on Normal becomes ~35 at 10 fronts, ~30 at 15, 25 at 23+). Squads grow by one at 6, 12 and 20 fronts.
+        // cooldown (45 min on Normal becomes ~35 at 10 fronts, ~30 at 15, 25 at 23+). Squads grow by one at 10 and 22 fronts.
         public const int PressureFreeFronts = 3;
         public const double PressureMinFactor = 0.55;
         public const long PressureFloorMs = 20 * Minute; // pressure never makes attacks closer than this
@@ -48,7 +48,7 @@ namespace FrontsAndRivals.Rules
         /// <summary>Extra attackers per squad for the number of fronts you hold (still capped at 9).</summary>
         public static int PressureSquadBonus(int held)
         {
-            return held >= 20 ? 3 : held >= 12 ? 2 : held >= 6 ? 1 : 0;
+            return held >= 22 ? 2 : held >= 10 ? 1 : 0; // balance pass: was +1/+2/+3 at 6/12/20
         }
 
         /// <summary>How the street sees you, for the Office.</summary>

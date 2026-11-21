@@ -126,7 +126,7 @@ namespace FrontsAndRivals.Rules
         {
             double t = ruthless ? 1.2 : 1.0;
             int g = Math.Max(0, Math.Min(100, grudge));
-            return (squad * soldierPower + leaderBonus) * t * (1.0 + g / 200.0);
+            return (squad * soldierPower + leaderBonus) * t * (1.0 + g / 400.0); // grudge: up to +25% (was +50%)
         }
 
         /// <summary>n = min(9, manpower, 2 + tier + floor(grudge/25))</summary>
@@ -139,7 +139,7 @@ namespace FrontsAndRivals.Rules
         public static int SquadSize(int frontTier, int grudge, int manpower, int bonus)
         {
             // A small front (2 guards) faces one fewer attacker, so two decent guards stand a fair chance.
-            int want = (frontTier == 0 ? 1 : 2) + frontTier + (Math.Max(0, grudge) / 25) + Math.Max(0, bonus);
+            int want = (frontTier == 0 ? 1 : 2) + frontTier + (Math.Max(0, grudge) / 40) + Math.Max(0, bonus); // grudge adds up to 2 (was 4)
             return Math.Max(0, Math.Min(9, Math.Min(manpower, want)));
         }
 

@@ -665,12 +665,7 @@ namespace FrontsAndRivals.UI
         /// in hire order, so the order never jumps around.</summary>
         private NativeItem PostRow(Empire e, FrontDef def, int post)
         {
-            if (post >= def.Posts.Count)
-            {
-                NativeItem none = Row("Post " + (post + 1), "There's no safe spot for a fourth guard at this front.", "None");
-                none.Enabled = false;
-                return none;
-            }
+
             GuardState current = e.AtPost(def.Id, post);
             var choices = new List<GuardState> { null };
             foreach (GuardState g in e.State.Guards)
@@ -725,8 +720,8 @@ namespace FrontsAndRivals.UI
             var names = new List<string>();
             foreach (GuardState g in team) names.Add(g.ShortName);
             int odds = blocked == null ? (int)Math.Round(e.RaidOdds(def, Hour()) * 100) : 0;
-            NativeItem raid = Row("Send a Crew", blocked ?? ("Sends your strongest: " + string.Join(", ", names.ToArray()) + ". About " + odds
-                + "% to take it. They're gone a few minutes and their posts stand empty meanwhile; if it goes wrong they can be hurt or killed."),
+            NativeItem raid = Row("Send a Crew", blocked ?? ("Sends your strongest from the reserve: " + string.Join(", ", names.ToArray()) + ". About " + odds
+                + "% to take it. One raid a day; they're gone a few minutes, and if it goes wrong they can be hurt or killed."),
                 blocked == null ? odds + "%" : "");
             raid.Enabled = blocked == null;
             raid.Activated += (s, a) => Safe("raid", () =>

@@ -66,8 +66,12 @@ namespace FrontsAndRivals.Data
         /// <summary>Guard posts by size: a small shop needs 2, a mid-size place 3, the biggest 4.</summary>
         public static int PostsForTier(int tier) { return tier >= 2 ? 4 : tier == 1 ? 3 : 2; }
 
-        /// <summary>Posts actually used: by size, never more than the spots placed.</summary>
-        public int Capacity { get { return Math.Min(Posts == null ? 0 : Posts.Count, PostsForTier(Tier)); } }
+        /// <summary>Guards this front takes, by size. Known from the start, so a front taken by raid can be staffed at once,
+        /// even before its posts are placed on your first visit.</summary>
+        public int Capacity { get { return PostsForTier(Tier); } }
+
+        /// <summary>Posts with a spot in the world (where guards actually stand).</summary>
+        public int PlacedPosts { get { return Math.Min(Posts == null ? 0 : Posts.Count, Capacity); } }
 
         /// <summary>A front can be streamed once it has a door and at least one post.</summary>
         public bool IsScouted { get { return Door != null && Door.IsSet && Posts != null && Posts.Count > 0; } }

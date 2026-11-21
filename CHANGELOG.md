@@ -12,6 +12,10 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Monte Carlo balance pass (tools/BalanceSim, the mod's own rules, 150 games per setting): raids now only take guards
+  waiting in the reserve and run once a day; a front taken by raid can be staffed straight away (its posts are placed on
+  your first visit); grudge is gentler (+12 per front taken, -8 a day, up to +25% strength and +2 attackers); empire
+  pressure adds attackers at 10 and 22 fronts. Normal: a staffed front holds ~57%, Relaxed ~70%, Brutal ~47%
 - Every menu item, setting and label in GTA-style Title Case; Settings ordered everyday first, rules next, rare last;
   quick actions first on a front's page and bought upgrades on one line
 - Raids: Send a Crew on any rival front's page (your four strongest; odds shown; 3 minutes; win = the front is yours with
@@ -78,7 +82,7 @@ First full release.
 - Sound effects from the game's own HUD sound sets (attack warning and start, purchases, midnight take, banners), with an on/off setting
 - Controller support: hold Back/View (or M) for half a second to open the Office, like GTA Online (a tap still changes the camera);
   every menu shows the pad's buttons, and with DevTools=true the dev menu opens from Office > Settings
-- Empire pressure: past 3 fronts, attacks come sooner (down to 55% of the wait at 23+ fronts) and squads grow at 6, 12 and 20 fronts;
+- Empire pressure: past 3 fronts, attacks come sooner (down to 55% of the wait at 23+ fronts) and squads grow at 10 and 22 fronts;
   the Office Overview shows your street heat
 - Options: attack frequency or exact cooldown, first-attack delay, hold minutes, live defenses on/off, police response, empire pressure,
   turf frequency, rival alert range, front price, income and wage multipliers, permanent death, protected mode, map blips,

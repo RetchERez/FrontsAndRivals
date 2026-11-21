@@ -54,7 +54,8 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "tipsSeen", Order = 33)] public int TipsSeen;
         [DataMember(Name = "raid", Order = 34)] public RaidState Raid;              // your guards out on a raid, or null
         [DataMember(Name = "difficulty", Order = 35)] public int Difficulty;        // Office: steps from Normal, -2 Relaxed .. +2 Brutal
-        [DataMember(Name = "cityResets", Order = 36)] public int CityResets;        // times you've reset the city and gone again              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "cityResets", Order = 36)] public int CityResets;        // times you've reset the city and gone again
+        [DataMember(Name = "lastRaidDay", Order = 37)] public int LastRaidDay = -1;  // one raid a day              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]

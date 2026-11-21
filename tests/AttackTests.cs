@@ -16,8 +16,7 @@ static class AttackTests
         T.True("15 fronts: Normal ~30 min", Math.Abs(45 * Attacks.PressureCooldownFactor(15) - 30.4) < 0.5);
         T.True("Never below 55%", Attacks.PressureCooldownFactor(29) == Attacks.PressureMinFactor);
         T.True("Factor never rises with more fronts", Attacks.PressureCooldownFactor(12) <= Attacks.PressureCooldownFactor(11));
-        T.True("Squad bonus 0/1/2/3 at 5/6/12/20", Attacks.PressureSquadBonus(5) == 0 && Attacks.PressureSquadBonus(6) == 1
-               && Attacks.PressureSquadBonus(12) == 2 && Attacks.PressureSquadBonus(20) == 3);
+        T.True("Squad bonus 0/1/2 at 9/10/22", Attacks.PressureSquadBonus(9) == 0 && Attacks.PressureSquadBonus(10) == 1 && Attacks.PressureSquadBonus(21) == 1 && Attacks.PressureSquadBonus(22) == 2);
         T.True("Bonus still capped at 9", Resolver.SquadSize(3, 100, 30, 3) == 9);
         T.True("Bonus still capped by manpower", Resolver.SquadSize(1, 0, 4, 3) == 4);
         T.True("No bonus = old squad size", Resolver.SquadSize(2, 60, 20, 0) == Resolver.SquadSize(2, 60, 20));
@@ -119,7 +118,7 @@ static class AttackTests
         int grudgeBefore = ck.Grudge;
         Attacks.Outcome win = Attacks.Resolve(s, content, e, a1, rng, 12, now, true, false, true, 2, 1000);
         T.True("Defended: front still yours", win.DefendersWon && e.PlayerOwns("carwash_handson"));
-        T.Check("Defended: grudge +10", ck.Grudge - grudgeBefore, 10, 0);
+        T.Check("Defended: grudge +8", ck.Grudge - grudgeBefore, 8, 0);
         T.True("Defended: survivors gain XP", guards[0].Xp == 1 && guards[0].Defenses == 1);
         T.True("Attack cleared and cooldown starts", s.Attack == null && s.LastAttackMs == now);
 
@@ -214,7 +213,7 @@ static class AttackTests
         T.Check("Defending in person pays a day of takings", Economy.DefendBonus(7000, 1.0), 7000, 0);
         T.Check("...scaled by the income multiplier", Economy.DefendBonus(7000, 0.5), 3500, 0);
         T.True("The crew waits for you once if you're under 1 km away", Attacks.OnTheWayRange == 1000f && Attacks.OnTheWayMs == 90000);
-        T.Check("No contact today: grudge -5", dck.Grudge, 15, 0);
+        T.Check("No contact today: grudge -8", dck.Grudge, 12, 0);
         dck.Manpower = 19; Nemesis.Daily(ds, 2);
         T.Check("Manpower caps at 20", dck.Manpower, 20, 0);
 

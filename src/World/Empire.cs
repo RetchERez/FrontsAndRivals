@@ -216,11 +216,12 @@ namespace FrontsAndRivals.Rules
 
         public bool OnRaid(GuardState g) { return g != null && _s.Raid != null && _s.Raid.GuardIds.Contains(g.Id); }
 
-        /// <summary>Your strongest healthy guards (posted or not, never bodyguards), up to four.</summary>
+        /// <summary>Your strongest healthy guards waiting in the reserve, up to four. Guards standing a post never go:
+        /// a raid squad is something you choose to keep, at the cost of posting fewer people.</summary>
         public List<GuardState> RaidTeam()
         {
             var team = new List<GuardState>();
-            foreach (GuardState g in _s.Guards) if (g.Status == GuardStatus.Active && !g.Escort && !OnRaid(g)) team.Add(g);
+            foreach (GuardState g in _s.Guards) if (g.Status == GuardStatus.Active && !g.IsPosted && !g.Escort && !OnRaid(g)) team.Add(g);
             team.Sort((a, b) => Power(b).CompareTo(Power(a)));
             if (team.Count > Raids.MaxGuards) team.RemoveRange(Raids.MaxGuards, team.Count - Raids.MaxGuards);
             return team;
@@ -233,9 +234,10 @@ namespace FrontsAndRivals.Rules
             string owner = OwnerOf(def.Id);
             if (!Owners.IsCrew(owner)) return "Only fronts held by a rival crew can be raided.";
             if (_s.Raid != null) return "A raid is already under way.";
+            if (_s.Day <= _s.LastRaidDay) return "Your people are regrouping after today's raid. One raid a day: next after midnight.";
             if (Attacks.DugIn(_s, Find(def.Id))) return "They only just took it and they're dug in. After midnight.";
             if (!Trusted(def)) return "Too big to take yet: hold " + Economy.TrustNeeded(def.Tier) + " fronts first.";
-            if (RaidTeam().Count == 0) return "Nobody fit to send. Hire some guards first.";
+            if (RaidTeam().Count == 0) return "Nobody in the reserve to send. Raids use guards who aren't standing a post.";
             return null;
         }
 
@@ -287,6 +289,7 @@ namespace FrontsAndRivals.Rules
             var raid = new RaidState { Front = def.Id, Crew = OwnerOf(def.Id), EndsMs = nowMs + Raids.RaidMs, Odds = RaidOdds(def, hour) };
             foreach (GuardState g in RaidTeam()) raid.GuardIds.Add(g.Id);
             _s.Raid = raid;
+            _s.LastRaidDay = _s.Day;
             return true;
         }
 

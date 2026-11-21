@@ -9,7 +9,7 @@ namespace FrontsAndRivals.Rules
 {
     public static class Nemesis
     {
-        public const int GrudgeTakeFront = 25, GrudgeKillBoss = 30, GrudgeKillLieutenant = 15, GrudgeRepelled = 10, GrudgeDailyDecay = 5;
+        public const int GrudgeTakeFront = 12, GrudgeKillBoss = 30, GrudgeKillLieutenant = 15, GrudgeRepelled = 8, GrudgeDailyDecay = 8; // balance pass: was 25 / 10 / 5
         public const int BossLeadsAtGrudge = 70;
         public const int LieutenantBonus = 10, BossBonus = 30; // balance pass: was 25/45, which swamped small squads
         public const int MaxManpower = 20;

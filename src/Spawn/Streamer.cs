@@ -206,7 +206,7 @@ namespace FrontsAndRivals.Spawn
 
         private void UpdateSlots(StreamedFront f, long now, int hour)
         {
-            for (int post = 0; post < f.Def.Capacity; post++)
+            for (int post = 0; post < f.Def.PlacedPosts; post++)
             {
                 Slot slot = f.Slots[post];
                 GuardState g = _empire.AtPost(f.Def.Id, post);
@@ -305,7 +305,7 @@ namespace FrontsAndRivals.Spawn
             if (f.CrewCount < 0)
             {
                 FrontState fs = _empire.Find(f.Def.Id);
-                int c = f.Def.Capacity;
+                int c = f.Def.PlacedPosts;
                 if (fs != null && fs.WeakUntilDay >= _empire.State.Day) c = Math.Max(1, c - 1);
                 f.CrewCount = Math.Min(c, Math.Max(0, cs.Manpower));
             }

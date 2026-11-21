@@ -99,6 +99,7 @@ namespace FrontsAndRivals.Data
             }
             // Saves from before "danger money" have FearUntilDay = 0 (fields load as 0); 0 can only mean unset.
             if (s.FearUntilDay == 0) s.FearUntilDay = -1;
+            if (s.LastRaidDay == 0 && s.Raid == null && s.Day == 0) s.LastRaidDay = -1; // saves from before the raid limit
             if (s.Raid != null && s.Raid.GuardIds == null) s.Raid.GuardIds = new List<int>();
             if (s.ActiveMs < 0) s.ActiveMs = 0;
             if (s.SaveCount < 0) s.SaveCount = 0;
