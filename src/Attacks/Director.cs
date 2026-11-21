@@ -459,6 +459,9 @@ namespace FrontsAndRivals.Attacks
             _changed();
         }
 
+        /// <summary>Called when you buy a front at its door (Main plays the establishing shot).</summary>
+        public Action<FrontDef> OnPurchased;
+
         /// <summary>A new empire (Office > Settings > Start a new empire): forget everything tied to the old one's clock.</summary>
         public void Reset()
         {
@@ -549,6 +552,7 @@ namespace FrontsAndRivals.Attacks
                 ? "It's yours, and two of the old owner's people are staying on. They've only got knives: arm them before somebody gets ideas."
                 : "It's yours. Put some people on it before somebody else gets ideas.");
             Log.Write("Director: player bought " + front.Id + " at the door for " + price);
+            if (OnPurchased != null) OnPurchased(front);
             _changed();
         }
 

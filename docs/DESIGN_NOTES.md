@@ -12,7 +12,7 @@ Each difference was a user decision or a simplification made to keep 1.0 finishe
 | Lost fronts keep half their upgrades | They keep all of them | The doc lists this as an open question; on/off upgrades can't be halved, and keeping them avoids chores |
 | Guard posts scouted by hand | Placed from the navmesh (GET_SAFE_COORD_FOR_PED) and shipped in fronts.json | User request |
 | Guard portraits in the Office | Names, traits and ranks only | LemonUI menus can't show live headshots; the feed still uses real mugshots where a ped exists |
-| Arrival camera | Not in 1.0 | Cut to keep the live defense simple and safe; the INI option was removed |
+| Arrival camera | Not in 1.0; a non-blocking establishing shot plays when you buy a front instead | The convoy shot needed a Wait loop; the purchase shot is a per-tick state machine |
 | Workers, customers and ownership cars at fronts | Staff only, at the nearest front, while 12 ped slots stay free | Makes owned fronts look open without risking the 28-ped budget; customers and cars still cut |
 | Laying low: guards walk inside | Guards on screen walk to the door, others despawn | As designed |
 | Rival fronts show once seen or tipped off | Shown when Map > ShowRivalFronts is on | Simpler and clearer |

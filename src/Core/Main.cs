@@ -35,6 +35,7 @@ namespace FrontsAndRivals.Core
         private readonly Streamer _streamer;
         private Workers _workers;
         private Escorts _escorts;
+        private readonly PurchaseShot _shot = new PurchaseShot();
         private readonly DevTools _dev;
         private readonly AutoPostPlacer _placer = new AutoPostPlacer();
         private readonly OfficeMenu _office;
@@ -77,6 +78,11 @@ namespace FrontsAndRivals.Core
             _live = new LiveDefense(_registry, _streamer);
             _workers = new Workers(_registry, _content, () => _empire);
             _escorts = new Escorts(_registry, () => _empire, OnBodyguardDown);
+            _director.OnPurchased = def =>
+            {
+                try { _shot.Play(def); }
+                catch (Exception ex) { _shot.End(); Log.Error("Purchase shot", ex); }
+            };
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
             _notifier.UseSettings(NoteSettingsNow);
@@ -141,6 +147,7 @@ namespace FrontsAndRivals.Core
             _scheduler.Add("Banners", "banners", 0, () => { _banners.Process(); _live.Draw(); }, runWhilePaused: true);
             _scheduler.Add("Prompts", "prompts", 0, PromptsTick);
             _scheduler.Add("HoldBar", "attack timer", 0, () => _director.DrawHold());
+            _scheduler.Add("Shot", "purchase shot", 0, () => _shot.Update(_gate == PauseReason.None), runWhilePaused: true);
             _scheduler.Add("Waypoint", "map waypoint", 1000, WaypointTick);
             _scheduler.Add("Clock", "income and recruits", 2000, ClockTick);
             if (_dev != null)
@@ -441,6 +448,7 @@ namespace FrontsAndRivals.Core
         {
             try
             {
+                _shot.End(); // never leave a scripted camera running
                 if (_director != null) _director.OnWorldCleared(); // a live fight is auto-resolved before its peds go
                 if (_dev != null) _dev.CancelPending();
                 if (_autoScout != null) _autoScout.Cancel();
