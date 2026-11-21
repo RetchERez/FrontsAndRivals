@@ -28,6 +28,7 @@ namespace FrontsAndRivals.Spawn
         private readonly List<Ped> _bodies = new List<Ped>();
 
         private Model _pending;
+        private readonly Dictionary<int, int> _badModelUntil = new Dictionary<int, int>(); // guard id -> retry time
         private int _pendingFor;
         private int _requestedAt;
 
@@ -55,6 +56,7 @@ namespace FrontsAndRivals.Spawn
                 if (en.Ped == null || !en.Ped.Exists()) { _out.RemoveAt(i); continue; }
                 if (en.Ped.IsDead)
                 {
+                    if (en.Ped.AttachedBlip != null && en.Ped.AttachedBlip.Exists()) en.Ped.AttachedBlip.Delete();
                     _bodies.Add(en.Ped);
                     _out.RemoveAt(i);
                     if (g != null && g.Status == GuardStatus.Active && _onDown != null) _onDown(g, en.Ped);
@@ -78,7 +80,11 @@ namespace FrontsAndRivals.Spawn
             // Bring in whoever is missing, one at a time, once you're on foot or stopped.
             GuardState next = null;
             foreach (GuardState g in e.State.Guards)
+            {
+                int until;
+                if (_badModelUntil.TryGetValue(g.Id, out until) && Game.GameTime < until) continue;
                 if (g.Escort && g.Status == GuardStatus.Active && Find(g.Id) == null) { next = g; break; }
+            }
             if (next == null) { CancelPending(); return; }
             if (me.IsInVehicle() && me.CurrentVehicle.Speed > 2f) return;
             if (!EscortRules.Fits(_registry.PedCount, Registry.MaxPeds)) return;
@@ -87,7 +93,12 @@ namespace FrontsAndRivals.Spawn
             {
                 CancelPending();
                 _pending = new Model(next.Model);
-                if (!_pending.IsValid || !_pending.IsPed) { Log.Write("Escorts: bad model " + next.Model); return; }
+                if (!_pending.IsValid || !_pending.IsPed)
+                {
+                    Log.Write("Escorts: bad model " + next.Model + " for guard " + next.Id + ", retrying in a minute");
+                    _badModelUntil[next.Id] = Game.GameTime + 60000;
+                    return;
+                }
                 _pending.Request();
                 _pendingFor = next.Id;
                 _requestedAt = Game.GameTime;

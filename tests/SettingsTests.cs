@@ -71,7 +71,7 @@ static class SettingsTests
         T.True("Gap 0: back to back", q2.Next(nogap, 0) != null && q2.Next(nogap, 0) != null);
 
         T.Check("Front price uses the days setting", Economy.FrontPrice(new FrontDef { Income = 5000 }, 10), 50000, 0);
-        T.Check("The starter stays $25,000", Economy.FrontPrice(new FrontDef { Income = 4000, Starter = true }, 10), 25000, 0);
+        T.Check("The starter stays $15,000", Economy.FrontPrice(new FrontDef { Income = 4000, Starter = true }, 10), 15000, 0);
     }
 
     static Note N(NoteKind k, string msg) { return new Note { Kind = k, Message = msg, Sender = "s", Subject = "t" }; }

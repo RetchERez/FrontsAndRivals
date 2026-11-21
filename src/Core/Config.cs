@@ -66,8 +66,7 @@ namespace FrontsAndRivals.Core
         public bool SoundEffects = true;
         // [Attacks]
         public AttackFrequency Frequency = AttackFrequency.Normal;
-        public int WarningHours = 3;
-        public int LeadHours = 12;
+        public int HoldMinutes = 5; // how long your guards hold an attack (at even odds) before it's decided without you
         public bool PoliceRespond = true;
         /// <summary>False: attacks always resolve on their own, even when you're there.</summary>
         public bool LiveDefense = true;
@@ -93,7 +92,7 @@ namespace FrontsAndRivals.Core
         // [Economy]
         public double IncomeMultiplier = 1.0;
         public double WageMultiplier = 1.0;
-        /// <summary>A front for sale costs this many days of its income (the starter car wash is always $25,000).</summary>
+        /// <summary>A front for sale costs this many days of its income (the starter car wash is always $15,000).</summary>
         public int FrontPriceDays = 5;
         // [Guards]
         public bool PermanentDeath = true;
@@ -130,8 +129,7 @@ namespace FrontsAndRivals.Core
             c.OfficeButton = Bool(ini, "General", "OfficeButton", c.OfficeButton, warn);
             c.SoundEffects = Bool(ini, "Sound", "Effects", c.SoundEffects, warn);
             c.Frequency = Enum(ini, "Attacks", "Frequency", c.Frequency, warn);
-            c.WarningHours = Int(ini, "Attacks", "WarningHours", c.WarningHours, 1, 24, warn);
-            c.LeadHours = Int(ini, "Attacks", "LeadHours", c.LeadHours, 0, 48, warn);
+            c.HoldMinutes = Int(ini, "Attacks", "HoldMinutes", c.HoldMinutes, 2, 12, warn);
             c.PoliceRespond = Bool(ini, "Attacks", "PoliceRespond", c.PoliceRespond, warn);
             c.LiveDefense = Bool(ini, "Attacks", "LiveDefense", c.LiveDefense, warn);
             c.EmpirePressure = Bool(ini, "Attacks", "EmpirePressure", c.EmpirePressure, warn);

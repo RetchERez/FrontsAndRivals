@@ -160,6 +160,7 @@ namespace FrontsAndRivals.UI
             _focus = panel;
             for (int i = 0; i < _panels.Length; i++) _panels[i].AcceptsInput = i == panel;
             _letGoArmed = 0;
+            _startOverArmed = false;
             // Bottom-right control hints say exactly what each key does in this panel.
             NativeMenu m = _panels[panel];
             m.Buttons.Clear();
@@ -574,7 +575,9 @@ namespace FrontsAndRivals.UI
             else
             {
                 int need = Economy.TrustNeeded(def.Tier);
-                NativeItem held = Row("Held by the " + OwnerLabel(owner), e.Trusted(def) ? "Clear their soldiers, then claim the door to take it."
+                bool dug = Rules.Attacks.DugIn(e.State, e.Find(def.Id));
+                NativeItem held = Row("Held by the " + OwnerLabel(owner), dug ? "They just took it and they're dug in. You can claim it back after midnight."
+                    : e.Trusted(def) ? "Clear their soldiers, then claim the door to take it."
                     : "Too big to take yet: the Broker backs a claim here once you hold " + need + " fronts. You hold " + e.OwnedCount() + ".", e.Trusted(def) ? "" : "Hold " + need);
                 held.Enabled = false;
                 _detail.Add(held);
@@ -673,7 +676,7 @@ namespace FrontsAndRivals.UI
         {
             FrontState fs = e.Find(def.Id);
             if (fs == null) return;
-            AddUpgrade(fs, "Cameras", 15000, "+10% defense, and attack warnings arrive an hour earlier.", fs.Cameras, () => fs.Cameras = true);
+            AddUpgrade(fs, "Cameras", 15000, "+10% defense, and you see trouble sooner: your people hold 2 minutes longer when the front is hit.", fs.Cameras, () => fs.Cameras = true);
             AddUpgrade(fs, "Reinforced doors", 20000, "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
             AddUpgrade(fs, "Floodlights", 10000, "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
             AddUpgrade(fs, "Armory", 30000, "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
@@ -746,7 +749,7 @@ namespace FrontsAndRivals.UI
             var guard = new NativeCheckboxItem("Bodyguard",
                 "On: they leave their post and stay at your side, on foot or in your car, and fight whoever comes for you. Up to "
                 + FrontsAndRivals.Spawn.EscortRules.Max + ". Off: back to their post. Not during missions.", g.Escort);
-            guard.Enabled = g.Status == GuardStatus.Active && (g.Escort || escorts < FrontsAndRivals.Spawn.EscortRules.Max);
+            guard.Enabled = g.Status == GuardStatus.Active && e.OwnedCount() > 0 && (g.Escort || escorts < FrontsAndRivals.Spawn.EscortRules.Max);
             guard.CheckboxChanged += (s, a) => Safe("bodyguard", () =>
             {
                 if (!e.SetEscort(g, guard.Checked)) { GTA.UI.Notification.Show("You already have " + FrontsAndRivals.Spawn.EscortRules.Max + " bodyguards."); }

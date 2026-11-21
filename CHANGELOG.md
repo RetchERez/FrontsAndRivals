@@ -7,17 +7,18 @@ First full release.
 - 29 real businesses as fronts across Los Santos, with guard posts placed from the game's navigation data
 - Crew territories (South LS, the east side, the west) and nightly turf moves: crews grab fronts for sale and fight each other for fronts
 - Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
-- Any front for sale can be bought in person at its door (five days of its income; the starter car wash is $25,000)
+- Any front for sale can be bought in person at its door (five days of its income; the starter car wash is $15,000)
 - The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- A front you lose is dug in until the next midnight before you can claim it back
+- Guards gain 1 XP for every night on a post (promotions are texted), so ranks and the guns they unlock come with time served
 - Progression: guns unlock with rank (Recruits up to the shotgun, Soldiers the SMG, Veterans the carbine); the Broker
-  only sells or backs claims on mid-size fronts once you hold 3 and the biggest once you hold 8; attacks build up over
-  most of a day (a rumour, then the warning LeadHours=12 in-game hours later, then the hit); a front you just bought or
-  took is left alone for two in-game days
+  only sells or backs claims on mid-size fronts once you hold 3 and the biggest once you hold 8; a front you just bought
+  or took is left alone for two in-game days
 - Early game: rival soldiers ignore you until you own a front (unless you hurt one), and the Broker's first text waits
-  until your character has the $25,000 for the car wash
+  until your character has the $15,000 for the car wash
 - Office > Settings > Start a new empire (two presses; the old empire is kept as empire.old.json)
 - Fill empty posts (strongest free guards first) and Arm this front (everyone's next gun, total shown) on each front's page
 - First-time tips for the Office, posting, attacks, buying at the door and bodyguards; Show tips again in Settings
@@ -33,7 +34,9 @@ First full release.
 - A bigger, mixed NPC pool: guards are street people instead of uniformed security (35 men's and 18 women's looks, recruits
   are women about 4 times in 10), each crew has 23-30 looks including women, and names come from a much bigger pool;
   only about a third of recruits and half of new crew lieutenants go by a nickname, and full names never repeat
-- The call to come defend: every warning tells you when the hit lands and what holding the door pays (one day of the
+- Attacks come without warning: the alert arrives as the hit starts, and your guards hold about 3-7 minutes (5 at even
+  odds) depending on their strength (Cameras add 2; the Lookout trait is gone, every guard keeps watch), shown on a GTA-style timer bar (HoldMinutes in the INI)
+- The call to come defend: the alert tells you when the hit lands and what holding the door pays (one day of the
   front's takings), with a GPS route to the front (Office setting); if you're within 1 km when the window closes, the crew
   waits 90 more seconds for you
 - Guards switch to a newly bought gun on the spot
@@ -45,7 +48,7 @@ First full release.
   the Broker sends 4 recruits a day, the roster holds 60, and empire pressure never brings attacks closer than 20 minutes
 - Fronts: buying the starter car wash, four upgrades (cameras, reinforced doors, floodlights, armory), defense and income bars
 - Rival crews: Crown Kings, Ironside MC and Velvet Syndicate, each with a named boss and three lieutenants
-- Attacks: cooldown by frequency, warning texts and taunts, attack window, auto-resolve, live defenses with convoys, timer bars,
+- Attacks: cooldown by frequency, the attack alert and taunts, the hold timer, auto-resolve, live defenses with convoys, timer bars,
   door integrity, a fleeing leader, police response, red blips on attackers on foot, a 6-minute cap, and a hand-off to auto-resolve
   if you die, leave or a mission starts (the whole squad is resolved if the convoy never arrived)
 - Guard posts: on walkable outdoor ground, off roads, same floor as the door, in sight of the door, on solid ground with clear headroom
@@ -62,7 +65,7 @@ First full release.
   every menu shows the pad's buttons, and with DevTools=true the dev menu opens from Office > Settings
 - Empire pressure: past 3 fronts, attacks come sooner (down to 55% of the wait at 23+ fronts) and squads grow at 6, 12 and 20 fronts;
   the Office Overview shows your street heat
-- Options: attack frequency or exact cooldown, first-attack delay, warning hours, live defenses on/off, police response, empire pressure,
+- Options: attack frequency or exact cooldown, first-attack delay, hold minutes, live defenses on/off, police response, empire pressure,
   turf frequency, rival alert range, front price, income and wage multipliers, permanent death, protected mode, map blips,
   skip intro, Office hotkey; the everyday ones are also in the Office's Settings
 

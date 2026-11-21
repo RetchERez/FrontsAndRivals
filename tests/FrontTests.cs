@@ -68,6 +68,9 @@ static class FrontTests
         GuardState b1 = be.Recruit(rng), b2 = be.Recruit(rng), b3 = be.Recruit(rng);
         be.Assign(b1, "carwash_handson", 0); be.Assign(b2, "carwash_handson", 1);
         double before = be.Defense("carwash_handson", 12);
+        var nobody = new Empire(SaveService.NewEmpire(), content);
+        GuardState early = nobody.Recruit(rng);
+        T.True("No bodyguards before you own a front", !nobody.SetEscort(early, true));
         T.True("Call two bodyguards", be.SetEscort(b1, true) && be.SetEscort(b2, true) && be.EscortCount() == 2);
         T.True("A third is refused", !be.SetEscort(b3, true) && !b3.Escort);
         T.True("Their front is weaker while they're with you", be.Defense("carwash_handson", 12) < before);
@@ -86,7 +89,7 @@ static class FrontTests
         T.True("Before you own a front: walking up or shooting nearby doesn't start a fight", !StreamRules.CrewProvoked(false, true, true, false));
         T.True("...but hurting one of them does", StreamRules.CrewProvoked(false, false, false, true));
         T.True("Once you're in the game, walking up does", StreamRules.CrewProvoked(true, true, false, false));
-        T.True("Broker waits for $25,000", !Economy.BrokerReady(24999, 600000) && Economy.BrokerReady(25000, 600000));
+        T.True("Broker waits for $15,000", !Economy.BrokerReady(14999, 600000) && Economy.BrokerReady(15000, 600000));
         T.True("...and two minutes of free roam", !Economy.BrokerReady(1000000, 60000));
 
         T.Section("One-click front management");
@@ -349,7 +352,7 @@ static class FrontTests
         T.Equal("Day: post's own idle", StreamRules.GuardScenario("WORLD_HUMAN_SMOKING", Trait.None, 12), "WORLD_HUMAN_SMOKING");
         T.Equal("Night (23:00): torch", StreamRules.GuardScenario("WORLD_HUMAN_SMOKING", Trait.None, 23), StreamRules.Torch);
         T.Equal("05:00 is day again", StreamRules.GuardScenario("WORLD_HUMAN_SMOKING", Trait.None, 5), "WORLD_HUMAN_SMOKING");
-        T.Equal("Lookout: binoculars, even at night", StreamRules.GuardScenario("WORLD_HUMAN_SMOKING", Trait.Lookout, 23), StreamRules.Binoculars);
+        T.Equal("Every guard keeps watch: torch at night, whatever their trait", StreamRules.GuardScenario("WORLD_HUMAN_SMOKING", Trait.Sharpshooter, 23), StreamRules.Torch);
         T.Equal("No scenario set: stand guard", StreamRules.GuardScenario(null, Trait.None, 12), StreamRules.GuardStand);
     }
 

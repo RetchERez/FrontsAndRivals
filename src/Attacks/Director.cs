@@ -46,7 +46,7 @@ namespace FrontsAndRivals.Attacks
             _streamer.OnCrewGuardDown = OnCrewGuardDown;
         }
 
-        /// <summary>Dev tools: plan an attack right away with a 30-second warning.</summary>
+        /// <summary>Dev tools: start an attack on one of your fronts right away.</summary>
         public void RequestForcedAttack()
         {
             _forceRequested = true;
@@ -95,13 +95,12 @@ namespace FrontsAndRivals.Attacks
                 return;
             }
 
-            if (a.Phase == AttackPhase.Warning && !a.Warned && now >= a.WarnAt) Warn(e, a, hour, now);
-            if (a.Phase == AttackPhase.Warning && now >= a.WarnEnds)
+            if (a.Phase == AttackPhase.Warning)
             {
+                // Only an attack saved by an older version is ever in this phase: start it now, with the alert.
                 a.Phase = AttackPhase.Window;
-                Sounds.Play(Cue.AttackStarted);
-                Log.Write("Director: window open at " + a.Front);
-                _changed();
+                a.WindowEnds = Math.Max(a.WindowEnds, now + Rules.Attacks.DefaultHoldMinutes * Rules.Attacks.Minute);
+                Alert(e, a, now);
             }
             if (a.Phase == AttackPhase.Window)
             {
@@ -117,7 +116,7 @@ namespace FrontsAndRivals.Attacks
                     a.Waited = true;
                     a.WindowEnds = now + Rules.Attacks.OnTheWayMs;
                     CrewDef waiting = _content.Crew(a.Crew);
-                    GTA.UI.Screen.ShowSubtitle("The ~r~" + (waiting != null ? waiting.Name : "crew") + "~s~ are gathering outside the " + front.ShortName + ". Get there.", 6000);
+                    GTA.UI.Screen.ShowSubtitle("Your people are barely holding the " + front.ShortName + " against the ~r~" + (waiting != null ? waiting.Name : "crew") + "~s~. Get there.", 6000);
                 }
                 if (now >= a.WindowEnds) FinishAuto(e, a, front, hour, now, null, 0);
             }
@@ -160,59 +159,65 @@ namespace FrontsAndRivals.Attacks
         {
             EmpireState s = e.State;
             int bonus = _config.EmpirePressure ? Rules.Attacks.PressureSquadBonus(Rules.Attacks.HeldCount(s)) : 0;
-            AttackState a = Rules.Attacks.Plan(s, _content, e, _rng(), _config.WarningHours, hour, now, bonus);
+            AttackState a = Rules.Attacks.Plan(s, _content, e, _rng(), _config.HoldMinutes, hour, now, bonus);
             if (a == null) { if (force) DevNotice("No crew can attack right now (do you own a front?)."); return; }
-            if (force) { a.WarnEnds = now + 30000; a.WindowEnds = a.WarnEnds + Rules.Attacks.WindowMs; a.WarnAt = now; }
-            else
-            {
-                // The build-up: a rumour now, the real warning LeadHours later, then the hit.
-                long lead = _config.LeadHours * Rules.Attacks.GameHourMs;
-                a.WarnAt = now + lead;
-                a.WarnEnds += lead;
-                a.WindowEnds += lead;
-            }
             s.Attack = a;
             CrewDef crew = _content.Crew(a.Crew);
             CrewMember leader = Nemesis.Crew(s, a.Crew).Member(a.Leader);
             FrontDef front = _content.Front(a.Front);
             Log.Write("Director: " + crew.Name + " led by " + leader.DisplayName + " will hit " + a.Front + " (squad " + a.Squad + ", A " + a.Strength.ToString("0") + ")");
 
-            Nemesis.Crew(s, a.Crew).LastMove = "Watching your " + front.ShortName;
-            if (a.WarnAt > now)
-            {
-                _notifierPost(NoteKind.StreetWord, "Street word", front.ShortName, _content.Lines.Pick(_rng(), "rumor", Tokens(crew, front, leader, null)));
-                _changed();
-                return;
-            }
-            Warn(e, a, hour, now);
+            Alert(e, a, now);
         }
 
-        /// <summary>The rumour firms up: the real warning, the call to come defend, and the crew's taunt.</summary>
-        private void Warn(Empire e, AttackState a, int hour, long now)
+        /// <summary>The attack is on: one alert from the Office, with how long your people can hold and what it pays to be there.</summary>
+        private void Alert(Empire e, AttackState a, long now)
         {
             EmpireState s = e.State;
-            a.Warned = true;
             CrewDef crew = _content.Crew(a.Crew);
             CrewMember leader = Nemesis.Crew(s, a.Crew).Member(a.Leader);
             FrontDef front = _content.Front(a.Front);
             if (crew == null || front == null) return;
             var tokens = Tokens(crew, front, leader, null);
-            _notifierPost(NoteKind.AttackWarning, "Street word", front.ShortName, _content.Lines.Pick(_rng(), "warning", tokens));
-            Sounds.Play(Cue.AttackWarning);
+            Sounds.Play(Cue.AttackStarted);
             Tips.Show(Tip.Attack);
-            if (_config.LiveDefense && !s.LiveDefenseOff)
-            {
-                // The call to come defend: when, where, and what it pays to be there.
-                int hitHour = (hour + (int)Math.Max(1, (a.WarnEnds - now) / Rules.Attacks.GameHourMs)) % 24;
-                int defendBonus = Economy.DefendBonus(front.Income, _config.IncomeMultiplier);
-                _notifierPost(NoteKind.AttackWarning, "The Office", "Get to the " + front.ShortName,
-                    "They hit around " + hitHour.ToString("00") + ":00. Be there and hold the door yourself: the Broker pays $" + defendBonus.ToString("N0") + " for it."
-                    + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS."));
-            }
+            int minutes = (int)Math.Max(1, Math.Round((a.WindowEnds - now) / (double)Rules.Attacks.Minute));
+            bool live = _config.LiveDefense && !s.LiveDefenseOff;
+            string text = "The " + crew.Name + " are hitting the " + front.ShortName + " right now. Your people can hold about " + minutes
+                + (minutes == 1 ? " minute." : " minutes.");
+            if (live) text += " Get there and hold the door yourself: the Broker pays $" + Economy.DefendBonus(front.Income, _config.IncomeMultiplier).ToString("N0") + "."
+                + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS.");
+            _notifierPost(NoteKind.AttackWarning, "The Office", front.ShortName + " under attack", text);
             if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
                 _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(_rng(), "taunt", tokens));
-            Nemesis.Crew(s, a.Crew).LastMove = "Planning a hit on your " + front.ShortName;
+            Nemesis.Crew(s, a.Crew).LastMove = "Hitting your " + front.ShortName;
+            Log.Write("Director: " + crew.Name + " hitting " + a.Front + ", guards hold " + minutes + " min");
             _changed();
+        }
+
+        // ---------------------------------------------------------------- the hold timer (GTA-style bar while you race there)
+
+        private readonly LemonUI.ObjectPool _holdPool = new LemonUI.ObjectPool();
+        private readonly LemonUI.TimerBars.TimerBarCollection _holdBars = new LemonUI.TimerBars.TimerBarCollection();
+        private readonly LemonUI.TimerBars.TimerBar _holdBar = new LemonUI.TimerBars.TimerBar("HOLDING", "0:00");
+        private bool _holdReady;
+
+        /// <summary>Every frame with the gate open: "CAR WASH HOLDS 3:42" while your people hold and you're not there yet.</summary>
+        public void DrawHold()
+        {
+            if (!_holdReady) { _holdBars.Add(_holdBar); _holdPool.Add(_holdBars); _holdReady = true; }
+            Empire e = _empire();
+            AttackState a = e != null ? e.State.Attack : null;
+            bool show = a != null && a.Phase == AttackPhase.Window && !_live.Active;
+            if (show)
+            {
+                FrontDef front = _content.Front(a.Front);
+                long left = Math.Max(0, a.WindowEnds - _now());
+                _holdBar.Title = ((front != null ? front.ShortName : "FRONT") + " holds").ToUpperInvariant();
+                _holdBar.Info = (left / 60000) + ":" + ((left / 1000) % 60).ToString("00");
+            }
+            _holdBars.Visible = show;
+            _holdPool.Process();
         }
 
         // ---------------------------------------------------------------- live defense
@@ -423,6 +428,17 @@ namespace FrontsAndRivals.Attacks
             Log.Write("Director: " + front.Id + " cleared, claim window open");
         }
 
+        /// <summary>A new empire (Office > Settings > Start a new empire): forget everything tied to the old one's clock.</summary>
+        public void Reset()
+        {
+            _nextPlanRoll = 0;
+            _claimFront = null;
+            _claimCrew = null;
+            _claimUntil = 0;
+            _liveFailed = null;
+            _forceRequested = false;
+        }
+
         /// <summary>Every tick while the gate is open: the claim prompt at a cleared rival front's door.</summary>
         public void UpdateFrame()
         {
@@ -433,6 +449,11 @@ namespace FrontsAndRivals.Attacks
             FrontDef front = _content.Front(_claimFront);
             Vector3 p = Game.Player.Character.Position;
             if (front.Door.DistanceTo(p.X, p.Y, p.Z) > ClaimRange) return;
+            if (Rules.Attacks.DugIn(e.State, e.Find(front.Id)))
+            {
+                GTA.UI.Screen.ShowHelpTextThisFrame("The " + front.ShortName + " is clear, but they only just took it. Claim it back after midnight.");
+                return;
+            }
             if (!e.Trusted(front))
             {
                 GTA.UI.Screen.ShowHelpTextThisFrame("The " + front.ShortName + " is clear, but the Broker won't back your claim until you hold " + Economy.TrustNeeded(front.Tier) + " fronts.");

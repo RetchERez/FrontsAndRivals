@@ -128,16 +128,16 @@ static class CoreTests
         T.True("Empty INI: Enabled defaults true", defaults.Enabled);
         T.True("Empty INI: DevTools defaults false", !defaults.DevTools);
         T.True("Empty INI: Frequency defaults Normal", defaults.Frequency == AttackFrequency.Normal);
-        T.Check("Empty INI: WarningHours defaults 3", defaults.WarningHours, 3, 0);
+        T.Check("Empty INI: HoldMinutes defaults 5", defaults.HoldMinutes, 5, 0);
 
-        string ini = "; comment\r\n[General]\r\nEnabled = false\r\n[attacks]\r\nfrequency=high ; inline comment\r\nWarningHours=99\r\n"
+        string ini = "; comment\r\n[General]\r\nEnabled = false\r\n[attacks]\r\nfrequency=high ; inline comment\r\nHoldMinutes=99\r\n"
                    + "[Economy]\r\nIncomeMultiplier=1.5\r\nWageMultiplier=abc\r\n[Debug]\r\nDevTools=TRUE\r\n";
         int warnings = 0;
         var c = Config.FromIni(IniFile.Parse(ini), w => warnings++);
         T.True("Enabled=false read", !c.Enabled);
         T.True("Section and key names are case-insensitive", c.Frequency == AttackFrequency.High);
         T.True("DevTools=TRUE read", c.DevTools);
-        T.Check("Out-of-range WarningHours falls back to 3", c.WarningHours, 3, 0);
+        T.Check("Out-of-range HoldMinutes falls back to 5", c.HoldMinutes, 5, 0);
         T.Check("IncomeMultiplier 1.5", c.IncomeMultiplier, 1.5, 0);
         T.Check("Bad WageMultiplier falls back to 1.0", c.WageMultiplier, 1.0, 0);
         T.Check("Two warnings logged", warnings, 2, 0);

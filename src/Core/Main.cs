@@ -115,6 +115,7 @@ namespace FrontsAndRivals.Core
             if (_phone != null) _scheduler.Add("Phone", "the phone contact", 0, () => PhoneHost.Update(_phone), runWhilePaused: true);
             _scheduler.Add("Banners", "banners", 0, () => { _banners.Process(); _live.Draw(); }, runWhilePaused: true);
             _scheduler.Add("Prompts", "prompts", 0, PromptsTick);
+            _scheduler.Add("HoldBar", "attack timer", 0, () => _director.DrawHold());
             _scheduler.Add("Clock", "income and recruits", 2000, ClockTick);
             if (_dev != null)
             {
@@ -288,6 +289,9 @@ namespace FrontsAndRivals.Core
             catch (Exception ex) { Log.Error("StartOver backup", ex); GTA.UI.Notification.Show("Fronts & Rivals: couldn't back up the old empire, nothing changed. See log."); return; }
             ClearWorld("start over");
             Tips.Clear();
+            _notifier.Clear();
+            _director.Reset();
+            _placer.ResetAll();
             _state = SaveService.NewEmpire();
             _rng = new Rng(_state.RngState);
             _activeBase = -_scheduler.ActiveMs; // the new empire's clock starts at zero
@@ -308,7 +312,8 @@ namespace FrontsAndRivals.Core
             if (k == null) return false;
             if (k.Handle == me.Handle) return true;
             var v = k as Vehicle;
-            return v != null && v.Exists() && v.Driver != null && v.Driver.Handle == me.Handle;
+            // Run over by your car counts; dying inside your car in a crash doesn't.
+            return v != null && v.Exists() && v.Driver != null && v.Driver.Handle == me.Handle && !body.IsInVehicle(v);
         }
 
         /// <summary>You killed one of your own. Same death or injury rules; the texts say who did it, and recruits
@@ -482,7 +487,12 @@ namespace FrontsAndRivals.Core
                     told = true;
                 }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
-                _empire.DayOnDuty();
+                foreach (GuardState up in _empire.DayOnDuty())
+                {
+                    Log.Write("Midnight: " + up.FullName + " promoted to " + Economy.RankName((Rank)up.Rank));
+                    _notifier.Send(NoteKind.Staff, up.ShortName, "Promoted", "Made " + Economy.RankName((Rank)up.Rank) + ". "
+                        + (Economy.MaxWeapon((Rank)up.Rank) > Economy.MaxWeapon((Rank)(up.Rank - 1)) ? "Trusted with " + Economy.WithArticle(Economy.MaxWeapon((Rank)up.Rank)) + " now." : "Thanks for the faith, boss."));
+                }
                 foreach (GuardState q in pay.Quit)
                 {
                     Log.Write("Midnight: " + q.FullName + " quit over unpaid wages");

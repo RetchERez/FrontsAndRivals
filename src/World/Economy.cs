@@ -8,7 +8,7 @@ namespace FrontsAndRivals.Rules
 {
     public static class Economy
     {
-        public const int StarterFrontPrice = 25000; // the Broker's starter price for the car wash
+        public const int StarterFrontPrice = 15000; // the Broker's starter deal on the car wash, cheaper than any other front
 
         /// <summary>The Broker's first text waits until you can afford the car wash (and 2 minutes into free roam),
         /// so a broke early-story character isn't invited to something they can't buy.</summary>
@@ -54,7 +54,6 @@ namespace FrontsAndRivals.Rules
                 case Trait.Tough: return 4000;
                 case Trait.Medic: return 4000;
                 case Trait.Hothead: return 3500;
-                case Trait.Lookout: return 3500;
                 case Trait.NightOwl: return 3000;
                 case Trait.Loyal: return 3000;
                 case Trait.Nervous: return 1250;
@@ -80,7 +79,6 @@ namespace FrontsAndRivals.Rules
                 case Trait.Tough: return "x1.15 power, half the injury chance.";
                 case Trait.Hothead: return "x1.25 power, double the death chance.";
                 case Trait.NightOwl: return "No night penalty.";
-                case Trait.Lookout: return "Warnings for this front arrive an hour earlier.";
                 case Trait.Medic: return "Halves the injury chance for every guard at the same front.";
                 case Trait.Loyal: return "Never quits over unpaid wages.";
                 case Trait.Nervous: return "x0.7 power, but costs half as much to hire.";

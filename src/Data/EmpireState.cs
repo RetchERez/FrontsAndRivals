@@ -71,6 +71,8 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "damaged", Order = 7)] public bool Damaged;
         /// <summary>After you repel this crew, their nearest front is weakened (-25% defense) until this day.</summary>
         [DataMember(Name = "weakUntilDay", Order = 8)] public int WeakUntilDay = -1;
+        /// <summary>A crew that just took this front from you holds it until this day (the next midnight).</summary>
+        [DataMember(Name = "dugInUntilDay", Order = 9)] public int DugInUntilDay;
     }
 
     public static class GuardStatus

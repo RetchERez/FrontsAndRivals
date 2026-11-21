@@ -22,6 +22,10 @@ static class SaveTests
         cur.Guards = new System.Collections.Generic.List<GuardState> { new GuardState { Id = 1, Weapon = 0 } };
         Migrations.Upgrade(cur);
         T.True("A current save's knife stays a knife", cur.Guards[0].Weapon == 0);
+        var oldOffers = new EmpireState { SchemaVersion = EmpireState.CurrentSchema, FearUntilDay = 0 };
+        oldOffers.Offers = new System.Collections.Generic.List<GuardState> { new GuardState { First = "Ana", Trait = 5 } };
+        Migrations.Upgrade(oldOffers);
+        T.True("Old offers get skills, the Lookout trait is retired, no stray danger money", oldOffers.Offers[0].Shooting > 0 && oldOffers.Offers[0].Trait == 0 && oldOffers.FearUntilDay == -1);
 
         T.Section("SaveService (crash-safe save)");
         string dir = Path.Combine(Path.GetTempPath(), "fr_save_test_" + Guid.NewGuid().ToString("N"));

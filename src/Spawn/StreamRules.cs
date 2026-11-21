@@ -36,10 +36,9 @@ namespace FrontsAndRivals.Spawn
             GuardStand, "WORLD_HUMAN_SMOKING", "WORLD_HUMAN_LEANING", "WORLD_HUMAN_STAND_MOBILE"
         };
 
-        /// <summary>Lookouts use binoculars; at night everyone else shines a torch; otherwise the post's own idle.</summary>
+        /// <summary>Every guard keeps watch: at night they shine a torch, by day the post's own idle.</summary>
         public static string GuardScenario(string postScenario, Trait trait, int hour)
         {
-            if (trait == Trait.Lookout) return Binoculars;
             if (DefenseRating.IsNight(hour)) return Torch;
             return string.IsNullOrEmpty(postScenario) ? GuardStand : postScenario;
         }

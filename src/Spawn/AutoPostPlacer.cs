@@ -117,6 +117,9 @@ namespace FrontsAndRivals.Spawn
             return !up.DidHit;
         }
 
+        /// <summary>Forget every retry timer (a new empire's clock starts again at zero).</summary>
+        public void ResetAll() { _nextTry.Clear(); }
+
         /// <summary>Forget retry timers (dev tools: "Re-place posts").</summary>
         public void ResetTimer(string frontId) { _nextTry.Remove(frontId); }
     }

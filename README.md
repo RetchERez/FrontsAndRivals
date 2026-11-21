@@ -13,7 +13,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
 - Start a new empire from Office > Settings (for a new story game); the old one is kept as empire.old.json
 - Progression that money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held),
-  attacks build up from a rumour over most of a day, and new fronts get two quiet days
+  and new fronts get two quiet days
 - One-click front management: Fill empty posts and Arm this front on every front's page
 - First-time tips in GTA's help box (Office > Settings > Show tips again)
 - Bodyguards: call up to two of your guards from the Office to follow you around the city, on foot or in your car,
@@ -25,12 +25,12 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
   They only appear when there's ped budget to spare and leave the moment guards or a fight need it
 - A big, mixed cast: guards and crews are ordinary Los Santos street people, women and men from every part of the city,
   with 87 men's and 65 women's first names, 95 surnames, and nicknames for only some of them
-- The call to come defend: warnings say when the hit lands and what defending it yourself pays, with a GPS route
+- Attacks come without warning: one alert when a front is hit, a timer showing how long your guards can hold, a GPS route, and a bonus for holding the door yourself
 - Crews never die out: they recruit off the street every night and come back for what you took
 - A weapon ladder: every guard starts with a knife and is armed one gun at a time, each a big step up:
   pistol $750 (x1.0), pump shotgun $1,500 (x1.3), SMG $3,000 (x1.6), carbine rifle $6,000 (x2.0); the knife is x0.6
 - Three original crews (Crown Kings, Ironside MC, Velvet Syndicate), each with a named boss and three lieutenants
-- Attacks with a warning text first; within 300 m they become a live defense with convoys, timer bars and a door to hold
+- Attacks are already underway when you hear about them; within 300 m they become a live defense with convoys, timer bars and a door to hold
 - Take rival fronts by clearing their guards and claiming the door
 - A nemesis loop: leaders who escape come back with scars and text you about it; dead lieutenants are replaced by promoted survivors
 - Midnight payouts with wages, front upgrades, and a protected mode for a lower-stakes game
@@ -63,10 +63,10 @@ Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2
 - In the Office, **Enter** opens the next panel and **Backspace** goes back; **Left/Right** changes a guard's post or a setting
 - Buy the car wash from the Broker, hire recruits, post them, and you're in business
 - Income arrives at every in-game midnight, after wages; sleeping across midnights pays each one (up to three)
-- When a warning text arrives, you can go and fight beside your guards or leave it to them
+- When a front is hit, you can race there and fight beside your guards before they break, or leave it to them
 - Rival fronts show on the map in their crew's colour; their soldiers ignore you while you drive past, but walk up on foot, shoot nearby or hurt one of them and the whole front fights
 - Clear a rival front's soldiers, stand at the door and press **E** to claim it
-- Fronts that are for sale are bought in person at their door, like GTA's own properties, for five days of their takings (the car wash is the Broker's $25,000 starter)
+- Fronts that are for sale are bought in person at their door, like GTA's own properties, for five days of their takings (the car wash is the Broker's $15,000 starter)
 
 ## Settings
 
@@ -76,7 +76,7 @@ attack frequency, rival turf moves, notifications, live defenses, sound effects 
 Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the file:
 
 - `OfficeHotkey` (keyboard key, e.g. `F7`) and `OfficeButton` (true, the default = hold the controller's Back/View button, or M, for half a second to open the Office)
-- Attacks: `Frequency`, `CooldownMinutes` (exact minutes between attacks), `FirstAttackDelayMinutes`, `WarningHours`, `LiveDefense`, `PoliceRespond`, `EmpirePressure` (the more fronts you hold, the sooner and bigger the attacks)
+- Attacks: `Frequency`, `CooldownMinutes` (exact minutes between attacks), `FirstAttackDelayMinutes`, `HoldMinutes`, `LiveDefense`, `PoliceRespond`, `EmpirePressure` (the more fronts you hold, the sooner and bigger the attacks)
 - Turf: `Frequency` for how often crews grab and fight over fronts at night
 - Notifications: `Level` (All, Important, Minimal), `MinSecondsBetween` (default 20 s so messages never pile up), `Taunts`, `StreetWord`, `MidnightReport`
 - Sound: `Effects` for the game's alert and cash sounds

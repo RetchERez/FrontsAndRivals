@@ -62,7 +62,7 @@ namespace FrontsAndRivals.Dev
             _pool.Add(_menu);
 
             Add("Copy position (F9)", "Copies position and heading as a fronts.json snippet.", CopyPosition);
-            Add("Force attack", "Plans an attack on one of your fronts now, with a 30-second warning.", ForceAttack);
+            Add("Force attack", "Starts an attack on one of your fronts within a couple of seconds, with the alert and the hold timer.", ForceAttack);
             Add("Add $10,000", "Adds cash to the character you're playing.", () => AddCash(10000));
             Add("Add $100,000", "Adds cash to the character you're playing.", () => AddCash(100000));
             Add("Spawn test guard", "An FR_GUARDS ped in front of you. Reload scripts to check cleanup.", () => QueueSpawn("a_m_y_business_01", false));
@@ -225,7 +225,7 @@ namespace FrontsAndRivals.Dev
         private void ForceAttack()
         {
             _director.RequestForcedAttack();
-            Notify("Forced attack requested. Warning in a moment; the attack starts 30 s later.");
+            Notify("Forced attack requested. The alert comes in a couple of seconds.");
         }
 
         private void AddCash(int amount)

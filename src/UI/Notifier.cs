@@ -20,6 +20,9 @@ namespace FrontsAndRivals.UI
 
         private readonly List<PendingShot> _shots = new List<PendingShot>();
         private readonly NotifyQueue _queue = new NotifyQueue();
+
+        /// <summary>Drops everything still waiting to be sent (a new empire starting).</summary>
+        public void Clear() { _queue.Clear(); }
         private Func<NoteSettings> _settings = () => new NoteSettings();
 
         /// <summary>True while a mission, cutscene or switch is on: queued messages wait.</summary>

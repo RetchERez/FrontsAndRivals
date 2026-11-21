@@ -78,10 +78,17 @@ static class AttackTests
         T.True("Never within 30 minutes of losing a front", !Attacks.CanPlan(s, now, now, "Normal"));
         s.LastLossMs = -10000000;
 
-        T.Check("Warning: 3 hours by default", Attacks.WarningHours(3, false, false, "CK"), 3, 0);
-        T.Check("Cameras and a Lookout add an hour each", Attacks.WarningHours(3, true, true, "CK"), 5, 0);
-        T.Check("Velvet Syndicate cuts an hour", Attacks.WarningHours(3, false, false, "VS"), 2, 0);
-        T.Check("Never less than 1 hour", Attacks.WarningHours(1, false, false, "VS"), 1, 0);
+        T.Check("Even odds: guards hold 5 minutes", Attacks.HoldMinutes(5, 100, 100, false, "CK"), 5, 0);
+        T.True("Outgunned about 3, strong up to 7", Attacks.HoldMinutes(5, 0, 100, false, "CK") == 3 && Attacks.HoldMinutes(5, 1000, 1, false, "CK") == 7);
+        T.Check("Cameras add 2 minutes", Attacks.HoldMinutes(5, 100, 100, true, "CK"), 7, 0);
+        T.Check("The Velvet Syndicate takes a minute", Attacks.HoldMinutes(5, 100, 100, false, "VS"), 4, 0);
+        T.True("Always 2 to 12 minutes", Attacks.HoldMinutes(2, 0, 500, false, "VS") == 2 && Attacks.HoldMinutes(12, 999, 1, true, "CK") == 12);
+        var dug = new EmpireState { Day = 4 };
+        var lostFront = new FrontState { Id = "x" };
+        lostFront.DugInUntilDay = dug.Day + 1;
+        T.True("A lost front can't be claimed back before midnight", Attacks.DugIn(dug, lostFront));
+        dug.Day = 5;
+        T.True("...and can after it", !Attacks.DugIn(dug, lostFront));
         T.Check("Near the crew's home: d = 1.0", Attacks.DistanceFactor(Spot.At(10, 10, 0, 0), Spot.At(500, 10, 0, 0)), 1.0, 0.0001);
         T.Check("Far away: d = 0.6", Attacks.DistanceFactor(Spot.At(10, 10, 0, 0), Spot.At(5010, 10, 0, 0)), 0.6, 0.0001);
 
@@ -97,9 +104,10 @@ static class AttackTests
         T.Check("Crown Kings (2.0) picked ~80% vs Ironside (0.5)", ckPicks / 3000.0, 0.8, 0.04);
         Nemesis.Crew(s, "VS").QuietUntilDay = -1;
 
-        AttackState plan = Attacks.Plan(s, content, e, rng, 3, 12, now);
+        AttackState plan = Attacks.Plan(s, content, e, rng, 5, 12, now);
         T.True("Plan: targets your only front", plan != null && plan.Front == "carwash_handson");
-        T.True("Plan: warning then a 3-minute window", plan.WindowEnds - plan.WarnEnds == Attacks.WindowMs && plan.WarnEnds > now);
+        T.True("Plan: no warning, already underway, 2-12 minutes to get there", plan.Phase == AttackPhase.Window && plan.WarnEnds == now
+               && plan.WindowEnds - now >= 2 * Attacks.Minute && plan.WindowEnds - now <= 12 * Attacks.Minute);
         T.True("Plan: squad of at least 1 with a named leader", plan.Squad >= 1 && Nemesis.Crew(s, plan.Crew).Member(plan.Leader) != null);
 
         T.Section("Attack results");
@@ -238,7 +246,7 @@ static class AttackTests
         bool none = true;
         for (int i = 0; i < 50; i++) if (Turf.Nightly(weak, content, rng).Count > 0) none = false;
         T.True("Crews with fewer than 8 soldiers stay home", none);
-        T.Check("Starter price is $25,000", Economy.FrontPrice(content.Front("carwash_handson")), 25000, 0);
+        T.Check("Starter price is $15,000", Economy.FrontPrice(content.Front("carwash_handson")), 15000, 0);
         T.Check("Other fronts cost five days of income", Economy.FrontPrice(content.Front("motel_alta")), 4500 * 5, 0);
 
         T.Section("Text lines");

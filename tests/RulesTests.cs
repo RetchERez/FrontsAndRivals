@@ -37,6 +37,16 @@ static class RulesTests
         for (int i = 0; i < 100; i++) Stats.Add(g, Stats.Promotion);
         T.True("Skills cap at 100", g.Shooting == 100 && g.Stealth == 100);
         int[] old = Stats.FromRank(Rank.Veteran, 12);
+        var ce = new FrontsAndRivals.Data.ContentDb(System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "Content")), null);
+        ce.Load();
+        var cs = FrontsAndRivals.Data.SaveService.NewEmpire();
+        var cemp = new Empire(cs, ce);
+        cemp.SetOwner("carwash_handson", FrontsAndRivals.Data.Owners.Player);
+        var rookie = cemp.Recruit(new Random(1));
+        cemp.Assign(rookie, "carwash_handson", 0);
+        int promotedAt = -1;
+        for (int night = 1; night <= 20 && promotedAt < 0; night++) if (cemp.DayOnDuty().Contains(rookie)) promotedAt = night;
+        T.Check("Time served: a posted Recruit makes Soldier after 3 nights", promotedAt, 3, 0);
         T.True("Old saves get rank-based skills", old[0] >= 56 && old[0] <= 62 && Stats.FromRank(Rank.Recruit, 3)[1] < old[1]);
 
         var raw = G(Rank.Soldier, Weapon.Smg); raw.Shooting = 80; raw.Strength = 70;

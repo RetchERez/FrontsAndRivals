@@ -57,7 +57,6 @@ namespace FrontsAndRivals.Rules
                 case Trait.Tough: v[1] += 15; v[2] += 15; break;
                 case Trait.Hothead: v[1] += 20; v[3] -= 10; break;
                 case Trait.NightOwl: v[2] += 10; v[3] += 10; break;
-                case Trait.Lookout: v[3] += 25; break;
                 case Trait.Medic: v[2] += 20; break;
                 case Trait.Loyal: v[2] += 10; break;
                 case Trait.Nervous: v[0] -= 10; v[1] -= 5; v[3] += 10; break;

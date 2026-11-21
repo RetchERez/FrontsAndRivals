@@ -63,7 +63,7 @@ namespace FrontsAndRivals.Dev
 
             _post = new NativeListItem<int>("Post", "Which of the 4 guard posts to set.", 1, 2, 3, 4);
             _menu.Add(_post);
-            _scenario = new NativeListItem<string>("Idle", "What the guard does at this post (night and Lookout override it).", StreamRules.PostScenarios);
+            _scenario = new NativeListItem<string>("Idle", "What the guard does at this post (at night every guard uses a torch).", StreamRules.PostScenarios);
             _menu.Add(_scenario);
             Add("Set post here", "Puts the selected post where you stand, facing where you face.", SetPost);
             Add("Remove last post", "Drops the highest-numbered post.", RemoveLastPost);

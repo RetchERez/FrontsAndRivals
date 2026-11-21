@@ -92,7 +92,7 @@ namespace FrontsAndRivals.Rules
         /// <summary>Every trait a recruit can roll (every recruit has exactly one).</summary>
         public static readonly Trait[] RecruitTraits =
         {
-            Trait.Sharpshooter, Trait.Tough, Trait.Hothead, Trait.NightOwl, Trait.Lookout, Trait.Medic, Trait.Loyal, Trait.Nervous
+            Trait.Sharpshooter, Trait.Tough, Trait.Hothead, Trait.NightOwl, Trait.Medic, Trait.Loyal, Trait.Nervous
         };
 
         /// <summary>The Broker's offers for the day: new faces each day, unhired ones are gone.</summary>
@@ -214,16 +214,28 @@ namespace FrontsAndRivals.Rules
         {
             if (g == null) return false;
             if (!on) { g.Escort = false; return true; }
+            if (OwnedCount() == 0) return false; // crews would fight them before you're even in the game
             if (!FrontsAndRivals.Spawn.EscortRules.CanCall(g.Status == GuardStatus.Active, g.Escort, EscortCount())) return false;
             g.Escort = true;
             return true;
         }
 
         /// <summary>A midnight on the payroll: every guard standing a post gets a little better at it.</summary>
-        public void DayOnDuty()
+        /// <summary>Also 1 XP a night on a post, so ranks (and the guns they unlock) come with time served, not only
+        /// from the rare attack on their own front. Returns the guards who were promoted tonight.</summary>
+        public List<GuardState> DayOnDuty()
         {
+            var promoted = new List<GuardState>();
             foreach (GuardState g in _s.Guards)
-                if (g.Status == GuardStatus.Active && g.IsPosted) Stats.Add(g, Stats.DayOnDuty);
+            {
+                if (g.Status != GuardStatus.Active || !g.IsPosted) continue;
+                Stats.Add(g, Stats.DayOnDuty);
+                int before = g.Rank;
+                g.Xp++;
+                Attacks.Promote(g);
+                if (g.Rank > before) promoted.Add(g);
+            }
+            return promoted;
         }
 
         /// <summary>Fired: off the roster for good, no severance.</summary>

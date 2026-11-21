@@ -13,11 +13,11 @@ namespace FrontsAndRivals.Rules
         public const long FirstAttackDelayMs = 10 * Minute;        // never in the first 10 minutes after loading
         public const long AfterLossDelayMs = 30 * Minute;          // never within 30 minutes of losing a front
         public const long SameFrontDelayMs = 2 * 24 * GameHourMs;  // never the same front twice within 2 in-game days
-        public const long WindowMs = 3 * Minute;                   // the attack window lasts 3 real minutes
+
         public const double PlanChancePerMinute = 0.25;
         public const float LiveRange = 300f;                       // inside this during the window: live defense
         public const float OnTheWayRange = 1000f;                  // this close when the window closes: the crew waits for you
-        public const long OnTheWayMs = 90000;                      // ...once, for 90 more seconds
+        public const long OnTheWayMs = 90000;                      // ...once: your people hold 90 seconds more
 
         /// <summary>Cooldown in ms for a frequency name, or -1 when attacks are off.</summary>
         public static long CooldownMs(string frequency)
@@ -157,16 +157,24 @@ namespace FrontsAndRivals.Rules
             return Weighted(pool, scores, rng);
         }
 
-        /// <summary>Hours of warning: the INI value + Cameras + a Lookout guard, minus 1 for the Velvet Syndicate. Never under 1.</summary>
-        public static int WarningHours(int baseHours, bool cameras, bool lookout, string crewId)
+        public const int DefaultHoldMinutes = 5;
+        public const int CameraMinutes = 2;
+
+        /// <summary>No warning: the attack is already on when you hear about it, and your guards hold the line this many
+        /// real minutes before it's decided without you. Stronger fronts hold longer: x0.6 badly outgunned, x1.0 at even
+        /// odds, up to x1.4 (5 by default: about 3 to 7). Cameras add 2 minutes; the Velvet Syndicate (fast and quiet)
+        /// takes 1. Always 2-12 minutes. Sometimes you make it, sometimes your guards settle it first.</summary>
+        public static int HoldMinutes(int baseMinutes, double defense, double attack, bool cameras, string crewId)
         {
-            int h = baseHours + (cameras ? 1 : 0) + (lookout ? 1 : 0) - (crewId == Owners.Velvet ? 1 : 0);
-            return Math.Max(1, h);
+            double ratio = defense + attack <= 0 ? 0.5 : Math.Max(0, defense) / (Math.Max(0, defense) + Math.Max(0, attack));
+            double m = baseMinutes * (0.6 + 0.8 * ratio);
+            m += (cameras ? CameraMinutes : 0) - (crewId == Owners.Velvet ? 1 : 0);
+            return (int)Math.Max(2, Math.Min(12, Math.Round(m)));
         }
 
         /// <summary>Plans a complete attack, or returns null if nobody can attack anything right now.</summary>
         /// <param name="squadBonus">Extra attackers from empire-size pressure (PressureSquadBonus).</param>
-        public static AttackState Plan(EmpireState s, ContentDb content, Empire empire, Random rng, int warningBaseHours, int hour, long nowMs,
+        public static AttackState Plan(EmpireState s, ContentDb content, Empire empire, Random rng, int holdBaseMinutes, int hour, long nowMs,
                                        int squadBonus = 0)
         {
             CrewState crew = PickCrew(s, content, rng);
@@ -185,10 +193,7 @@ namespace FrontsAndRivals.Rules
             int squad = Resolver.SquadSize(fd.Tier, crew.Grudge, crew.Manpower, squadBonus);
             if (squad < 1) return null;
             double a = Resolver.AttackStrength(squad, def.SoldierPower, Nemesis.LeaderBonus(leader), leader.LeaderTrait == LeaderTrait.Ruthless, crew.Grudge);
-            bool lookout = false;
-            foreach (GuardState g in s.Guards)
-                if (g.Front == target.Id && g.Status == GuardStatus.Active && g.Trait == (int)Trait.Lookout) lookout = true;
-            int hours = WarningHours(warningBaseHours, target.Cameras, lookout, crew.Id);
+            int minutes = HoldMinutes(holdBaseMinutes, empire.Defense(target.Id, hour), a, target.Cameras, crew.Id);
 
             return new AttackState
             {
@@ -197,9 +202,12 @@ namespace FrontsAndRivals.Rules
                 Leader = leader.Id,
                 Squad = squad,
                 Strength = a,
-                Phase = AttackPhase.Warning,
-                WarnEnds = nowMs + hours * GameHourMs,
-                WindowEnds = nowMs + hours * GameHourMs + WindowMs
+                // Already underway: straight to the window, no warning.
+                Phase = AttackPhase.Window,
+                WarnEnds = nowMs,
+                WarnAt = nowMs,
+                Warned = true,
+                WindowEnds = nowMs + minutes * Minute
             };
         }
 
@@ -327,13 +335,17 @@ namespace FrontsAndRivals.Rules
             empire.SetOwner(front.Id, crewId);
             front.TakenFrom = null;
             front.Damaged = false;
+            front.DugInUntilDay = s.Day + 1; // the crew digs in: you can't claim it back before the next midnight
         }
 
-        /// <summary>The player claims a crew front at its door.</summary>
+        /// <summary>A front you lost can't be claimed back until the next in-game midnight.</summary>
+        public static bool DugIn(EmpireState s, FrontState front) { return front != null && s.Day < front.DugInUntilDay; }
+
         /// <summary>A front you just bought or took is left alone for a while (SameFrontDelayMs, two in-game days),
         /// so you can staff it before anyone comes for it.</summary>
         public static void GracePeriod(EmpireState s, string frontId, long nowMs) { s.FrontAttackedMs[frontId] = nowMs; }
 
+        /// <summary>The player claims a crew front at its door.</summary>
         public static void TakeFront(EmpireState s, Empire empire, FrontState front, string fromCrew)
         {
             empire.SetOwner(front.Id, Owners.Player);

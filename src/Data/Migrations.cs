@@ -77,6 +77,7 @@ namespace FrontsAndRivals.Data
             foreach (GuardState g in s.Guards)
             {
                 if (string.IsNullOrEmpty(g.Status)) g.Status = GuardStatus.Active;
+                if (g.Trait == (int)FrontsAndRivals.Rules.Trait.Lookout) g.Trait = (int)FrontsAndRivals.Rules.Trait.None; // retired trait
                 if (g.Front == null) g.Post = GuardState.Reserve;
                 if (g.Id >= s.NextGuardId) s.NextGuardId = g.Id + 1;
                 // Saves from before skills: give everyone a steady, rank-based line.
@@ -86,6 +87,18 @@ namespace FrontsAndRivals.Data
                     g.Shooting = v[0]; g.Strength = v[1]; g.Stamina = v[2]; g.Stealth = v[3];
                 }
             }
+            // Offers saved before skills: give them a line too, so they're priced and fight like everyone else.
+            foreach (GuardState g in s.Offers)
+            {
+                if (g.Trait == (int)FrontsAndRivals.Rules.Trait.Lookout) g.Trait = (int)FrontsAndRivals.Rules.Trait.None;
+                if (g.Shooting + g.Strength + g.Stamina + g.Stealth == 0)
+                {
+                    int[] v = FrontsAndRivals.Rules.Stats.FromRank(FrontsAndRivals.Rules.Rank.Recruit, g.Id + g.First.Length);
+                    g.Shooting = v[0]; g.Strength = v[1]; g.Stamina = v[2]; g.Stealth = v[3];
+                }
+            }
+            // Saves from before "danger money" have FearUntilDay = 0 (fields load as 0); 0 can only mean unset.
+            if (s.FearUntilDay == 0) s.FearUntilDay = -1;
             if (s.ActiveMs < 0) s.ActiveMs = 0;
             if (s.SaveCount < 0) s.SaveCount = 0;
         }

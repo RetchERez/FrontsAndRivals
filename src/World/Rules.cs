@@ -10,6 +10,7 @@ namespace FrontsAndRivals.Rules
     /// <summary>The guard weapon ladder, bottom to top. Guards start with a knife; every step is a big jump.
     /// Saved as an int. Schema 1: 0 pistol, 1 SMG, 2 rifle. Schema 2 had 7 steps. Migrations maps both.</summary>
     public enum Weapon { Knife, Pistol, Shotgun, Smg, CarbineRifle }
+    /// <summary>Lookout is retired (every guard keeps watch); the value stays so old saves load, and Migrations clears it.</summary>
     public enum Trait { None, Sharpshooter, Tough, Hothead, NightOwl, Lookout, Medic, Loyal, Nervous }
 
     public sealed class GuardRecord
