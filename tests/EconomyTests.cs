@@ -142,8 +142,8 @@ static class EconomyTests
         Stats.Set(r1, new[] { 50, 50, 50, 50 }); Stats.Set(r2, new[] { 50, 50, 50, 50 }); // average skills
         e3.Assign(r1, "carwash_handson", 0);
         e3.Assign(r2, "carwash_handson", 1);
-        T.Check("Front defense: 2 knife recruits by day = 12", e3.Defense("carwash_handson", 12), 12, 0.001);
-        T.Check("...and 9 at night", e3.Defense("carwash_handson", 23), 9, 0.001);
+        T.Check("Front defense: 2 knife recruits by day = 12, plus the front's own 6", e3.Defense("carwash_handson", 12), 18, 0.001);
+        T.Check("...and 9 + 6 at night", e3.Defense("carwash_handson", 23), 15, 0.001);
         T.Check("Daily income/wages shown in the Office", e3.DailyIncome() - e3.DailyWages(), 924, 0);
     }
 }

@@ -65,6 +65,7 @@ namespace FrontsAndRivals.Attacks
         private int _loadStarted, _started, _lastIntegrityTick, _lastPush, _leaderFleeStart;
         private readonly Dictionary<Vehicle, int> _stuckSince = new Dictionary<Vehicle, int>();
         private readonly List<Blip> _pedBlips = new List<Blip>();
+        private List<string> _convoy = new List<string>();
         private readonly List<Vehicle> _cars = new List<Vehicle>();
         private readonly List<Ped> _attackers = new List<Ped>();
         private readonly HashSet<Ped> _counted = new HashSet<Ped>();
@@ -103,8 +104,9 @@ namespace FrontsAndRivals.Attacks
 
             // Request models: one car model per car, ped models for the squad.
             _models.Clear();
-            int cars = Math.Max(1, (attack.Squad + 2) / 3);
-            for (int i = 0; i < cars; i++) _models.Add(new Model(crew.Vehicles[i % crew.Vehicles.Count]));
+            // The crew's own rides: Ironside on bikes (two up), the others in their signature cars.
+            _convoy = crew.ConvoyPlan(attack.Squad);
+            foreach (string vehicle in _convoy) _models.Add(new Model(vehicle));
             for (int i = 0; i < attack.Squad; i++) _models.Add(new Model(i == 0 && leader != null && leader.Model != null ? leader.Model : crew.Models[i % crew.Models.Count]));
             foreach (Model m in _models) if (m.IsValid) m.Request();
             _loadStarted = Game.GameTime;
@@ -214,7 +216,7 @@ namespace FrontsAndRivals.Attacks
         private void SpawnConvoy()
         {
             int squad = _attack.Squad;
-            int cars = Math.Max(1, (squad + 2) / 3);
+            int cars = _convoy.Count;
             int carModel = 0, pedModel = cars;
             int placed = 0;
             for (int c = 0; c < cars && placed < squad; c++)
@@ -229,7 +231,7 @@ namespace FrontsAndRivals.Attacks
                 Function.Call(Hash.SET_VEHICLE_COLOURS, v, _crew.Paint, _crew.Paint);
                 v.PlaceOnGround();
                 _cars.Add(v);
-                int seats = Math.Min(4, v.PassengerCapacity + 1);
+                int seats = Math.Min(_crew.SeatsFor(c % _crew.Vehicles.Count), v.PassengerCapacity + 1);
                 for (int seat = 0; seat < seats && placed < squad; seat++)
                 {
                     if (!_registry.CanSpawnPed) break;

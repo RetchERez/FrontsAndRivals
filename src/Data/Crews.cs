@@ -34,6 +34,39 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "lieutenants")] public List<PersonDef> Lieutenants;
         [DataMember(Name = "models")] public List<string> Models;
         [DataMember(Name = "vehicles")] public List<string> Vehicles;
+        /// <summary>Seats in each of those vehicles (the game's own vehicle data): 2 on a motorcycle, 4 in a sedan.</summary>
+        [DataMember(Name = "vehicleSeats")] public List<int> VehicleSeats;
+
+        public const int MaxConvoy = 6; // vehicles per attack, inside the 8-vehicle budget
+
+        /// <summary>The convoy for a squad: the crew's two signature vehicles in turn until everyone has a seat.
+        /// Ironside MC rolls up on bikes, two to a bike. Pure, unit-tested.</summary>
+        public List<string> ConvoyPlan(int squad)
+        {
+            var plan = new List<string>();
+            if (Vehicles == null || Vehicles.Count == 0) return plan;
+            int seated = 0;
+            for (int i = 0; seated < Math.Max(1, squad) && plan.Count < MaxConvoy; i++)
+            {
+                plan.Add(Vehicles[i % Vehicles.Count]);
+                seated += SeatsFor(i % Vehicles.Count);
+            }
+            return plan;
+        }
+
+        public int SeatsFor(int index)
+        {
+            return VehicleSeats != null && index < VehicleSeats.Count && VehicleSeats[index] > 0 ? VehicleSeats[index] : 4;
+        }
+
+        /// <summary>Seats the convoy plan gives (the squad is trimmed to this if the budget ran short).</summary>
+        public int ConvoySeats(int squad)
+        {
+            int seats = 0;
+            List<string> plan = ConvoyPlan(squad);
+            for (int i = 0; i < plan.Count; i++) seats += SeatsFor(i % Vehicles.Count);
+            return seats;
+        }
         [DataMember(Name = "weapons")] public List<string> Weapons;
     }
 

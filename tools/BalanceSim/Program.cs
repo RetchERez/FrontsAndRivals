@@ -29,6 +29,7 @@ static class Sim
         public int Attacks, AttacksWon, FrontsLost, Raids, RaidsWon, GuardsDead, Quits, Assaults;
         public int Day3 = -1, Day8 = -1, Day15 = -1, Day22 = -1;
         public long UpgradeSpend, GunSpend, HireSpend, FrontSpend;
+        public int LossStreak, LongestLossStreak, LongestQuiet, QuietNow, PeakFronts, LastEventDay;
     }
 
     static ContentDb _content;
@@ -161,7 +162,9 @@ static class Sim
                 else if (kind == 1) { st.AttPartial++; if (o.DefendersWon) st.AttPartialWon++; }
                 else { st.AttFull++; if (o.DefendersWon) st.AttFullWon++; }
                 if (o.DefendersWon) { st.AttacksWon++; if (live == true) cash += Economy.DefendBonus(e.FrontIncome(a.Front), 1.0); }
-                if (o.FrontLost) st.FrontsLost++;
+                if (o.FrontLost) { st.FrontsLost++; st.LossStreak++; st.LongestLossStreak = Math.Max(st.LongestLossStreak, st.LossStreak); }
+                else st.LossStreak = 0;
+                st.LastEventDay = s.Day;
                 st.GuardsDead += s.Guards.Count(g => g.Status == GuardStatus.Dead) - before;
             }
 
@@ -170,11 +173,14 @@ static class Sim
                 int before = s.Guards.Count(g => g.Status == GuardStatus.Dead);
                 Raids.Outcome ro = Raids.Resolve(s, _content, e, rng, hour, now, true, 96 * Min);
                 st.Raids++;
+                st.LastEventDay = s.Day;
                 if (ro.Won) st.RaidsWon++;
                 st.GuardsDead += s.Guards.Count(g => g.Status == GuardStatus.Dead) - before;
             }
 
             int held = e.OwnedCount();
+            st.PeakFronts = Math.Max(st.PeakFronts, held);
+            if (held > 0) st.LongestQuiet = Math.Max(st.LongestQuiet, s.Day - st.LastEventDay);
             if (held >= 3 && st.Day3 < 0) st.Day3 = s.Day;
             if (held >= 8 && st.Day8 < 0) st.Day8 = s.Day;
             if (held >= 15 && st.Day15 < 0) st.Day15 = s.Day;
@@ -190,6 +196,7 @@ static class Sim
         foreach (CrewState crew in s.Crews) Nemesis.Rebuild(s, _content, crew, rng, s.Day);
         Turf.Nightly(s, _content, rng, Turf.ChanceFor("Normal"));
         Turf.Market(s, _content, rng);
+        e.BrokerRescue();
         Economy.Payout pay = Economy.Midnight(s, _content, cash, 1.0, 1.0);
         e.DayOnDuty();
         st.Quits += pay.Quit.Count;
@@ -310,6 +317,18 @@ static class Sim
                           + "   raids/game " + (raids / all.Count).ToString("0.0") + ", won " + Pct(raids > 0 ? rwon / raids : 0) + "   assaults " + all.Average(x => x.Assaults).ToString("0.0"));
         Func<Func<Stats,int>,Func<Stats,int>,string> rate = (n, w) => { double a = all.Sum(n), b = all.Sum(w); return (a / all.Count).ToString("0.0") + "/game won " + Pct(a > 0 ? b / a : 0); };
         Console.WriteLine("   by staffing   full " + rate(x => x.AttFull, x => x.AttFullWon) + ", partial " + rate(x => x.AttPartial, x => x.AttPartialWon) + ", empty " + rate(x => x.AttEmpty, x => x.AttEmptyWon));
+ Func<IEnumerable<double>, string> spread = vals =>
+        {
+            var v = vals.OrderBy(x => x).ToList();
+            Func<double, double> q = f => v[Math.Min(v.Count - 1, (int)(f * v.Count))];
+            return q(0.1).ToString("0") + " / " + q(0.5).ToString("0") + " / " + q(0.9).ToString("0");
+        };
+        Console.WriteLine("   spread p10/50/90  fronts at end " + spread(all.Select(x => (double)x.FrontsByDay[days])) + "   lost " + spread(all.Select(x => (double)x.FrontsLost))
+                          + "   guards dead " + spread(all.Select(x => (double)x.GuardsDead)) + "   net/night at end $" + spread(all.Select(x => (double)x.NetByDay[days])));
+        Console.WriteLine("   tails         wiped out (0 fronts at end, held 2+) " + Pct(all.Count(x => x.FrontsByDay[days] == 0 && x.PeakFronts >= 2) / (double)all.Count)
+                          + "   worst losing streak p90 " + spread(all.Select(x => (double)x.LongestLossStreak)).Split('/')[2].Trim()
+                          + "   longest quiet stretch p50/p90 " + spread(all.Select(x => (double)x.LongestQuiet)).Split('/')[1].Trim() + "/" + spread(all.Select(x => (double)x.LongestQuiet)).Split('/')[2].Trim() + " days"
+                          + "   runaway (all 29 held) " + Pct(all.Count(x => x.PeakFronts >= 29) / (double)all.Count));
         Console.WriteLine("   guards dead   " + all.Average(x => x.GuardsDead).ToString("0.0") + "/game, quits " + all.Average(x => x.Quits).ToString("0.0")
                           + "   spend: fronts $" + all.Average(x => x.FrontSpend).ToString("N0") + ", hires $" + all.Average(x => x.HireSpend).ToString("N0")
                           + ", guns $" + all.Average(x => x.GunSpend).ToString("N0") + ", upgrades $" + all.Average(x => x.UpgradeSpend).ToString("N0"));

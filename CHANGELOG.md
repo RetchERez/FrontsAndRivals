@@ -12,6 +12,11 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
+- Crew rides: each crew has two signature vehicles and convoys seat the whole squad (Ironside MC on Daemon and Hexer
+  bikes two-up, the Crown Kings in Dominators and Mananas, the Velvet Syndicate in Schafters and Washingtons)
+- Variance pass (200 games per setting, 60 days, p10/p50/p90 and tails): every front holds a little by itself (6 / 10 / 14
+  by size) so empty fronts aren't free wins, and the roster holds 70. Normal: staffed fronts hold ~68%, worst losing
+  streaks down from 10 to 6, nobody wiped out, holding all 29 is a late-story goal (~day 45-60)
 - Story-length pacing (60-day Monte Carlo): attacks wait 60 free-roam minutes on Normal (Low 90, High 35); crews now
   and then sell a front they can't hold so the market keeps about two for sale; raids are a fair fight (crews defend at
   x1.8: ~32% early, ~58% mid, ~73% late); a normal player holds ~15 fronts by day 30 and ~22 by day 40

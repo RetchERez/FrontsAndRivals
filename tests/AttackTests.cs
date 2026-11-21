@@ -42,6 +42,10 @@ static class AttackTests
         for (int n = 0; n < 40; n++) if (Turf.Market(ms, mcontent, new Random(n)) != null) sold++;
         int onSale = ms.Fronts.Count(f => f.Owner == Owners.ForSale);
         T.True("The market refills when it runs dry, up to two (" + onSale + " on sale)", sold > 0 && onSale <= Turf.MarketTarget);
+        CrewDef ir = mcontent.Crew("IR"), ck = mcontent.Crew("CK");
+        T.True("Ironside MC rides bikes, two up: 9 attackers on 5 bikes", ir.ConvoyPlan(9).Count == 5 && ir.ConvoyPlan(9).TrueForAll(v => v == "daemon" || v == "hexer"));
+        T.True("Crown Kings: 9 in 3 cars, alternating their two rides", ck.ConvoyPlan(9).Count == 3 && ck.ConvoyPlan(9)[0] != ck.ConvoyPlan(9)[1]);
+        T.True("A convoy always seats the whole squad", ir.ConvoySeats(9) >= 9 && ck.ConvoySeats(5) >= 5 && ir.ConvoyPlan(1).Count == 1);
         T.True("Labels: Unknown at 0, Marked at 20", Attacks.PressureLabel(0) == "Unknown" && Attacks.PressureLabel(20) == "Marked");
     }
 

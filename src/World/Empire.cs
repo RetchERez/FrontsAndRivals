@@ -8,7 +8,7 @@ namespace FrontsAndRivals.Rules
     public sealed class Empire
     {
         public const int MaxReserve = 6;   // guards waiting at the HQ
-        public const int MaxRoster = 60;   // enough to guard about 13 fronts fully; wages are the real limit
+        public const int MaxRoster = 70;   // most of a big empire can be staffed; wages past 12 guards are the real limit
 
         private readonly EmpireState _s;
         private readonly ContentDb _content;
@@ -458,7 +458,9 @@ namespace FrontsAndRivals.Rules
             }
             FrontState fs = Find(frontId);
             var up = fs == null ? new FrontUpgrades() : new FrontUpgrades { Cameras = fs.Cameras, Doors = fs.Doors, Floodlights = fs.Floodlights, Armory = fs.Armory };
-            return DefenseRating.Compute(posted, up, hour);
+            // The place itself fights back a little (staff, regulars, a locked door): an unguarded front is never a free win.
+            FrontDef fdef = _content.Front(frontId);
+            return DefenseRating.Compute(posted, up, hour) + DefenseRating.FrontBase(fdef != null ? fdef.Tier : 0);
         }
 
         public int OwnedCount()

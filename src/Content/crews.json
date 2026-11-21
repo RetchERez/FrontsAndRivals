@@ -70,14 +70,16 @@
         "a_m_m_fatlatin_01"
       ],
       "vehicles": [
-        "sultan",
-        "buffalo",
         "dominator",
-        "gauntlet"
+        "manana"
       ],
       "weapons": [
         "pistol",
         "microsmg"
+      ],
+      "vehicleSeats": [
+        4,
+        4
       ]
     },
     {
@@ -147,13 +149,16 @@
       ],
       "vehicles": [
         "daemon",
-        "hexer",
-        "gburrito"
+        "hexer"
       ],
       "weapons": [
         "pistol",
         "sawnoffshotgun",
         "smg"
+      ],
+      "vehicleSeats": [
+        2,
+        2
       ]
     },
     {
@@ -230,14 +235,16 @@
       ],
       "vehicles": [
         "schafter2",
-        "tailgater",
-        "oracle",
         "washington"
       ],
       "weapons": [
         "pistol",
         "smg",
         "carbinerifle"
+      ],
+      "vehicleSeats": [
+        4,
+        4
       ]
     }
   ]

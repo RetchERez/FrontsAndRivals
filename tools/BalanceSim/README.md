@@ -7,6 +7,12 @@ was staffed, raids, guard deaths and spending. Three playstyles (Casual, Normal,
     dotnet run --project tools/BalanceSim -c Release -- 150 30          # 150 games per setting, 30 in-game days
     dotnet run --project tools/BalanceSim -c Release -- 1 12 trace      # one Normal game, attack by attack
 
+Each setting also prints the spread (10th / 50th / 90th percentile) and the tails: wipe-outs, the worst losing streak,
+the longest quiet stretch, and runaway games.
+
+    dotnet run --project tools/BalanceSim -c Release -- 200 60 city     # the map with no player
+    dotnet run --project tools/BalanceSim -c Release -- 150 60 story    # early / mid / post-heist starting cash
+
 Targets the 1.0 numbers were tuned to (Normal difficulty, Normal player):
 - a staffed front holds about 55-60% of attacks (Relaxed ~70%, Brutal ~45-50%)
 - 3 fronts by day 4, 8 by day 12, 15 by about day 23 of a 30-day campaign

@@ -92,6 +92,10 @@ namespace FrontsAndRivals.Rules
                    * Stats.PowerFactor(g.Shooting, g.Strength);
         }
 
+        /// <summary>What a front holds off by itself, with nobody posted: staff, regulars, a locked door.
+        /// 6 small, 10 mid, 14 big. Enough that crews can't sweep empty fronts for free, never a substitute for guards.</summary>
+        public static double FrontBase(int tier) { return 6 + 4 * Math.Max(0, Math.Min(2, tier)); }
+
         /// <summary>D = (sum g) x O x (1 + C) + F</summary>
         public static double Compute(IList<GuardRecord> posted, FrontUpgrades up, int hour)
         {
