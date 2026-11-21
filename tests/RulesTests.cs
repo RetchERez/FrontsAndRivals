@@ -53,6 +53,18 @@ static class RulesTests
         T.True("A skilled guard out-guns an average one", DefenseRating.GuardPower(raw, new FrontUpgrades(), 12) > DefenseRating.GuardPower(G(Rank.Soldier, Weapon.Smg), new FrontUpgrades(), 12));
     }
 
+    /// <summary>Raids should be a gamble early, a good bet mid-game, and strong but never certain late.</summary>
+    static void RaidBalance()
+    {
+        T.Section("Balance: raids are fun, not free");
+        double early = Raids.WinChance(DefenseRating.Compute(Many(3, Rank.Recruit, Weapon.Pistol), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 12 }, 2));
+        double mid = Raids.WinChance(DefenseRating.Compute(Many(3, Rank.Soldier, Weapon.Smg), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 12 }, 3));
+        double late = Raids.WinChance(DefenseRating.Compute(Many(4, Rank.Veteran, Weapon.CarbineRifle), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 16 }, 4));
+        T.True("Early raid (3 pistol recruits vs a small front): a gamble, 30-50% (" + (int)(early * 100) + "%)", early >= 0.30 && early <= 0.50);
+        T.True("Mid-game raid (3 SMG soldiers vs a mid front): a good bet, 60-75% (" + (int)(mid * 100) + "%)", mid >= 0.60 && mid <= 0.75);
+        T.True("Late raid (4 carbine veterans vs a big front): strong, 75-90% (" + (int)(late * 100) + "%)", late >= 0.75 && late <= 0.90);
+    }
+
     /// <summary>The balance pass's target fights (Crown Kings, soldier power 12). Preparation should win, neglect should lose.</summary>
     static void BalanceTests()
     {
@@ -85,6 +97,7 @@ static class RulesTests
     public static void Run()
     {
         BalanceTests();
+        RaidBalance();
         StatsTests();
         T.Section("Rules (design doc numbers)");
         var none = new FrontUpgrades();

@@ -209,12 +209,21 @@ namespace FrontsAndRivals.Rules
 
         // ---- more fronts, more money ----
 
-        /// <summary>A front pays more the longer you keep it: +5% for every in-game day held, up to +50%. Losing it resets this.</summary>
-        public static double EstablishedFactor(int daysHeld) { return 1.0 + Math.Min(0.5, 0.05 * Math.Max(0, daysHeld)); }
+        /// <summary>A front pays more the longer you keep it: +3% for every in-game day held, up to +30% (ten days).
+        /// Losing it resets this. Gentle on purpose, so money still matters in the mid-game.</summary>
+        public static double EstablishedFactor(int daysHeld) { return 1.0 + Math.Min(0.3, 0.03 * Math.Max(0, daysHeld)); }
 
         /// <summary>Every front you hold makes the rest pay more (shared suppliers, laundering, reputation):
-        /// +2% on all fronts per front past the first, up to +30%. So more fronts always means more money, faster.</summary>
-        public static double NetworkFactor(int frontsHeld) { return 1.0 + Math.Min(0.3, 0.02 * Math.Max(0, frontsHeld - 1)); }
+        /// +1.5% on all fronts per front past the first, up to +20%. More fronts always means more money, never runaway.</summary>
+        public static double NetworkFactor(int frontsHeld) { return 1.0 + Math.Min(0.2, 0.015 * Math.Max(0, frontsHeld - 1)); }
+
+        /// <summary>Front upgrades cost more on bigger businesses: x1 small, x1.5 mid-size, x2.5 big. Kitting out a club
+        /// stays a real decision even when the money is rolling in.</summary>
+        public static int UpgradePrice(int basePrice, int tier)
+        {
+            double f = tier >= 2 ? 2.5 : tier == 1 ? 1.5 : 1.0;
+            return (int)(Math.Round(basePrice * f / 500.0) * 500);
+        }
 
         /// <summary>What one front pays tonight.</summary>
         public static int FrontIncome(FrontDef def, FrontState f, int day, int frontsHeld, double incomeMult)

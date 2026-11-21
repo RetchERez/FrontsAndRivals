@@ -367,7 +367,7 @@ namespace FrontsAndRivals.UI
             AddListRow(Info("Daily Income", "Paid at every in-game midnight to whoever you're playing.", Money(income)), null, false);
             AddListRow(Info("Daily Wages", "Cheap for a small crew: past " + Economy.FreePayroll + " guards, each extra one adds 4% to everyone's wage (now x"
                 + Economy.PayrollFactor(e.LivingCount()).ToString("0.00") + "). Unpaid guards quit, newest first (Loyal ones never do).", Money(wages)), null, false);
-            AddListRow(Info("Net per Day", "Income minus wages. Fronts pay more the longer you hold them (up to +50%), and every front adds +2% to all of them (up to +30%).", Money(income - wages)), null, false);
+            AddListRow(Info("Net per Day", "Income minus wages. Fronts pay more the longer you hold them (up to +30%), and every front adds +1.5% to all of them (up to +20%).", Money(income - wages)), null, false);
             AddListRow(Info("This Week (About)", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
             AddListRow(Info("Last Midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
             AddListRow(Info("Fronts Held", "Buy fronts for sale at their door, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
@@ -615,7 +615,7 @@ namespace FrontsAndRivals.UI
                 int days = Math.Max(0, e.State.Day - fsHeld.HeldSinceDay);
                 tonight = e.FrontIncome(def.Id);
                 int est = (int)Math.Round((Economy.EstablishedFactor(days) - 1) * 100), net = (int)Math.Round((Economy.NetworkFactor(e.OwnedCount()) - 1) * 100);
-                pays = "Pays " + Money(tonight) + " tonight: " + Money(def.Income) + " base, +" + est + "% for " + days + (days == 1 ? " day" : " days") + " held (up to +50%), +"
+                pays = "Pays " + Money(tonight) + " tonight: " + Money(def.Income) + " base, +" + est + "% for " + days + (days == 1 ? " day" : " days") + " held (up to +30%), +"
                      + net + "% from your other fronts.";
             }
             else pays = "Pays " + Money(def.Income) + " a night to start, more the longer you hold it.";
@@ -791,10 +791,11 @@ namespace FrontsAndRivals.UI
                 have.Enabled = false;
                 _detail.Add(have);
             }
-            AddUpgrade(fs, "Cameras", 15000, "+10% defense, and you see trouble sooner: your people hold 2 minutes longer when the front is hit.", fs.Cameras, () => fs.Cameras = true);
-            AddUpgrade(fs, "Reinforced Doors", 20000, "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
-            AddUpgrade(fs, "Floodlights", 10000, "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
-            AddUpgrade(fs, "Armory", 30000, "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
+            int t = def.Tier;
+            AddUpgrade(fs, "Cameras", Economy.UpgradePrice(15000, t), "+10% defense, and you see trouble sooner: your people hold 2 minutes longer when the front is hit.", fs.Cameras, () => fs.Cameras = true);
+            AddUpgrade(fs, "Reinforced Doors", Economy.UpgradePrice(20000, t), "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
+            AddUpgrade(fs, "Floodlights", Economy.UpgradePrice(10000, t), "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
+            AddUpgrade(fs, "Armory", Economy.UpgradePrice(30000, t), "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
         }
 
         private void AddUpgrade(FrontState fs, string name, int price, string effect, bool owned, Action install)

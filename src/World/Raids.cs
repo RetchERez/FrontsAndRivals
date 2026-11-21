@@ -10,7 +10,7 @@ namespace FrontsAndRivals.Rules
     {
         public const long RaidMs = 3 * Attacks.Minute; // about how long until word comes back
         public const int MaxGuards = 4;
-        public const double DugInBonus = 1.2;          // the crew fights at its own door
+        public const double DugInBonus = 1.5;          // the crew fights hard at its own door: raids are a gamble, never a sure thing
 
         /// <summary>How many crew soldiers hold this front tonight (its size, fewer if weakened, never more than the crew has).</summary>
         public static int Soldiers(FrontDef def, FrontState f, CrewState crew, int day)

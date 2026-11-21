@@ -16,7 +16,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
   drop a waypoint on a front on GTA's own map and the Office opens on that front's page
 - Guard posts by size: small fronts take 2 guards, mid-size 3, the biggest 4
 - Difficulty from Relaxed to Brutal (Office > Settings), and Reset the City to take Los Santos again with the crew you built
-- More fronts, more money: fronts pay more the longer you hold them (up to +50%) and each one boosts the rest (up to +30%)
+- More fronts, more money: fronts pay more the longer you hold them (up to +30%) and each one boosts the rest (up to +20%)
 - Progression that money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held),
   and new fronts get two quiet days
 - One-click front management: Fill Empty Posts and Arm This Front on every front's page

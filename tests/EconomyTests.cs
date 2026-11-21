@@ -12,8 +12,9 @@ static class EconomyTests
         T.Check("Recruit wage $150", Economy.Wage(Rank.Recruit), 150, 0);
         T.Check("Lieutenant wage $500", Economy.Wage(Rank.Lieutenant), 500, 0);
         T.True("Payroll: base up to 12 guards, +4% each after, capped x3", Economy.PayrollFactor(12) == 1.0 && Math.Abs(Economy.PayrollFactor(22) - 1.4) < 1e-9 && Economy.PayrollFactor(200) == 3.0);
-        T.True("Established: +5% a day, capped at +50%", Math.Abs(Economy.EstablishedFactor(4) - 1.2) < 1e-9 && Economy.EstablishedFactor(30) == 1.5 && Economy.EstablishedFactor(0) == 1.0);
-        T.True("Network: +2% per extra front, capped at +30%", Economy.NetworkFactor(1) == 1.0 && Math.Abs(Economy.NetworkFactor(6) - 1.1) < 1e-9 && Economy.NetworkFactor(29) == 1.3);
+        T.True("Established: +3% a day, capped at +30%", Math.Abs(Economy.EstablishedFactor(4) - 1.12) < 1e-9 && Economy.EstablishedFactor(30) == 1.3 && Economy.EstablishedFactor(0) == 1.0);
+        T.True("Network: +1.5% per extra front, capped at +20%", Economy.NetworkFactor(1) == 1.0 && Math.Abs(Economy.NetworkFactor(5) - 1.06) < 1e-9 && Economy.NetworkFactor(29) == 1.2);
+        T.True("Upgrades cost more on bigger fronts", Economy.UpgradePrice(30000, 0) == 30000 && Economy.UpgradePrice(30000, 1) == 45000 && Economy.UpgradePrice(30000, 2) == 75000);
         bool alwaysMore = true;
         for (int n = 1; n < 29; n++) if (Economy.NetworkFactor(n + 1) * (n + 1) <= Economy.NetworkFactor(n) * n) alwaysMore = false;
         T.True("Another front always means more total income", alwaysMore);
@@ -21,7 +22,7 @@ static class EconomyTests
         foreach (int inc in new[] { 4000, 4500, 5000 })
         {
             double take = inc * Economy.EstablishedFactor(10); // Lieutenants take weeks; by then the front is established
-            if (take - (Economy.Wage(Rank.Lieutenant) + 3 * Economy.Wage(Rank.Veteran)) < take * 0.5) pays = false;
+            if (take - (Economy.Wage(Rank.Lieutenant) + 3 * Economy.Wage(Rank.Veteran)) < take * 0.5) pays = false; // with today's cheap wages
             if (inc - 4 * Economy.Wage(Rank.Recruit) < inc * 0.6) pays = false; // and a fresh one with recruits pays well from night one
         }
         T.True("Small fronts always pay: 60%+ with recruits, 50%+ with veterans once established", pays);
