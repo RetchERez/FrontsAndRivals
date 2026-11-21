@@ -65,8 +65,8 @@ namespace FrontsAndRivals.Rules
         {
             switch (t)
             {
-                case Trait.NightOwl: return "Night owl";
-                case Trait.None: return "No trait";
+                case Trait.NightOwl: return "Night Owl";
+                case Trait.None: return "No Trait";
                 default: return t.ToString();
             }
         }

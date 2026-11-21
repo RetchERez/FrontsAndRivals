@@ -329,7 +329,7 @@ namespace FrontsAndRivals.Core
             {
                 CrewDef crew = _content.Crew(owner);
                 _notifier.Send(NoteKind.Staff, "The Office", best.ShortName, "Marked the " + best.Name + " (" + (crew != null ? crew.Name : owner)
-                    + "). Open the Office to send a crew, or drive there and take it yourself.");
+                    + "). Open the Office and choose Send a Crew, or drive there and take it yourself.");
             }
         }
 

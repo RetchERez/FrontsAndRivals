@@ -259,7 +259,7 @@ namespace FrontsAndRivals.UI
             switch (owner)
             {
                 case Owners.Player: return "Yours";
-                case Owners.ForSale: return "For sale";
+                case Owners.ForSale: return "For Sale";
                 case Owners.CrownKings: return "Crown Kings";
                 case Owners.Ironside: return "Ironside MC";
                 case Owners.Velvet: return "Velvet Syndicate";
@@ -271,7 +271,7 @@ namespace FrontsAndRivals.UI
         {
             if (g.Status == GuardStatus.Injured) return "Injured";
             if (g.Escort) return "Bodyguard";
-            if (_empire() != null && _empire().OnRaid(g)) return "On a raid";
+            if (_empire() != null && _empire().OnRaid(g)) return "On a Raid";
             if (!g.IsPosted) return "Reserve";
             FrontDef def = _content.Front(g.Front);
             return (def != null ? def.ShortName : g.Front) + " " + (g.Post + 1);
@@ -309,9 +309,9 @@ namespace FrontsAndRivals.UI
             foreach (GuardState g in e.State.Guards) if (g.Status == GuardStatus.Injured) injured++;
 
             AddSection("Overview", "Your empire at a glance: income, wages, fronts and people.", Money(net) + "/day");
-            AddSection("Fronts", "Every business: who holds it, its defense and income. Select one to manage it.", e.OwnedCount() + " held" + Open);
-            AddSection("Guards", "Your roster: rank, trait and post. Select one to manage it.", e.LivingCount() + (injured > 0 ? " (" + injured + " hurt)" : "") + Open);
-            AddSection("Hire recruits", "The Broker sends " + Economy.RecruitsPerDay + " new faces every morning at 06:00.", e.State.Offers.Count + " today" + Open);
+            AddSection("Fronts", "Every business: who holds it, its defense and income. Select one to manage it.", e.OwnedCount() + " Held" + Open);
+            AddSection("Guards", "Your roster: rank, trait and post. Select one to manage it.", e.LivingCount() + (injured > 0 ? " (" + injured + " Hurt)" : "") + Open);
+            AddSection("Hire Recruits", "The Broker sends " + Economy.RecruitsPerDay + " new faces every morning at 06:00.", e.State.Offers.Count + " Today" + Open);
             int maxGrudge = 0;
             foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
             AddSection("Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge + Open);
@@ -364,19 +364,19 @@ namespace FrontsAndRivals.UI
                 if (g.Status == GuardStatus.Injured) injured++;
                 if (g.Status == GuardStatus.Dead) fallen++;
             }
-            AddListRow(Info("Daily income", "Paid at every in-game midnight to whoever you're playing.", Money(income)), null, false);
-            AddListRow(Info("Daily wages", "Cheap for a small crew: past " + Economy.FreePayroll + " guards, each extra one adds 4% to everyone's wage (now x"
+            AddListRow(Info("Daily Income", "Paid at every in-game midnight to whoever you're playing.", Money(income)), null, false);
+            AddListRow(Info("Daily Wages", "Cheap for a small crew: past " + Economy.FreePayroll + " guards, each extra one adds 4% to everyone's wage (now x"
                 + Economy.PayrollFactor(e.LivingCount()).ToString("0.00") + "). Unpaid guards quit, newest first (Loyal ones never do).", Money(wages)), null, false);
-            AddListRow(Info("Net per day", "Income minus wages. Fronts pay more the longer you hold them (up to +50%), and every front adds +2% to all of them (up to +30%).", Money(income - wages)), null, false);
-            AddListRow(Info("This week, about", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
-            AddListRow(Info("Last midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
-            AddListRow(Info("Fronts held", "Buy fronts for sale at their door, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
+            AddListRow(Info("Net per Day", "Income minus wages. Fronts pay more the longer you hold them (up to +50%), and every front adds +2% to all of them (up to +30%).", Money(income - wages)), null, false);
+            AddListRow(Info("This Week (About)", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
+            AddListRow(Info("Last Midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
+            AddListRow(Info("Fronts Held", "Buy fronts for sale at their door, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
             int held = e.OwnedCount();
             string heat = _config.EmpirePressure
                 ? "The bigger you get, the sooner and harder the crews come. " + HeatDetail(held)
                 : "Empire pressure is off in FrontsAndRivals.ini: attacks keep the same pace however big you get.";
-            AddListRow(Info("Street heat", heat, _config.EmpirePressure ? Rules.Attacks.PressureLabel(held) : "Steady"), null, false);
-            AddListRow(Info("Guards", "Hired people, posted or in the reserve.", e.LivingCount() + (injured > 0 ? ", " + injured + " hurt" : "")), null, false);
+            AddListRow(Info("Street Heat", heat, _config.EmpirePressure ? Rules.Attacks.PressureLabel(held) : "Steady"), null, false);
+            AddListRow(Info("Guards", "Hired people, posted or in the reserve.", e.LivingCount() + (injured > 0 ? ", " + injured + " Hurt" : "")), null, false);
             if (fallen > 0) AddListRow(Info("Fallen", "Guards who died at their post.", fallen.ToString()), null, false);
         }
 
@@ -403,7 +403,7 @@ namespace FrontsAndRivals.UI
                 string owner = e.OwnerOf(def.Id);
                 AttackState atk = e.State.Attack;
                 string badge = owner == Owners.Player
-                    ? (atk != null && atk.Front == def.Id ? (atk.Phase == AttackPhase.Warning ? "Threatened" : "Under attack") : GuardsAt(e, def) + "/" + def.Capacity + " guards")
+                    ? (atk != null && atk.Front == def.Id ? "Under Attack" : GuardsAt(e, def) + "/" + def.Capacity + " guards")
                     : OwnerLabel(owner);
                 NativeItem row = Row(def.Name, def.Area + ". " + OwnerLabel(owner) + ". " + Money(def.Income) + " a day. Select to manage.", badge + Open);
                 AddListRow(row, def, true);
@@ -444,7 +444,7 @@ namespace FrontsAndRivals.UI
             }
             if (living == 0)
             {
-                NativeItem none = Row("Nobody yet", "Hire recruits to start a roster.", "");
+                NativeItem none = Row("Nobody Yet", "Hire recruits to start a roster.", "");
                 none.Enabled = false;
                 AddListRow(none, null, false);
             }
@@ -459,10 +459,10 @@ namespace FrontsAndRivals.UI
 
         private void ListRecruits(Empire e)
         {
-            SetTitles(_list, "Hire", "TODAY'S RECRUITS FROM THE BROKER");
+            SetTitles(_list, "Hire Recruits", "TODAY'S RECRUITS FROM THE BROKER");
             if (e.State.Offers.Count == 0)
             {
-                NativeItem none = Row("Nobody today", "The Broker sends new recruits every morning at 06:00.", "");
+                NativeItem none = Row("Nobody Today", "The Broker sends new recruits every morning at 06:00.", "");
                 none.Enabled = false;
                 AddListRow(none, null, false);
                 return;
@@ -480,26 +480,6 @@ namespace FrontsAndRivals.UI
         {
             SetTitles(_list, "Settings", "HOW FRONTS & RIVALS BEHAVES");
             string[] freq = { "Off", "Low", "Normal", "High" };
-            var diff = new NativeListItem<string>("Difficulty", "How hard the crews push. Higher: stronger attacks that come more often, better-defended rival "
-                + "fronts, and less time to get there. Relaxed x0.7 and half again the wait, Easy x0.85, Normal, Hard x1.2, Brutal x1.45 and attacks 30% sooner.",
-                Difficulty.Names);
-            diff.SelectedIndex = Difficulty.Clamp(e.State.Difficulty) + 2;
-            diff.ItemChanged += (s, a) => { e.State.Difficulty = diff.SelectedIndex - 2; Changed(false); };
-            AddListRow(diff, null, false);
-
-            var f = new NativeListItem<string>("Attack frequency", "How often crews come for your fronts: Low every ~75 min, Normal ~45, High ~25. Off stops attacks.", freq);
-            int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
-            f.SelectedIndex = at < 0 ? 2 : at;
-            f.ItemChanged += (s, a) => { e.State.Frequency = f.SelectedItem; Changed(false); };
-            AddListRow(f, null, false);
-
-            string turfAt = e.State.TurfFrequency ?? _config.TurfFrequency.ToString();
-            var turf = new NativeListItem<string>("Rival turf moves", "How often crews grab fronts for sale and fight each other at night. Off freezes the map.", freq);
-            int ta = Array.IndexOf(freq, turfAt);
-            turf.SelectedIndex = ta < 0 ? 2 : ta;
-            turf.ItemChanged += (s, a) => { e.State.TurfFrequency = turf.SelectedItem; Changed(false); };
-            AddListRow(turf, null, false);
-
             string[] levels = { "All", "Important", "Minimal" };
             var notes = new NativeListItem<string>("Notifications", "All: everything. Important: no taunts or street gossip. Minimal: attacks and fronts changing hands only.", levels);
             int la = Array.IndexOf(levels, e.State.NotifyLevel ?? _config.NotifyLevel.ToString());
@@ -507,44 +487,65 @@ namespace FrontsAndRivals.UI
             notes.ItemChanged += (s, a) => { e.State.NotifyLevel = notes.SelectedItem; Changed(false); };
             AddListRow(notes, null, false);
 
-            var live = new NativeCheckboxItem("Live defenses", "On: attacks become fights when you're within 300 m. Off: they always resolve on their own.", _config.LiveDefense && !e.State.LiveDefenseOff);
-            live.Enabled = _config.LiveDefense;
-            live.CheckboxChanged += (s, a) => { e.State.LiveDefenseOff = !live.Checked; Changed(false); };
-            AddListRow(live, null, false);
-
-            var sfx = new NativeCheckboxItem("Sound effects", "The game's own alert and cash sounds for attacks, purchases and the midnight take.", _config.SoundEffects && !e.State.SoundOff);
+            var sfx = new NativeCheckboxItem("Sound Effects", "The game's own alert and cash sounds for attacks, purchases and the midnight take.", _config.SoundEffects && !e.State.SoundOff);
             sfx.Enabled = _config.SoundEffects;
             sfx.CheckboxChanged += (s, a) => { e.State.SoundOff = !sfx.Checked; Changed(false); if (sfx.Checked) Sounds.Play(Cue.Purchase); };
             AddListRow(sfx, null, false);
 
-            var route = new NativeCheckboxItem("Route to attacks", "When a warning comes in, your GPS shows the way to the threatened front.", !e.State.RouteOff);
+            var route = new NativeCheckboxItem("Route to Attacks", "When one of your fronts is hit, your GPS shows the way there.", !e.State.RouteOff);
             route.CheckboxChanged += (s, a) => { e.State.RouteOff = !route.Checked; Changed(true); };
             AddListRow(route, null, false);
 
-            var death = new NativeCheckboxItem("Permanent death", "On: a guard killed at their post is gone for good. Off: they're hurt and back in two days.",
+            var blips = new NativeCheckboxItem("Map Blips", "Show fronts on the map and minimap.", !e.State.HideBlips);
+            blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
+            AddListRow(blips, null, false);
+
+            var diff = new NativeListItem<string>("Difficulty", "How hard the crews push. Higher: stronger attacks that come more often, better-defended rival "
+                + "fronts, and less time to get there. Relaxed x0.7 and half again the wait, Easy x0.85, Normal, Hard x1.2, Brutal x1.45 and attacks 30% sooner.",
+                Difficulty.Names);
+            diff.SelectedIndex = Difficulty.Clamp(e.State.Difficulty) + 2;
+            diff.ItemChanged += (s, a) => { e.State.Difficulty = diff.SelectedIndex - 2; Changed(false); };
+            AddListRow(diff, null, false);
+
+            var f = new NativeListItem<string>("Attack Frequency", "How often crews come for your fronts: Low every ~75 min, Normal ~45, High ~25. Off stops attacks.", freq);
+            int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
+            f.SelectedIndex = at < 0 ? 2 : at;
+            f.ItemChanged += (s, a) => { e.State.Frequency = f.SelectedItem; Changed(false); };
+            AddListRow(f, null, false);
+
+            string turfAt = e.State.TurfFrequency ?? _config.TurfFrequency.ToString();
+            var turf = new NativeListItem<string>("Rival Turf Moves", "How often crews grab fronts for sale and fight each other at night. Off freezes the map.", freq);
+            int ta = Array.IndexOf(freq, turfAt);
+            turf.SelectedIndex = ta < 0 ? 2 : ta;
+            turf.ItemChanged += (s, a) => { e.State.TurfFrequency = turf.SelectedItem; Changed(false); };
+            AddListRow(turf, null, false);
+
+            var live = new NativeCheckboxItem("Live Defenses", "On: attacks become fights when you're within 300 m. Off: they always resolve on their own.", _config.LiveDefense && !e.State.LiveDefenseOff);
+            live.Enabled = _config.LiveDefense;
+            live.CheckboxChanged += (s, a) => { e.State.LiveDefenseOff = !live.Checked; Changed(false); };
+            AddListRow(live, null, false);
+
+            var death = new NativeCheckboxItem("Permanent Death", "On: a guard killed at their post is gone for good. Off: they're hurt and back in two days.",
                 e.PermanentDeath(_config.PermanentDeath));
             death.Enabled = _config.PermanentDeath && !_config.ProtectedMode;
             death.CheckboxChanged += (s, a) => { e.State.GuardsRecover = !death.Checked; Changed(false); };
             AddListRow(death, null, false);
 
-            var blips = new NativeCheckboxItem("Map blips", "Show fronts on the map and minimap.", !e.State.HideBlips);
-            blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
-            AddListRow(blips, null, false);
 
             if (OpenDevTools != null)
             {
-                NativeItem dev = Row("Dev tools", "Testing tools: force an attack, add cash, scout fronts. Shown because DevTools=true.", Open.Trim());
+                NativeItem dev = Row("Dev Tools", "Testing tools: force an attack, add cash, scout fronts. Shown because DevTools=true.", Open.Trim());
                 dev.Activated += (s, a) => { CloseAll(); OpenDevTools(); };
                 AddListRow(dev, null, false);
             }
 
-            NativeItem tips = Row("Show tips again", "The short first-time tips (the Office, posting guards, attacks, buying, bodyguards) show again when they come up.", "");
+            NativeItem tips = Row("Show Tips Again", "The short first-time tips (the Office, posting guards, attacks, buying, bodyguards) show again when they come up.", "");
             tips.Activated += (s, a) => { Tips.Reset(); Changed(false); GTA.UI.Notification.Show("Tips will show again."); };
             AddListRow(tips, null, false);
 
             if (ResetCity != null)
             {
-                NativeItem again = Row(_resetCityArmed ? "Reset the city: select again to confirm" : "Reset the city",
+                NativeItem again = Row(_resetCityArmed ? "Reset the City? Select Again to Confirm" : "Reset the City",
                     "Go again: every front returns to where it started and the crews come back at full strength. You keep your guards, "
                     + "their ranks, skills and guns (all back in the reserve). Front upgrades are lost. Runs so far: " + e.State.CityResets + ".", "");
                 again.Activated += (s, a) =>
@@ -559,7 +560,7 @@ namespace FrontsAndRivals.UI
 
             if (StartOver != null)
             {
-                NativeItem fresh = Row(_startOverArmed ? "Start a new empire: select again to confirm" : "Start a new empire",
+                NativeItem fresh = Row(_startOverArmed ? "Start a New Empire? Select Again to Confirm" : "Start a New Empire",
                     "For a new story game, or to start over: every front, guard and rival goes back to day one. Your current empire is kept as empire.old.json.", "");
                 fresh.Activated += (s, a) =>
                 {
@@ -625,16 +626,16 @@ namespace FrontsAndRivals.UI
             if (owner == Owners.ForSale)
             {
                 int need = Economy.TrustNeeded(def.Tier);
-                NativeItem price = Info("For sale", (def.Starter ? "The Broker's starter price. " : _config.FrontPriceDays + " days of its takings. ")
-                    + (e.Trusted(def) ? "Go to the door and buy it in person. Set a waypoint below."
+                NativeItem price = Info("For Sale", (def.Starter ? "The Broker's starter price. " : _config.FrontPriceDays + " days of its takings. ")
+                    + (e.Trusted(def) ? "Go to the door and buy it in person. Use Set Waypoint below."
                                       : "The Broker only sells this one to someone holding " + need + " fronts. You hold " + e.OwnedCount() + "."),
                     e.Trusted(def) ? Money(Economy.FrontPrice(def, _config.FrontPriceDays)) : "Hold " + need);
                 _detail.Add(price);
             }
             else if (owner == Owners.Player)
             {
-                for (int post = 0; post < def.Capacity; post++) _detail.Add(PostRow(e, def, post));
                 AddQuickActions(e, def);
+                for (int post = 0; post < def.Capacity; post++) _detail.Add(PostRow(e, def, post));
             }
             else
             {
@@ -650,7 +651,7 @@ namespace FrontsAndRivals.UI
 
             if (owner == Owners.Player) AddUpgrades(e, def);
 
-            NativeItem waypoint = Row("Set waypoint", "Marks the front's door on your map.", "");
+            NativeItem waypoint = Row("Set Waypoint", "Marks the front's door on your map.", "");
             waypoint.Activated += (s, a) =>
             {
                 GTA.World.WaypointPosition = new Vector3(def.Door.X, def.Door.Y, def.Door.Z);
@@ -707,9 +708,9 @@ namespace FrontsAndRivals.UI
             RaidState current = e.State.Raid;
             if (current != null && current.Front == def.Id)
             {
-                _detail.Add(Info("Raid under way", "Your people are hitting the " + def.ShortName + ". You'll hear in a few minutes. Odds when they left: about "
+                _detail.Add(Info("Raid Under Way", "Your people are hitting the " + def.ShortName + ". You'll hear in a few minutes. Odds when they left: about "
                     + (int)Math.Round(current.Odds * 100) + "%.", "Out"));
-                NativeItem back = Row("Call them back", "Calls the raid off before it starts: nobody fights, everyone goes home to their posts.", "");
+                NativeItem back = Row("Call Them Back", "Calls the raid off before it starts: nobody fights, everyone goes home to their posts.", "");
                 back.Activated += (s, a) => Safe("call back", () =>
                 {
                     e.CancelRaid();
@@ -724,7 +725,7 @@ namespace FrontsAndRivals.UI
             var names = new List<string>();
             foreach (GuardState g in team) names.Add(g.ShortName);
             int odds = blocked == null ? (int)Math.Round(e.RaidOdds(def, Hour()) * 100) : 0;
-            NativeItem raid = Row("Send a crew", blocked ?? ("Sends your strongest: " + string.Join(", ", names.ToArray()) + ". About " + odds
+            NativeItem raid = Row("Send a Crew", blocked ?? ("Sends your strongest: " + string.Join(", ", names.ToArray()) + ". About " + odds
                 + "% to take it. They're gone a few minutes and their posts stand empty meanwhile; if it goes wrong they can be hurt or killed."),
                 blocked == null ? odds + "%" : "");
             raid.Enabled = blocked == null;
@@ -742,10 +743,10 @@ namespace FrontsAndRivals.UI
         private void AddQuickActions(Empire e, FrontDef def)
         {
             int empty = e.EmptyPosts(def.Id), free = e.FreeGuards().Count;
-            NativeItem fill = Row("Fill empty posts", empty == 0 ? "Every post here is covered."
+            NativeItem fill = Row("Fill Empty Posts", empty == 0 ? "Every post here is covered."
                 : free == 0 ? "Nobody is waiting in the reserve. Hire recruits first."
                 : "Posts your strongest guards from the reserve: " + empty + " empty " + (empty == 1 ? "post" : "posts") + ", " + free + " free.",
-                empty > 0 ? empty + " empty" : "Full");
+                empty > 0 ? empty + " Empty" : "Full");
             fill.Enabled = empty > 0 && free > 0;
             fill.Activated += (s, a) => Safe("fill", () =>
             {
@@ -756,7 +757,7 @@ namespace FrontsAndRivals.UI
             _detail.Add(fill);
 
             int cost = e.ArmFrontPrice(def.Id);
-            NativeItem arm = Row("Arm this front", cost > 0 ? "Every guard here steps up to their next gun, all at once (as far as their rank allows)."
+            NativeItem arm = Row("Arm This Front", cost > 0 ? "Every guard here steps up to their next gun, all at once (as far as their rank allows)."
                 : "Nobody here can carry a better gun yet: they're at the best their rank allows, or nobody is posted.",
                 cost > 0 ? Money(cost) : "");
             arm.Enabled = cost > 0;
@@ -778,16 +779,28 @@ namespace FrontsAndRivals.UI
         {
             FrontState fs = e.Find(def.Id);
             if (fs == null) return;
+            var owned = new List<string>();
+            if (fs.Cameras) owned.Add("Cameras");
+            if (fs.Doors) owned.Add("Reinforced Doors");
+            if (fs.Floodlights) owned.Add("Floodlights");
+            if (fs.Armory) owned.Add("Armory");
+            if (owned.Count > 0)
+            {
+                NativeItem have = Info("Upgrades", "Installed here: " + string.Join(", ", owned.ToArray()) + ". They stay with the building, even if it changes hands.",
+                    owned.Count + " of 4");
+                have.Enabled = false;
+                _detail.Add(have);
+            }
             AddUpgrade(fs, "Cameras", 15000, "+10% defense, and you see trouble sooner: your people hold 2 minutes longer when the front is hit.", fs.Cameras, () => fs.Cameras = true);
-            AddUpgrade(fs, "Reinforced doors", 20000, "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
+            AddUpgrade(fs, "Reinforced Doors", 20000, "+20 defense. Worth the most to a lightly guarded front.", fs.Doors, () => fs.Doors = true);
             AddUpgrade(fs, "Floodlights", 10000, "No night penalty for the guards here.", fs.Floodlights, () => fs.Floodlights = true);
             AddUpgrade(fs, "Armory", 30000, "Guards here fight one weapon tier higher (carbine rifles get +10%).", fs.Armory, () => fs.Armory = true);
         }
 
         private void AddUpgrade(FrontState fs, string name, int price, string effect, bool owned, Action install)
         {
-            NativeItem row = Row(name, effect + (owned ? " Installed." : " Permanent, even if the front changes hands."), owned ? "Installed" : Money(price));
-            row.Enabled = !owned;
+            if (owned) return; // listed together on the Upgrades line
+            NativeItem row = Row(name, effect + " Permanent, even if the front changes hands.", Money(price));
             row.Activated += (s, a) => Safe("upgrade", () =>
             {
                 if (Game.Player.Money < price) { GTA.UI.Notification.Show("You need " + Money(price) + " for " + name.ToLowerInvariant() + "."); return; }
@@ -870,19 +883,19 @@ namespace FrontsAndRivals.UI
             if (price > 0 && Empire.WeaponLocked(g))
             {
                 Weapon locked = w + 1;
-                weapon = Row("Next gun: " + Economy.WeaponName(locked), "Carries " + Economy.WithArticle(w) + ". Only a " + Economy.RankName(Economy.RankFor(locked))
+                weapon = Row("Next Gun: " + Economy.WeaponName(locked), "Carries " + Economy.WithArticle(w) + ". Only a " + Economy.RankName(Economy.RankFor(locked))
                     + " or higher is trusted with " + Economy.WithArticle(locked) + ". Ranks come from fights.", Economy.RankName(Economy.RankFor(locked)));
                 weapon.Enabled = false;
             }
             else if (price > 0)
             {
                 Weapon nextGun = w + 1;
-                weapon = Row("Buy " + Economy.WithArticle(nextGun),
+                weapon = Row("Buy " + Economy.WeaponName(nextGun),
                     "Carries " + Economy.WithArticle(w) + " (x" + DefenseRating.WeaponPower(w).ToString("0.0#") + " power). "
                     + Economy.WeaponName(nextGun) + ": x" + DefenseRating.WeaponPower(nextGun).ToString("0.0#")
                     + ". Step " + (int)nextGun + " of " + (int)DefenseRating.TopWeapon + ".", Money(price));
             }
-            else weapon = Row("Weapon: carbine rifle", "The best gun on the ladder (x2.0 power).", "Best");
+            else weapon = Row("Carbine Rifle", "The best gun on the ladder (x2.0 power).", "Best");
             weapon.Activated += (s, a) => Safe("weapon", () =>
             {
                 int cost = e.WeaponUpgradePrice(g);
@@ -896,7 +909,7 @@ namespace FrontsAndRivals.UI
             weapon.Enabled = price > 0 && !Empire.WeaponLocked(g);
             _detail.Add(weapon);
 
-            NativeItem letGo = Row(_letGoArmed == g.Id ? "Fire " + g.First + ": select again to confirm" : "Fire",
+            NativeItem letGo = Row(_letGoArmed == g.Id ? "Fire " + g.First + "? Select Again to Confirm" : "Fire Guard",
                 "Off the payroll for good: no wage from tonight, no severance, and their skills walk out with them.", "");
             letGo.Activated += (s, a) => Safe("fire", () =>
             {
@@ -934,7 +947,7 @@ namespace FrontsAndRivals.UI
         {
             CrewDef def = _content.Crew(c.Id);
             SetTitles(_detail, def.Name, def.Style.ToUpperInvariant());
-            NativeItem header = Info("Last move", string.IsNullOrEmpty(c.LastMove) ? "Nothing yet. They're watching." : c.LastMove + ".", "Grudge " + c.Grudge);
+            NativeItem header = Info("Last Move", string.IsNullOrEmpty(c.LastMove) ? "Nothing yet. They're watching." : c.LastMove + ".", "Grudge " + c.Grudge);
             header.Panel = new NativeStatsPanel(new NativeStatsInfo("Grudge", c.Grudge), new NativeStatsInfo("Manpower", Bar(c.Manpower, Nemesis.MaxManpower)));
             _detail.Add(header);
 
@@ -951,7 +964,7 @@ namespace FrontsAndRivals.UI
 
             FrontDef theirs = null;
             foreach (FrontState f in e.State.Fronts) if (f.Owner == c.Id) { theirs = _content.Front(f.Id); break; }
-            NativeItem waypoint = Row("Waypoint to their front",
+            NativeItem waypoint = Row("Set Waypoint to Their Front",
                 theirs != null ? "Marks the " + theirs.Name + ". Clear its guards and claim the door to take it." : "They hold no fronts right now.", "");
             waypoint.Enabled = theirs != null && theirs.Door.IsSet;
             waypoint.Activated += (s, a) =>
@@ -977,7 +990,7 @@ namespace FrontsAndRivals.UI
             _detail.Add(SkillsRow(offer, "Where they start. Skills grow on the job; better skills cost more to hire."));
             _detail.Add(Info("Wage", "Paid every in-game midnight. More with rank, and more for everyone once you have over " + Economy.FreePayroll + " guards.",
                 Money(Economy.WageFor(Rank.Recruit, e.LivingCount() + 1, 1.0)) + "/day"));
-            _detail.Add(Info("Starts with", "A knife. Arm them on their page, one gun at a time: pistol, pump shotgun, SMG, carbine rifle.", "Knife"));
+            _detail.Add(Info("Starts With", "A knife. Arm them on their page, one gun at a time: pistol, pump shotgun, SMG, carbine rifle.", "Knife"));
             int price = e.OfferPrice(offer);
             NativeItem hire = Row("Hire for " + Money(price), "They join your reserve and wait for a post.", Money(price));
             hire.Activated += (s, a) => Safe("hire", () => Hire(e, offer));

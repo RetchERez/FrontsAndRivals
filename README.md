@@ -11,16 +11,16 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
-- Start a new empire from Office > Settings (for a new story game); the old one is kept as empire.old.json
+- Start a New Empire from Office > Settings (for a new story game); the old one is kept as empire.old.json
 - Raids: send your four strongest guards to take a rival front without you (odds shown first, call them back any time);
   drop a waypoint on a front on GTA's own map and the Office opens on that front's page
 - Guard posts by size: small fronts take 2 guards, mid-size 3, the biggest 4
-- Difficulty from Relaxed to Brutal (Office > Settings), and Reset the city to take Los Santos again with the crew you built
+- Difficulty from Relaxed to Brutal (Office > Settings), and Reset the City to take Los Santos again with the crew you built
 - More fronts, more money: fronts pay more the longer you hold them (up to +50%) and each one boosts the rest (up to +30%)
 - Progression that money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held),
   and new fronts get two quiet days
-- One-click front management: Fill empty posts and Arm this front on every front's page
-- First-time tips in GTA's help box (Office > Settings > Show tips again)
+- One-click front management: Fill Empty Posts and Arm This Front on every front's page
+- First-time tips in GTA's help box (Office > Settings > Show Tips Again)
 - Bodyguards: call up to two of your guards from the Office to follow you around the city, on foot or in your car,
   and fight at your side. Their front is a guard short while they're with you
 - Guard skills like the player's: Shooting (aim and power), Strength (power and health), Stamina (fewer injuries,
@@ -92,7 +92,7 @@ Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the 
 
 ## Controller
 
-Everything works on a gamepad. **Hold Back/View for half a second** to open or close the Office (a quick tap still changes the camera), or call The Office from your phone. In the Office, the D-pad moves, **A** opens or selects, **B** goes back, and left/right on the D-pad changes a post or a setting. The claim prompt at a rival front's door shows your controller's button. With `DevTools=true`, the dev menu is under Office > Settings > Dev tools, so it needs no keyboard either.
+Everything works on a gamepad. **Hold Back/View for half a second** to open or close the Office (a quick tap still changes the camera), or call The Office from your phone. In the Office, the D-pad moves, **A** opens or selects, **B** goes back, and left/right on the D-pad changes a post or a setting. The claim prompt at a rival front's door shows your controller's button. With `DevTools=true`, the dev menu is under Office > Settings > Dev Tools, so it needs no keyboard either.
 
 ## Uninstall
 

@@ -38,7 +38,7 @@ namespace FrontsAndRivals.Dev
             _placer = placer;
             _autoScout = autoScout;
 
-            _menu = new NativeMenu("Fronts & Rivals", "Scout fronts", "Stand on a spot, then press an item. Saves fronts.json.");
+            _menu = new NativeMenu("Fronts & Rivals", "Scout Fronts", "Stand on a spot, then press an item. Saves fronts.json.");
             UI.MenuStyle.Apply(_menu, true);
             dev.Pool.Add(_menu);
             // Put "Scout fronts" at the top of the dev menu so it is never hidden below the fold.
@@ -55,24 +55,24 @@ namespace FrontsAndRivals.Dev
             _status = new NativeItem("Status", "What this front has so far.");
             _menu.Add(_status);
 
-            Add("Auto-scout all fronts", "Visits every front with a door, places its 4 guard posts automatically, saves, brings you back.", () => StartAutoScout(false));
-            Add("Auto-scout all (redo posts)", "Same, but also replaces posts that are already set.", () => StartAutoScout(true));
-            Add("Auto-place posts for this front", "Places this front's 4 posts automatically. Stand within 100 m of its door.", AutoPlaceSelected);
-            Add("Teleport to its door", "Only works once the door is set.", TeleportToDoor);
-            Add("Set door here", "Where the front's door is: blip, help prompts and attackers' target.", SetDoor);
+            Add("Auto-Scout All Fronts", "Visits every front with a door, places its 4 guard posts automatically, saves, brings you back.", () => StartAutoScout(false));
+            Add("Auto-Scout All (Redo Posts)", "Same, but also replaces posts that are already set.", () => StartAutoScout(true));
+            Add("Auto-Place Posts for This Front", "Places this front's 4 posts automatically. Stand within 100 m of its door.", AutoPlaceSelected);
+            Add("Teleport to Its Door", "Only works once the door is set.", TeleportToDoor);
+            Add("Set Door Here", "Where the front's door is: blip, help prompts and attackers' target.", SetDoor);
 
             _post = new NativeListItem<int>("Post", "Which of the 4 guard posts to set.", 1, 2, 3, 4);
             _menu.Add(_post);
             _scenario = new NativeListItem<string>("Idle", "What the guard does at this post (at night every guard uses a torch).", StreamRules.PostScenarios);
             _menu.Add(_scenario);
-            Add("Set post here", "Puts the selected post where you stand, facing where you face.", SetPost);
-            Add("Remove last post", "Drops the highest-numbered post.", RemoveLastPost);
-            Add("Set owner-car spot here", "Where the ownership car parks (for the front's parked car).", SetOwnerSpot);
-            Add("Add convoy spawn here", "A road spot 350-450 m away where attackers start. Stand on the road, face the front.", AddConvoy);
-            Add("Clear convoy spawns", "Removes all convoy spawns for this front.", ClearConvoys);
-            Add("Own this front (dev)", "Gives you the front so its guards stream in.", OwnFront);
-            Add("Fill posts with test guards", "Hires recruits and posts one at every empty post.", FillPosts);
-            Add("Send guards to reserve", "Takes this front's guards off their posts.", ClearGuards);
+            Add("Set Post Here", "Puts the selected post where you stand, facing where you face.", SetPost);
+            Add("Remove Last Post", "Drops the highest-numbered post.", RemoveLastPost);
+            Add("Set Owner-Car Spot Here", "Where the ownership car parks (for the front's parked car).", SetOwnerSpot);
+            Add("Add Convoy Spawn Here", "A road spot 350-450 m away where attackers start. Stand on the road, face the front.", AddConvoy);
+            Add("Clear Convoy Spawns", "Removes all convoy spawns for this front.", ClearConvoys);
+            Add("Own This Front (Dev)", "Gives you the front so its guards stream in.", OwnFront);
+            Add("Fill Posts With Test Guards", "Hires recruits and posts one at every empty post.", FillPosts);
+            Add("Send Guards to Reserve", "Takes this front's guards off their posts.", ClearGuards);
 
             _menu.Shown += (s, e) => RefreshStatus();
         }

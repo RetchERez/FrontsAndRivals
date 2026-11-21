@@ -12,14 +12,16 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
-- Raids: Send a crew on any rival front's page (your four strongest; odds shown; 3 minutes; win = the front is yours with
-  the usual trust, dug-in and grace rules; lose = hurt or killed guards and an angrier crew); Call them back; one at a time
+- Every menu item, setting and label in GTA-style Title Case; Settings ordered everyday first, rules next, rare last;
+  quick actions first on a front's page and bought upgrades on one line
+- Raids: Send a Crew on any rival front's page (your four strongest; odds shown; 3 minutes; win = the front is yours with
+  the usual trust, dug-in and grace rules; lose = hurt or killed guards and an angrier crew); Call Them Back; one at a time
 - GTA's map: a waypoint on a front makes the Office open on that front's page, with a text for rival fronts
 - Guard posts by size: 2 for small fronts, 3 mid-size, 4 big (guards on removed posts go to the reserve); small fronts
   face one fewer attacker
 - Difficulty (Relaxed, Easy, Normal, Hard, Brutal): crew attack strength and front defense x0.7 to x1.45, and the wait
   between attacks x1.5 to x0.7
-- Reset the city: every front back to its start, crews back at full strength, your guards kept with ranks, skills and guns
+- Reset the City: every front back to its start, crews back at full strength, your guards kept with ranks, skills and guns
 - More fronts, more money: a front pays +5% for every day you hold it (up to +50%, reset if you lose it), and every
   front you hold adds +2% to all of them (up to +30%); wages are cheap (150 / 250 / 350 / 500) and only bite with a
   big crew: past 12 guards each extra one adds 4% to everyone's wage (up to x3); the defend-it-yourself bonus is tonight's take, bonuses included
@@ -30,9 +32,9 @@ First full release.
   or took is left alone for two in-game days
 - Early game: rival soldiers ignore you until you own a front (unless you hurt one), and the Broker's first text waits
   until your character has the $15,000 for the car wash
-- Office > Settings > Start a new empire (two presses; the old empire is kept as empire.old.json)
-- Fill empty posts (strongest free guards first) and Arm this front (everyone's next gun, total shown) on each front's page
-- First-time tips for the Office, posting, attacks, buying at the door and bodyguards; Show tips again in Settings
+- Office > Settings > Start a New Empire (two presses; the old empire is kept as empire.old.json)
+- Fill Empty Posts (strongest free guards first) and Arm This Front (everyone's next gun, total shown) on each front's page
+- First-time tips for the Office, posting, attacks, buying at the door and bodyguards; Show Tips Again in Settings
 - The Office shrinks to fit 4:3 and 5:4 screens, and shows 12 rows so a whole front page fits
 - Killing your own guard or bodyguard (shot, blown up or run over) is recognised: its own texts, the usual death or
   injury rules, and recruits ask 25% more until the next day

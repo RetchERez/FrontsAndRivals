@@ -57,21 +57,21 @@ namespace FrontsAndRivals.Dev
 
             _counter = new GTA.UI.TextElement("", new PointF(640f, 4f), 0.3f, Color.White, GTA.UI.Font.ChaletLondon, GTA.UI.Alignment.Center, true, true);
 
-            _menu = new NativeMenu("Fronts & Rivals", "Dev tools", "Only shown with DevTools=true.");
+            _menu = new NativeMenu("Fronts & Rivals", "Dev Tools", "Only shown with DevTools=true.");
             UI.MenuStyle.Apply(_menu, false);
             _pool.Add(_menu);
 
-            Add("Copy position (F9)", "Copies position and heading as a fronts.json snippet.", CopyPosition);
-            Add("Force attack", "Starts an attack on one of your fronts within a couple of seconds, with the alert and the hold timer.", ForceAttack);
+            Add("Copy Position (F9)", "Copies position and heading as a fronts.json snippet.", CopyPosition);
+            Add("Force Attack", "Starts an attack on one of your fronts within a couple of seconds, with the alert and the hold timer.", ForceAttack);
             Add("Add $10,000", "Adds cash to the character you're playing.", () => AddCash(10000));
             Add("Add $100,000", "Adds cash to the character you're playing.", () => AddCash(100000));
-            Add("Spawn test guard", "An FR_GUARDS ped in front of you. Reload scripts to check cleanup.", () => QueueSpawn("a_m_y_business_01", false));
-            Add("Spawn test car", "A car with an FR plate in front of you. Reload scripts to check cleanup.", () => QueueSpawn("sultan", true));
-            Add("Delete all mod entities", "Deletes everything the registry tracks.", DeleteAll);
-            Add("Run orphan sweep", "Deletes any FR_ ped or FR-plated vehicle in the world.", Sweep);
-            Add("Save now", "Writes empire.json.", () => { _saveNow(); Notify("Saved."); });
+            Add("Spawn Test Guard", "An FR_GUARDS ped in front of you. Reload scripts to check cleanup.", () => QueueSpawn("a_m_y_business_01", false));
+            Add("Spawn Test Car", "A car with an FR plate in front of you. Reload scripts to check cleanup.", () => QueueSpawn("sultan", true));
+            Add("Delete All Mod Entities", "Deletes everything the registry tracks.", DeleteAll);
+            Add("Run Orphan Sweep", "Deletes any FR_ ped or FR-plated vehicle in the world.", Sweep);
+            Add("Save Now", "Writes empire.json.", () => { _saveNow(); Notify("Saved."); });
 
-            var counter = new NativeCheckboxItem("Entity counter", "Mod peds and vehicles against the 28 / 8 budget, and the pause gate.", true);
+            var counter = new NativeCheckboxItem("Entity Counter", "Mod peds and vehicles against the 28 / 8 budget, and the pause gate.", true);
             counter.CheckboxChanged += (s, e) => _showCounter = counter.Checked;
             _menu.Add(counter);
         }
