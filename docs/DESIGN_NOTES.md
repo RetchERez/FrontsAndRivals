@@ -24,7 +24,7 @@ Each difference was a user decision or a simplification made to keep 1.0 finishe
 | Four posts at every front | 2 / 3 / 4 by size | User: a car wash doesn't need a nightclub's crew |
 | Rival fronts taken in person only | Plus raids from the Office, and a map waypoint that opens the front's page | User: send guards; use the native map |
 | No difficulty setting | Relaxed to Brutal, plus Reset the city (keep your crew) | User: replayability and a harder game |
-| Office: two levels, separate screens | Three side-by-side panels | User request: submenus visible at the same time |
+| Office: two levels, separate screens | One GTA-style menu, three levels deep, one on screen at a time | Tried three side-by-side panels first; after the first playtest the user asked for a cleaner GTA-style menu with submenus |
 
 ## Needs in-game confirmation
 

@@ -1,16 +1,19 @@
-// Fronts & Rivals: the Office. Three native GTA menus (LemonUI) side by side, all visible at once:
+// Fronts & Rivals: the Office. One native GTA menu with submenus, like the Interaction Menu: a single column in the
+// top-left corner, three levels deep, one level on screen at a time.
 //
-//   [ SECTIONS ]   [ LIST ]                [ DETAIL ]
-//    Overview       every front / guard     the highlighted front's page,
-//    Fronts   ›     / recruit / setting     guard's page or recruit
-//    Guards   ›
-//    Hire     ›     updates as you move     updates as you move
-//    Rivals
-//    Settings ›
+//   Office                      Fronts                       Car Wash
+//    Next Step: Take the...      Hands On Car Wash  Yours >   Defense 18        $1,000/day
+//    Fronts            1 >       Brouge Liquor  Dead Kings >  Fill Empty Posts
+//    Guards            2 >       ...                          Arm This Front    $700
+//    Hire Recruits     4 >                                    Post 1     Tomas Nguyen
+//    Rivals              >                                    Cameras           $7,500
+//    Messages            >
+//    Overview            >
+//    Settings            >
 //
-// Select (Enter / A) moves one panel right, Back (Backspace / B) one panel left; Back on the left panel closes.
+// Select (Enter / A) opens the next level, Back (Backspace / B) goes up one; Back at the top closes.
 // Opened by the hotkey, the phone contact, or holding the Interaction Menu button (M / Back/View).
-// Only the focused panel takes input. Design doc: native look, badges on the right, bars not numbers, one accent colour.
+// Native look: the game's banner and arrows, the description box under the menu, bars not numbers.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -30,11 +33,14 @@ namespace FrontsAndRivals.UI
 {
     public sealed class OfficeMenu
     {
-        private const int Rows = 13; // a whole front page (header, 3 quick actions, 4 posts, 4 upgrades, waypoint) fits without scrolling
-        private const float SectionsWidth = 430f, ListWidth = 600f, DetailWidth = 600f, Gap = 16f; // roomy: names and values never run into each other
+        private const int Rows = 12;          // like the game's own menus: scrolls past twelve rows
+        private const float MenuWidth = 500f; // a little wider than the Interaction Menu (431) so names and values never touch
         private const string Open = "";
 
         private enum Section { Overview, Fronts, Guards, Hire, Rivals, Messages, Settings }
+
+        // What each row of the top level opens (null: the Next Step row, which jumps straight to its front).
+        private readonly List<Section?> _sectionKeys = new List<Section?>();
 
         public readonly ObjectPool Pool = new ObjectPool();
 
@@ -50,7 +56,7 @@ namespace FrontsAndRivals.UI
         private int _focus;            // 0 sections, 1 list, 2 detail
         private bool _open;
         private bool _closingAll;
-        private bool _hidingDetail; // hiding the detail panel in code must not count as Backspace
+        private bool _hidingDetail; // switching levels in code must not count as Backspace
         private Section _section = Section.Overview;
 
         // What the list rows stand for, so the detail panel knows what to show.
@@ -85,16 +91,14 @@ namespace FrontsAndRivals.UI
             _changed = changed;
             _save = save;
 
-            // Narrow screens (4:3, 5:4) can't fit three full panels: shrink them all evenly so nothing runs off the edge.
-            float k = FitFactor();
-            float sw = SectionsWidth * k, lw = ListWidth * k, dw = DetailWidth * k, gap = Gap * k;
-            _sections = Panel("Office", "FRONTS & RIVALS", sw, 0f);
-            _list = Panel("Fronts", "", lw, sw + gap);
-            _detail = Panel("", "", dw, sw + gap + lw + gap);
+            // Three levels in the same spot; only the one you're in is on screen.
+            _sections = Panel("Office", "FRONTS & RIVALS", MenuWidth, 0f);
+            _list = Panel("Fronts", "", MenuWidth, 0f);
+            _detail = Panel("", "", MenuWidth, 0f);
             _panels = new[] { _sections, _list, _detail };
 
-            _sections.SelectedIndexChanged += (s, e) => { if (_open) Safe("section", () => { _section = (Section)_sections.SelectedIndex; BuildList(true); }); };
-            _list.SelectedIndexChanged += (s, e) => { if (_open) Safe("detail", BuildDetail); };
+            _sections.SelectedIndexChanged += (s, e) => { if (_open) Safe("section", () => { Section? k = SectionAt(_sections.SelectedIndex); if (k.HasValue) { _section = k.Value; BuildList(true); } }); };
+            _list.SelectedIndexChanged += (s, e) => { if (_open && _focus >= 1) Safe("detail", BuildDetail); };
             for (int i = 0; i < _panels.Length; i++)
             {
                 int index = i;
@@ -102,17 +106,7 @@ namespace FrontsAndRivals.UI
             }
         }
 
-        /// <summary>1.0 on 16:9 and wider; less on narrower screens (the UI is laid out on a 1080-high canvas).</summary>
-        private static float FitFactor()
-        {
-            try
-            {
-                float canvas = GTA.UI.Screen.ScaledWidth;
-                float need = (SectionsWidth + ListWidth + DetailWidth + 2 * Gap) / 0.9f; // keep 10% for the safe zone
-                return canvas > 0 && canvas < need ? Math.Max(0.6f, canvas / need) : 1f;
-            }
-            catch { return 1f; }
-        }
+        private Section? SectionAt(int index) { return index >= 0 && index < _sectionKeys.Count ? _sectionKeys[index] : null; }
 
         private NativeMenu Panel(string title, string subtitle, float width, float x)
         {
@@ -142,9 +136,10 @@ namespace FrontsAndRivals.UI
             {
                 BuildSections();
                 _sections.SelectedIndex = 0;
+                Section? first = SectionAt(0);
+                if (first.HasValue) _section = first.Value;
                 BuildList(true);
             });
-            foreach (NativeMenu m in _panels) m.Visible = true;
             Focus(0);
             if (_openOn != null)
             {
@@ -157,7 +152,7 @@ namespace FrontsAndRivals.UI
         /// <summary>Straight to a front's page (a map waypoint, the Next Step row).</summary>
         private void JumpToFront(string id)
         {
-            _sections.SelectedIndex = (int)Section.Fronts; // rebuilds the list for Fronts
+            _sections.SelectedIndex = Math.Max(0, _sectionKeys.IndexOf(Section.Fronts)); // rebuilds the list for Fronts
             for (int i = 0; i < _listKeys.Count; i++)
             {
                 var key = _listKeys[i] as FrontDef;
@@ -177,7 +172,7 @@ namespace FrontsAndRivals.UI
             _closingAll = false;
         }
 
-        /// <summary>Backspace: one panel left, or close from the left panel.</summary>
+        /// <summary>Backspace: up one level, or close from the top.</summary>
         private void OnBack(int panel, CancelEventArgs e)
         {
             if (_closingAll || _hidingDetail || !_open) return;
@@ -189,14 +184,17 @@ namespace FrontsAndRivals.UI
         private void Focus(int panel)
         {
             _focus = panel;
-            for (int i = 0; i < _panels.Length; i++) _panels[i].AcceptsInput = i == panel;
+            // One level on screen at a time, like the game's own menus. Hiding a level in code isn't a Back press.
+            _hidingDetail = true;
+            try { for (int i = 0; i < _panels.Length; i++) { _panels[i].Visible = _open && i == panel; _panels[i].AcceptsInput = i == panel; } }
+            finally { _hidingDetail = false; }
             _letGoArmed = 0;
             _startOverArmed = false;
             _resetCityArmed = false;
             // Bottom-right control hints say exactly what each key does in this panel.
             NativeMenu m = _panels[panel];
             m.Buttons.Clear();
-            m.Buttons.Add(new InstructionalButton(panel == 2 ? "Select" : "Open", Control.FrontendAccept));
+            m.Buttons.Add(new InstructionalButton("Select", Control.FrontendAccept));
             m.Buttons.Add(new InstructionalButton(panel == 0 ? "Close" : "Back", Control.FrontendCancel));
             if (panel > 0) m.Buttons.Add(new InstructionalButton("Change", Control.FrontendRight));
         }
@@ -214,8 +212,7 @@ namespace FrontsAndRivals.UI
                     Restore(_sections, s);
                     BuildList(false);
                     Restore(_list, l);
-                    BuildDetail();
-                    Restore(_detail, d);
+                    if (_focus >= 2) { BuildDetail(); Restore(_detail, d); }
                 });
             }
             Pool.Process();
@@ -324,13 +321,12 @@ namespace FrontsAndRivals.UI
             m.Name = subtitle;
         }
 
+        /// <summary>Select: down one level (the front's page, a guard, a recruit...).</summary>
         private void FocusRight(int from)
         {
+            if (from == 1) BuildDetail();
             NativeMenu next = from == 0 ? _list : _detail;
-            if (!next.Visible || next.Items.Count == 0) return;
-            bool anyEnabled = false;
-            foreach (NativeItem it in next.Items) if (it.Enabled) { anyEnabled = true; break; }
-            if (!anyEnabled) return;
+            if (next.Items.Count == 0) return;
             Focus(from + 1);
             // Land on the first usable row.
             for (int i = 0; i < next.Items.Count; i++) if (next.Items[i].Enabled) { next.SelectedIndex = i; break; }
@@ -347,22 +343,44 @@ namespace FrontsAndRivals.UI
             int injured = 0;
             foreach (GuardState g in e.State.Guards) if (g.Status == GuardStatus.Injured) injured++;
 
-            AddSection("Overview", "Your empire at a glance: income, wages, fronts and people.", Money(net) + "/day");
-            AddSection("Fronts", "Every business: who holds it, its defense and income. Select one to manage it.", e.OwnedCount() + " Held" + Open);
-            AddSection("Guards", "Your roster: rank, trait and post. Select one to manage it.", e.LivingCount() + (injured > 0 ? " (" + injured + " Hurt)" : "") + Open);
-            AddSection("Hire Recruits", Economy.RecruitsPerDay + " new faces turn up every morning at 06:00. Hire them before midnight.", e.State.Offers.Count + " Today" + Open);
+            _sectionKeys.Clear();
+            // What to do next, always first, like the game's objective text. Selecting it goes straight there.
+            Empire.Hint next = e.NextStep(_config.Raids);
+            NativeItem step = Row("~y~" + next.Title + "~s~", next.Text + " Select to go to it.", "");
+            Section? goes = next.FrontId != null ? (Section?)null
+                : next.Title.StartsWith("Hire") ? Section.Hire : next.Title.StartsWith("Arm") ? Section.Fronts
+                : next.Title.StartsWith("Post") ? Section.Guards : (Section?)Section.Fronts;
+            Opens(step);
+            if (next.FrontId != null)
+            {
+                string target = next.FrontId;
+                step.Activated += (s, a) => Safe("next step", () => JumpToFront(target));
+            }
+            else
+            {
+                Section where = goes.Value;
+                step.Activated += (s, a) => Safe("next step", () => { _section = where; BuildList(true); FocusRight(0); });
+            }
+            _sections.Add(step);
+            _sectionKeys.Add(null);
+
+            AddSection(Section.Fronts, "Fronts", "Every business in the city, who holds it, and yours to manage.", e.OwnedCount() + " of " + _content.Fronts.Count);
+            AddSection(Section.Guards, "Guards", "Your people: their post, rank, gun and skills.", e.LivingCount() + (injured > 0 ? " (" + injured + " Hurt)" : ""));
+            AddSection(Section.Hire, "Hire Recruits", Economy.RecruitsPerDay + " new faces turn up every morning at 06:00. Hire them before midnight.", e.State.Offers.Count + " Today");
             int maxGrudge = 0;
             foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
-            AddSection("Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge + Open);
-            AddSection("Messages", "Every text and alert from Fronts & Rivals, newest first, so you can read them again.", (Messages != null ? Messages().Count : 0).ToString());
-            AddSection("Settings", "Attacks, turf moves, notifications, sound, routes, permanent death and map blips.", "");
+            AddSection(Section.Rivals, "Rivals", "The three crews, their leaders, and how much they hate you.", "Grudge " + maxGrudge);
+            AddSection(Section.Messages, "Messages", "Every text and alert from Fronts & Rivals, newest first, so you can read them again.", (Messages != null ? Messages().Count : 0).ToString());
+            AddSection(Section.Overview, "Overview", "Income, wages, street heat and your people at a glance.", Money(net) + "/day");
+            AddSection(Section.Settings, "Settings", "Difficulty, attacks, notifications, sound, map icons and more.", "");
         }
 
-        private NativeItem AddSection(string title, string description, string badge)
+        private NativeItem AddSection(Section key, string title, string description, string badge)
         {
             NativeItem item = Opens(Row(title, description, badge));
-            item.Activated += (s, a) => FocusRight(0);
+            item.Activated += (s, a) => Safe("open section", () => { _section = key; BuildList(true); FocusRight(0); });
             _sections.Add(item);
+            _sectionKeys.Add(key);
             return item;
         }
 
@@ -385,7 +403,7 @@ namespace FrontsAndRivals.UI
                 case Section.Messages: ListMessages(); break;
             }
             if (resetSelection && _list.Items.Count > 0) _list.SelectedIndex = 0;
-            BuildDetail();
+            if (_focus >= 2) BuildDetail();
         }
 
         private void AddListRow(NativeItem item, object key, bool opensDetail)
@@ -398,14 +416,6 @@ namespace FrontsAndRivals.UI
         private void ListOverview(Empire e)
         {
             SetTitles(_list, "Overview", "THIS IS YOUR OUTFIT");
-            Empire.Hint next = e.NextStep(_config.Raids);
-            NativeItem step = Row("Next Step: " + next.Title, next.Text + (next.FrontId != null ? " Select to go to it." : ""), next.FrontId != null ? Open.Trim() : "");
-            if (next.FrontId != null)
-            {
-                string target = next.FrontId;
-                step.Activated += (s, a) => Safe("next step", () => JumpToFront(target));
-            }
-            AddListRow(step, null, false);
             int income = e.DailyIncome(), wages = e.DailyWages();
             int injured = 0, fallen = 0;
             foreach (GuardState g in e.State.Guards)
@@ -636,9 +646,6 @@ namespace FrontsAndRivals.UI
             _detail.Clear();
             object key = _list.SelectedIndex >= 0 && _list.SelectedIndex < _listKeys.Count ? _listKeys[_list.SelectedIndex] : null;
             bool show = e != null && key != null;
-            _hidingDetail = true;
-            try { _detail.Visible = _open && show; }
-            finally { _hidingDetail = false; }
             if (!show) { if (_focus == 2) Focus(1); return; }
 
             if (key is FrontDef) DetailFront(e, (FrontDef)key);

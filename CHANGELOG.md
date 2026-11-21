@@ -4,7 +4,9 @@
 
 First full release.
 
-- From the first playtest: roomier Office panels with short banner titles that always fit; GTA's own menu arrow
+- The Office is one GTA-style menu with submenus, like the Interaction Menu: a single column top-left, one level on
+  screen at a time (Office > Fronts > a front), Select to go in and Back to come out. The top row is always the next
+  thing to do and goes straight there. Short banner titles that always fit; GTA's own menu arrow
   (the old arrow character drew as a white block); owners in their crew's colour on the Fronts list; a Messages page
   that keeps every text and alert to read again
 - No Broker: the first-front introduction is a GTA help box (and the car wash's map icon flashes); other messages come
@@ -35,7 +37,7 @@ First full release.
 - 29 real businesses as fronts across Los Santos, with guard posts placed from the game's navigation data
 - Crew territories (South LS, the east side, the west) and nightly turf moves: crews grab fronts for sale and fight each other for fronts
 - Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
-- The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
+- The Office: phone contact, native GTA menu style, control hints
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
