@@ -35,6 +35,7 @@ namespace FrontsAndRivals.Core
         private readonly Streamer _streamer;
         private Workers _workers;
         private Escorts _escorts;
+        private Hangouts _hangouts;
         private readonly PurchaseShot _shot = new PurchaseShot();
         private readonly DevTools _dev;
         private readonly AutoPostPlacer _placer = new AutoPostPlacer();
@@ -81,6 +82,7 @@ namespace FrontsAndRivals.Core
             _live.Grudge = id => { CrewState c = _state != null ? Nemesis.Crew(_state, id) : null; return c != null ? c.Grudge : 0; };
             _workers = new Workers(_registry, _content, () => _empire);
             _escorts = new Escorts(_registry, () => _empire, OnBodyguardDown);
+            _hangouts = new Hangouts(_registry, _content, () => _empire);
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
             _director.OnTaken = def => // set after the Director exists
@@ -162,6 +164,7 @@ namespace FrontsAndRivals.Core
             _scheduler.Add("AutoPosts", "guard posts", 1000, AutoPostsTick);
             if (_config.FrontStaff) _scheduler.Add("Workers", "front staff", 1000, () => _workers.Update());
             _scheduler.Add("Escorts", "bodyguards", 500, () => _escorts.Update());
+            if (_config.Hangouts) _scheduler.Add("Hangouts", "crew hangouts", 1000, () => _hangouts.Update());
             _scheduler.Add("Blips", "map blips", 2000, () => _blips.Refresh(_empire, _content));
             _scheduler.Add("World", "guard recovery", 60000, WorldTick);
             _scheduler.Add("Director", "attacks", 2000, () => _director.Update());
@@ -469,6 +472,7 @@ namespace FrontsAndRivals.Core
                 if (_streamer != null) _streamer.Reset();
                 if (_workers != null) _workers.Forget();
                 if (_escorts != null) _escorts.Forget();
+                if (_hangouts != null) _hangouts.Forget();
                 if (n > 0) Log.Write("Cleared " + n + " mod entities (" + why + ")");
             }
             catch (Exception ex) { Log.Error("ClearWorld", ex); }

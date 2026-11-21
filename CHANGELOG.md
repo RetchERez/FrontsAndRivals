@@ -9,6 +9,8 @@ First full release.
   thing to do and goes straight there. Short banner titles that always fit; GTA's own menu arrow
   (the old arrow character drew as a white block); owners in their crew's colour on the Fronts list; a Messages page
   that keeps every text and alert to read again
+- Crew hangouts: two groups at most of 2-3 crew members loiter on their crew's streets (40-120 m from its fronts),
+  sometimes round a crew car; calm until provoked like front soldiers, each kill costs the crew a soldier (INI Map Hangouts)
 - Crew rides in three tiers, by revenge intensity (grudge plus half the street heat): Dead Kings Manana/Emperor, then
   Primo Custom/Tornado Custom, then Dominator/Buccaneer Custom; Hellfire MC Daemon/Hexer, then Zombie Chopper/Daemon
   Custom, then Nightblade/Gargoyle; Vinewood Elite Washington/Schafter, then Cognoscenti/Baller LE, then the armoured

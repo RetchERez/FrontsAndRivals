@@ -172,6 +172,10 @@ static class FrontTests
         T.True("Patrols: the first person holds the door, every second one walks", !StreamRules.Patrols(0, 3) && StreamRules.Patrols(1, 3) && !StreamRules.Patrols(2, 3) && !StreamRules.Patrols(1, 1));
         int[] loop = StreamRules.LoopOrder(new[] { 0f, -10f, 10f, 0f }, new[] { 10f, 0f, 0f, -10f });
         T.True("Patrol points walk a loop around the door", loop[0] == 3 && loop[1] == 2 && loop[2] == 0 && loop[3] == 1);
+        T.True("Hangouts: groups of 2 or 3", Enumerable.Range(0, 200).All(i => HangoutRules.GroupSize(i) == 2 || HangoutRules.GroupSize(i) == 3)
+            && Enumerable.Range(0, 200).Any(i => HangoutRules.GroupSize(i) == 3));
+        T.True("...some round a car, never more than two groups, room kept for a fight", Enumerable.Range(0, 100).Count(i => HangoutRules.WithCar(i)) == HangoutRules.CarChancePct
+            && HangoutRules.MaxGroups == 2 && HangoutRules.Fits(10, 3, 28) && !HangoutRules.Fits(16, 3, 28));
         T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));
         be2.SetOwner("carwash_handson", Owners.Velvet); // lost it to another crew
         bs2.LastHeldDay = 3; bs2.Day = 4;

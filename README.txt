@@ -127,7 +127,8 @@ WHAT'S IN 1.0
    pay more the longer you hold them and the more you own
  - Progression money can't skip: guns unlock with rank, bigger fronts need a
    bigger empire (3 and 8 fronts held) and new fronts get two quiet days
- - Staff at the front you're near: a cashier on the phone, a janitor sweeping,
+ - Crew hangouts, like Saints Row: groups of two or three of a crew's people hang out on the streets of their turf, sometimes round one of their cars; shoot them and their crew is a soldier short
+- Staff at the front you're near: a cashier on the phone, a janitor sweeping,
    a chef on a smoke break
  - A big, mixed cast of ordinary Los Santos street people, women and men, with
    nicknames for only some of them

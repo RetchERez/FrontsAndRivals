@@ -61,6 +61,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and the biggest 4; Cameras, Floodlights, Reinforced Doors and an Armory
 - A Story Mode economy: fronts pay about what Story Mode properties do; they pay more the longer you hold them and the more you own
 - Progression money can't skip: guns unlock with rank, bigger fronts need a bigger empire (3 and 8 fronts held) and new fronts get two quiet days
+- Crew hangouts, like Saints Row: groups of two or three of a crew's people hang out on the streets of their turf, sometimes round one of their cars; shoot them and their crew is a soldier short
 - Staff at the front you're near: a cashier on the phone, a janitor sweeping, a chef on a smoke break
 - A big, mixed cast of ordinary Los Santos street people, women and men, with nicknames for only some of them
 - Difficulty from Relaxed to Brutal, Reset the City to take Los Santos again with the crew you built, and Start a New Empire for a new story game

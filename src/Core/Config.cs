@@ -88,6 +88,7 @@ namespace FrontsAndRivals.Core
         // [Map] (ShowRivalFronts below)
         public bool ShowForSaleFronts = true;
         public bool FrontStaff = true;
+        public bool Hangouts = true;           // crew members hanging out on their turf
         public string Difficulty = "Normal";   // starting difficulty for a new empire (Office > Settings changes it later)
         public bool Raids = true;              // Send a Crew on rival fronts
         public bool Bodyguards = true;         // guards can follow you
@@ -147,6 +148,7 @@ namespace FrontsAndRivals.Core
             c.RivalAlertRange = Int(ini, "Rivals", "AlertRange", c.RivalAlertRange, 5, 150, warn);
             c.ShowForSaleFronts = Bool(ini, "Map", "ShowForSaleFronts", c.ShowForSaleFronts, warn);
             c.FrontStaff = Bool(ini, "Map", "FrontStaff", c.FrontStaff, warn);
+            c.Hangouts = Bool(ini, "Map", "Hangouts", c.Hangouts, warn);
             c.Raids = Bool(ini, "Guards", "Raids", c.Raids, warn);
             c.Bodyguards = Bool(ini, "Guards", "Bodyguards", c.Bodyguards, warn);
             c.PurchaseShot = Bool(ini, "General", "PurchaseShot", c.PurchaseShot, warn);
