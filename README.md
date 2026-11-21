@@ -12,6 +12,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
 - Start a new empire from Office > Settings (for a new story game); the old one is kept as empire.old.json
+- More fronts, more money: fronts pay more the longer you hold them (up to +50%) and each one boosts the rest (up to +30%)
 - Progression that money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held),
   and new fronts get two quiet days
 - One-click front management: Fill empty posts and Arm this front on every front's page

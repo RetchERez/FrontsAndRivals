@@ -185,7 +185,7 @@ namespace FrontsAndRivals.Attacks
             bool live = _config.LiveDefense && !s.LiveDefenseOff;
             string text = "The " + crew.Name + " are hitting the " + front.ShortName + " right now. Your people can hold about " + minutes
                 + (minutes == 1 ? " minute." : " minutes.");
-            if (live) text += " Get there and hold the door yourself: the Broker pays $" + Economy.DefendBonus(front.Income, _config.IncomeMultiplier).ToString("N0") + "."
+            if (live) text += " Get there and hold the door yourself: the Broker pays $" + Economy.DefendBonus(e.FrontIncome(front.Id), _config.IncomeMultiplier).ToString("N0") + "."
                 + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS.");
             _notifierPost(NoteKind.AttackWarning, "The Office", front.ShortName + " under attack", text);
             if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
@@ -341,7 +341,7 @@ namespace FrontsAndRivals.Attacks
                 _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " held", _content.Lines.Pick(rng, "held", tokens));
                 if (wasThere)
                 {
-                    int bonus = Economy.DefendBonus(front.Income, _config.IncomeMultiplier);
+                    int bonus = Economy.DefendBonus(e.FrontIncome(front.Id), _config.IncomeMultiplier);
                     Game.Player.Money += bonus;
                     _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ". The Broker pays you $" + bonus.ToString("N0") + ".");
                     Log.Write("Director: defended in person, bonus $" + bonus);

@@ -335,8 +335,9 @@ namespace FrontsAndRivals.UI
                 if (g.Status == GuardStatus.Dead) fallen++;
             }
             AddListRow(Info("Daily income", "Paid at every in-game midnight to whoever you're playing.", Money(income)), null, false);
-            AddListRow(Info("Daily wages", "Taken out before income. Unpaid guards quit, newest first (Loyal ones never do).", Money(wages)), null, false);
-            AddListRow(Info("Net per day", "Income minus wages.", Money(income - wages)), null, false);
+            AddListRow(Info("Daily wages", "Cheap for a small crew: past " + Economy.FreePayroll + " guards, each extra one adds 4% to everyone's wage (now x"
+                + Economy.PayrollFactor(e.LivingCount()).ToString("0.00") + "). Unpaid guards quit, newest first (Loyal ones never do).", Money(wages)), null, false);
+            AddListRow(Info("Net per day", "Income minus wages. Fronts pay more the longer you hold them (up to +50%), and every front adds +2% to all of them (up to +30%).", Money(income - wages)), null, false);
             AddListRow(Info("This week, about", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
             AddListRow(Info("Last midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
             AddListRow(Info("Fronts held", "Buy fronts for sale at their door, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
@@ -553,8 +554,19 @@ namespace FrontsAndRivals.UI
             double defense = owner == Owners.Player ? e.Defense(def.Id, Hour()) : 0;
             SetTitles(_detail, def.Name, def.Area.ToUpperInvariant() + " · " + OwnerLabel(owner).ToUpperInvariant());
 
-            NativeItem header = Info("Defense " + defense.ToString("0"), "Total power of the guards here, adjusted for night. Pays " + Money(def.Income) + " every midnight while you hold it.",
-                Money(def.Income) + "/day");
+            string pays;
+            int tonight = def.Income;
+            if (owner == Owners.Player)
+            {
+                FrontState fsHeld = e.Find(def.Id);
+                int days = Math.Max(0, e.State.Day - fsHeld.HeldSinceDay);
+                tonight = e.FrontIncome(def.Id);
+                int est = (int)Math.Round((Economy.EstablishedFactor(days) - 1) * 100), net = (int)Math.Round((Economy.NetworkFactor(e.OwnedCount()) - 1) * 100);
+                pays = "Pays " + Money(tonight) + " tonight: " + Money(def.Income) + " base, +" + est + "% for " + days + (days == 1 ? " day" : " days") + " held (up to +50%), +"
+                     + net + "% from your other fronts.";
+            }
+            else pays = "Pays " + Money(def.Income) + " a night to start, more the longer you hold it.";
+            NativeItem header = Info("Defense " + defense.ToString("0"), "Total power of the guards here, adjusted for night. " + pays, Money(tonight) + "/day");
             header.Panel = FrontBars(defense, def.Income);
             _detail.Add(header);
 
@@ -873,7 +885,8 @@ namespace FrontsAndRivals.UI
             SetTitles(_detail, offer.First + " " + offer.Last, (string.IsNullOrEmpty(offer.Nick) ? "" : "\"" + offer.Nick + "\" · ") + "RECRUIT");
             _detail.Add(Info(Economy.TraitName(t), Economy.TraitEffect(t), ""));
             _detail.Add(SkillsRow(offer, "Where they start. Skills grow on the job; better skills cost more to hire."));
-            _detail.Add(Info("Wage", "Paid every in-game midnight.", Money(Economy.Wage(Rank.Recruit)) + "/day"));
+            _detail.Add(Info("Wage", "Paid every in-game midnight. More with rank, and more for everyone once you have over " + Economy.FreePayroll + " guards.",
+                Money(Economy.WageFor(Rank.Recruit, e.LivingCount() + 1, 1.0)) + "/day"));
             _detail.Add(Info("Starts with", "A knife. Arm them on their page, one gun at a time: pistol, pump shotgun, SMG, carbine rifle.", "Knife"));
             int price = e.OfferPrice(offer);
             NativeItem hire = Row("Hire for " + Money(price), "They join your reserve and wait for a post.", Money(price));

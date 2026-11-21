@@ -73,6 +73,8 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "weakUntilDay", Order = 8)] public int WeakUntilDay = -1;
         /// <summary>A crew that just took this front from you holds it until this day (the next midnight).</summary>
         [DataMember(Name = "dugInUntilDay", Order = 9)] public int DugInUntilDay;
+        /// <summary>The day you last took or bought it: income grows the longer you keep it (Economy.EstablishedFactor).</summary>
+        [DataMember(Name = "heldSinceDay", Order = 10)] public int HeldSinceDay;
     }
 
     public static class GuardStatus

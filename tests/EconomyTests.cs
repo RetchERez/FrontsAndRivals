@@ -9,8 +9,24 @@ static class EconomyTests
     public static void Run()
     {
         T.Section("Economy (wages, prices, midnight payout)");
-        T.Check("Recruit wage $300", Economy.Wage(Rank.Recruit), 300, 0);
-        T.Check("Lieutenant wage $1,200", Economy.Wage(Rank.Lieutenant), 1200, 0);
+        T.Check("Recruit wage $150", Economy.Wage(Rank.Recruit), 150, 0);
+        T.Check("Lieutenant wage $500", Economy.Wage(Rank.Lieutenant), 500, 0);
+        T.True("Payroll: base up to 12 guards, +4% each after, capped x3", Economy.PayrollFactor(12) == 1.0 && Math.Abs(Economy.PayrollFactor(22) - 1.4) < 1e-9 && Economy.PayrollFactor(200) == 3.0);
+        T.True("Established: +5% a day, capped at +50%", Math.Abs(Economy.EstablishedFactor(4) - 1.2) < 1e-9 && Economy.EstablishedFactor(30) == 1.5 && Economy.EstablishedFactor(0) == 1.0);
+        T.True("Network: +2% per extra front, capped at +30%", Economy.NetworkFactor(1) == 1.0 && Math.Abs(Economy.NetworkFactor(6) - 1.1) < 1e-9 && Economy.NetworkFactor(29) == 1.3);
+        bool alwaysMore = true;
+        for (int n = 1; n < 29; n++) if (Economy.NetworkFactor(n + 1) * (n + 1) <= Economy.NetworkFactor(n) * n) alwaysMore = false;
+        T.True("Another front always means more total income", alwaysMore);
+        bool pays = true;
+        foreach (int inc in new[] { 4000, 4500, 5000 })
+        {
+            double take = inc * Economy.EstablishedFactor(10); // Lieutenants take weeks; by then the front is established
+            if (take - (Economy.Wage(Rank.Lieutenant) + 3 * Economy.Wage(Rank.Veteran)) < take * 0.5) pays = false;
+            if (inc - 4 * Economy.Wage(Rank.Recruit) < inc * 0.6) pays = false; // and a fresh one with recruits pays well from night one
+        }
+        T.True("Small fronts always pay: 60%+ with recruits, 50%+ with veterans once established", pays);
+        double small = 4 * Economy.WageFor(Rank.Soldier, 8, 1.0), big = 4 * Economy.WageFor(Rank.Soldier, 60, 1.0);
+        T.True("Wages are pocket change for a small crew, real money for a big one", small < 4500 * 0.25 && big > small * 2.5);
         bool inRange = true;
         foreach (Trait t in Empire.RecruitTraits)
         {
@@ -47,15 +63,15 @@ static class EconomyTests
         GuardState a = e.Recruit(rng), b = e.Recruit(rng);
         var pay = Economy.Midnight(state, content, 0, 1.0, 1.0);
         T.Check("Car wash pays $4,000", pay.Income, 4000, 0);
-        T.Check("Two recruits cost $600", pay.Wages, 600, 0);
-        T.Check("Net $3,400", pay.Net, 3400, 0);
+        T.Check("Two recruits cost $300", pay.Wages, 300, 0);
+        T.Check("Net $3,700", pay.Net, 3700, 0);
         var doubled = Economy.Midnight(state, content, 0, 2.0, 0.5);
-        T.True("INI multipliers apply (x2 income, x0.5 wages)", doubled.Income == 8000 && doubled.Wages == 300);
+        T.True("INI multipliers apply (x2 income, x0.5 wages)", doubled.Income == 8000 && doubled.Wages == 150);
 
         // Broke: lose the front so there's no income, can't cover wages -> newest non-Loyal guard quits.
         e.SetOwner("carwash_handson", Owners.CrownKings);
         a.Trait = (int)Trait.Loyal;
-        var broke = Economy.Midnight(state, content, 300, 1.0, 1.0);
+        var broke = Economy.Midnight(state, content, 100, 1.0, 1.0);
         T.True("Can't pay: the newest non-Loyal guard quits", broke.Quit.Count == 1 && broke.Quit[0] == b);
         T.True("...and leaves the roster", !state.Guards.Contains(b));
         var loyalOnly = Economy.Midnight(state, content, 0, 1.0, 1.0);
@@ -125,6 +141,6 @@ static class EconomyTests
         e3.Assign(r2, "carwash_handson", 1);
         T.Check("Front defense: 2 knife recruits by day = 12", e3.Defense("carwash_handson", 12), 12, 0.001);
         T.Check("...and 9 at night", e3.Defense("carwash_handson", 23), 9, 0.001);
-        T.Check("Daily income/wages shown in the Office", e3.DailyIncome() - e3.DailyWages(), 3400, 0);
+        T.Check("Daily income/wages shown in the Office", e3.DailyIncome() - e3.DailyWages(), 3700, 0);
     }
 }

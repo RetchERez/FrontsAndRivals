@@ -12,6 +12,9 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- More fronts, more money: a front pays +5% for every day you hold it (up to +50%, reset if you lose it), and every
+  front you hold adds +2% to all of them (up to +30%); wages are cheap (150 / 250 / 350 / 500) and only bite with a
+  big crew: past 12 guards each extra one adds 4% to everyone's wage (up to x3); the defend-it-yourself bonus is tonight's take, bonuses included
 - A front you lose is dug in until the next midnight before you can claim it back
 - Guards gain 1 XP for every night on a post (promotions are texted), so ranks and the guns they unlock come with time served
 - Progression: guns unlock with rank (Recruits up to the shotgun, Soldiers the SMG, Veterans the carbine); the Broker

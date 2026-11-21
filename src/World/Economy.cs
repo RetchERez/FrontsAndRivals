@@ -27,13 +27,13 @@ namespace FrontsAndRivals.Rules
         /// <summary>Wage per in-game day by rank.</summary>
         public static int Wage(Rank r)
         {
-            // Balance pass: a tier-0 front ($4,000-$5,000) with four guards now clears a profit at every rank.
+            // Fun over realism: cheap for a small crew. A big crew gets expensive through PayrollFactor, not these.
             switch (r)
             {
-                case Rank.Recruit: return 300;
-                case Rank.Soldier: return 500;
-                case Rank.Veteran: return 800;
-                default: return 1200;
+                case Rank.Recruit: return 150;
+                case Rank.Soldier: return 250;
+                case Rank.Veteran: return 350;
+                default: return 500;
             }
         }
 
@@ -192,21 +192,55 @@ namespace FrontsAndRivals.Rules
 
         /// <summary>One in-game midnight. Wages come out before income; if the player can't cover them,
         /// the newest non-Loyal guard quits (one at a time until the rest can be paid).</summary>
+        public const int FreePayroll = 12;
+
+        /// <summary>Wages only bite with a big crew: up to 12 guards pay the base wage; every guard past 12 adds 4% to
+        /// everyone's wage, up to x3 (60 guards is about x2.9).</summary>
+        public static double PayrollFactor(int livingGuards)
+        {
+            return Math.Min(3.0, 1.0 + 0.04 * Math.Max(0, livingGuards - FreePayroll));
+        }
+
+        /// <summary>Tonight's wage for one guard, with the big-crew surcharge.</summary>
+        public static int WageFor(Rank r, int livingGuards, double wageMult)
+        {
+            return (int)Math.Round(Wage(r) * PayrollFactor(livingGuards) * wageMult);
+        }
+
+        // ---- more fronts, more money ----
+
+        /// <summary>A front pays more the longer you keep it: +5% for every in-game day held, up to +50%. Losing it resets this.</summary>
+        public static double EstablishedFactor(int daysHeld) { return 1.0 + Math.Min(0.5, 0.05 * Math.Max(0, daysHeld)); }
+
+        /// <summary>Every front you hold makes the rest pay more (shared suppliers, laundering, reputation):
+        /// +2% on all fronts per front past the first, up to +30%. So more fronts always means more money, faster.</summary>
+        public static double NetworkFactor(int frontsHeld) { return 1.0 + Math.Min(0.3, 0.02 * Math.Max(0, frontsHeld - 1)); }
+
+        /// <summary>What one front pays tonight.</summary>
+        public static int FrontIncome(FrontDef def, FrontState f, int day, int frontsHeld, double incomeMult)
+        {
+            if (def == null) return 0;
+            return (int)Math.Round(def.Income * EstablishedFactor(day - (f != null ? f.HeldSinceDay : day)) * NetworkFactor(frontsHeld) * incomeMult);
+        }
+
         public static Payout Midnight(EmpireState s, ContentDb content, long playerCash, double incomeMult, double wageMult)
         {
             var p = new Payout();
+            int held = 0;
+            foreach (FrontState f in s.Fronts) if (f.Owner == Owners.Player) held++;
             foreach (FrontState f in s.Fronts)
             {
                 if (f.Owner != Owners.Player) continue;
                 if (f.Damaged) { f.Damaged = false; p.DamagedSkipped++; continue; } // protected mode: no take tonight, fixed by morning
-                FrontDef def = content.Front(f.Id);
-                if (def != null) p.Income += (int)Math.Round(def.Income * incomeMult);
+                p.Income += FrontIncome(content.Front(f.Id), f, s.Day, held, incomeMult);
             }
             while (true)
             {
                 p.Wages = 0;
+                int living = 0;
+                foreach (GuardState g in s.Guards) if (g.Status != GuardStatus.Dead) living++;
                 foreach (GuardState g in s.Guards)
-                    if (g.Status != GuardStatus.Dead) p.Wages += (int)Math.Round(Wage((Rank)g.Rank) * wageMult);
+                    if (g.Status != GuardStatus.Dead) p.Wages += WageFor((Rank)g.Rank, living, wageMult);
                 if (playerCash + p.Income >= p.Wages) break;
 
                 GuardState newest = null;

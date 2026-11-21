@@ -51,6 +51,7 @@ namespace FrontsAndRivals.Rules
             if (!Owners.IsValid(owner)) throw new ArgumentException("bad owner " + owner);
             FrontState f = Find(frontId);
             if (f == null) return;
+            if (owner == Owners.Player && f.Owner != Owners.Player) f.HeldSinceDay = _s.Day; // a fresh start on income growth
             f.Owner = owner;
             if (owner != Owners.Player)
             {
@@ -300,16 +301,23 @@ namespace FrontsAndRivals.Rules
             foreach (FrontState f in _s.Fronts)
             {
                 if (f.Owner != Owners.Player) continue;
-                FrontDef def = _content.Front(f.Id);
-                if (def != null) n += def.Income;
+                n += Economy.FrontIncome(_content.Front(f.Id), f, _s.Day, OwnedCount(), 1.0);
             }
             return n;
+        }
+
+        /// <summary>Tonight's take from one front, with its established and network bonuses.</summary>
+        public int FrontIncome(string frontId)
+        {
+            FrontState f = Find(frontId);
+            return f == null || f.Owner != Owners.Player ? 0 : Economy.FrontIncome(_content.Front(frontId), f, _s.Day, OwnedCount(), 1.0);
         }
 
         public int DailyWages()
         {
             int n = 0;
-            foreach (GuardState g in _s.Guards) if (g.Status != GuardStatus.Dead) n += Economy.Wage((Rank)g.Rank);
+            int living = LivingCount();
+            foreach (GuardState g in _s.Guards) if (g.Status != GuardStatus.Dead) n += Economy.WageFor((Rank)g.Rank, living, 1.0);
             return n;
         }
 
