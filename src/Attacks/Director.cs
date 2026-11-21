@@ -171,6 +171,7 @@ namespace FrontsAndRivals.Attacks
             var tokens = Tokens(crew, front, leader, null);
             _notifierPost(NoteKind.AttackWarning, "Street word", front.ShortName, _content.Lines.Pick(_rng(), "warning", tokens));
             Sounds.Play(Cue.AttackWarning);
+            Tips.Show(Tip.Attack);
             if (_config.LiveDefense && !s.LiveDefenseOff)
             {
                 // The call to come defend: when, where, and what it pays to be there.
@@ -434,7 +435,9 @@ namespace FrontsAndRivals.Attacks
             foreach (FrontDef def in _content.Fronts)
             {
                 if (!def.Door.IsSet || !e.CanBuy(def.Id)) continue;
-                if (def.Door.DistanceTo(p.X, p.Y, p.Z) <= BuyRange) { front = def; break; }
+                float d = def.Door.DistanceTo(p.X, p.Y, p.Z);
+                if (d < 30f) Tips.Show(Tip.BuyAtDoor);
+                if (d <= BuyRange) { front = def; break; }
             }
             if (front == null) return;
             int price = Economy.FrontPrice(front, _config.FrontPriceDays);

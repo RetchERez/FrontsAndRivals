@@ -144,6 +144,64 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>Lets a guard go. They leave the roster for good.</summary>
+        // ---- one-click front management ----
+
+        /// <summary>A guard's power on their own, for picking the best free guards.</summary>
+        public static double Power(GuardState g) { return DefenseRating.GuardPower(Record(g), new FrontUpgrades(), 12); }
+
+        /// <summary>Healthy guards waiting in the reserve (not posted, not a bodyguard).</summary>
+        public List<GuardState> FreeGuards()
+        {
+            var free = new List<GuardState>();
+            foreach (GuardState g in _s.Guards) if (g.Status == GuardStatus.Active && !g.IsPosted && !g.Escort) free.Add(g);
+            free.Sort((a, b) => Power(b).CompareTo(Power(a)));
+            return free;
+        }
+
+        public int EmptyPosts(string frontId)
+        {
+            FrontDef def = _content.Front(frontId);
+            if (def == null) return 0;
+            int n = 0;
+            for (int p = 0; p < def.Posts.Count && p < FrontDef.MaxPosts; p++) if (AtPost(frontId, p) == null) n++;
+            return n;
+        }
+
+        /// <summary>Puts the strongest free guards on this front's empty posts. Returns how many were posted.</summary>
+        public int FillPosts(string frontId)
+        {
+            FrontDef def = _content.Front(frontId);
+            if (def == null || !PlayerOwns(frontId)) return 0;
+            List<GuardState> free = FreeGuards();
+            int placed = 0;
+            for (int p = 0; p < def.Posts.Count && p < FrontDef.MaxPosts && placed < free.Count; p++)
+                if (AtPost(frontId, p) == null && Assign(free[placed], frontId, p)) placed++;
+            return placed;
+        }
+
+        private List<GuardState> AtFront(string frontId)
+        {
+            var list = new List<GuardState>();
+            foreach (GuardState g in _s.Guards) if (g.Front == frontId && g.Status != GuardStatus.Dead) list.Add(g);
+            return list;
+        }
+
+        /// <summary>What one step up the weapon ladder costs for every guard posted here.</summary>
+        public int ArmFrontPrice(string frontId)
+        {
+            int total = 0;
+            foreach (GuardState g in AtFront(frontId)) { int p = WeaponUpgradePrice(g); if (p > 0) total += p; }
+            return total;
+        }
+
+        /// <summary>Every guard posted here gets their next gun. Returns how many were upgraded.</summary>
+        public int ArmFront(string frontId)
+        {
+            int n = 0;
+            foreach (GuardState g in AtFront(frontId)) if (WeaponUpgradePrice(g) > 0) { UpgradeWeapon(g); n++; }
+            return n;
+        }
+
         public int EscortCount()
         {
             int n = 0;

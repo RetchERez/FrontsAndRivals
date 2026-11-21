@@ -30,7 +30,7 @@ namespace FrontsAndRivals.UI
 {
     public sealed class OfficeMenu
     {
-        private const int Rows = 8;
+        private const int Rows = 12; // a whole front page (header, 4 posts, 2 quick actions, 4 upgrades, waypoint) fits without scrolling
         private const float SectionsWidth = 380f, ListWidth = 500f, DetailWidth = 500f, Gap = 12f;
         private const string Open = "  ›";
 
@@ -70,9 +70,12 @@ namespace FrontsAndRivals.UI
             _changed = changed;
             _save = save;
 
-            _sections = Panel("The Office", "FRONTS & RIVALS", SectionsWidth, 0f);
-            _list = Panel("Fronts", "", ListWidth, SectionsWidth + Gap);
-            _detail = Panel("", "", DetailWidth, SectionsWidth + Gap + ListWidth + Gap);
+            // Narrow screens (4:3, 5:4) can't fit three full panels: shrink them all evenly so nothing runs off the edge.
+            float k = FitFactor();
+            float sw = SectionsWidth * k, lw = ListWidth * k, dw = DetailWidth * k, gap = Gap * k;
+            _sections = Panel("The Office", "FRONTS & RIVALS", sw, 0f);
+            _list = Panel("Fronts", "", lw, sw + gap);
+            _detail = Panel("", "", dw, sw + gap + lw + gap);
             _panels = new[] { _sections, _list, _detail };
 
             _sections.SelectedIndexChanged += (s, e) => { if (_open) Safe("section", () => { _section = (Section)_sections.SelectedIndex; BuildList(true); }); };
@@ -82,6 +85,18 @@ namespace FrontsAndRivals.UI
                 int index = i;
                 _panels[i].Closing += (s, e) => OnBack(index, e);
             }
+        }
+
+        /// <summary>1.0 on 16:9 and wider; less on narrower screens (the UI is laid out on a 1080-high canvas).</summary>
+        private static float FitFactor()
+        {
+            try
+            {
+                float canvas = GTA.UI.Screen.ScaledWidth;
+                float need = (SectionsWidth + ListWidth + DetailWidth + 2 * Gap) / 0.9f; // keep 10% for the safe zone
+                return canvas > 0 && canvas < need ? Math.Max(0.6f, canvas / need) : 1f;
+            }
+            catch { return 1f; }
         }
 
         private NativeMenu Panel(string title, string subtitle, float width, float x)
@@ -106,6 +121,7 @@ namespace FrontsAndRivals.UI
             if (_empire() == null) { GTA.UI.Notification.Show("Fronts & Rivals: still loading. Try again in a moment."); return; }
             if (_open) return;
             _open = true;
+            Tips.Show(Tip.Office);
             _section = Section.Overview;
             Safe("open", () =>
             {
@@ -478,6 +494,10 @@ namespace FrontsAndRivals.UI
                 AddListRow(dev, null, false);
             }
 
+            NativeItem tips = Row("Show tips again", "The short first-time tips (the Office, posting guards, attacks, buying, bodyguards) show again when they come up.", "");
+            tips.Activated += (s, a) => { Tips.Reset(); Changed(false); GTA.UI.Notification.Show("Tips will show again."); };
+            AddListRow(tips, null, false);
+
             NativeItem version = Row("Version", "Fronts & Rivals, a free single-player mod for Grand Theft Auto V.", Main.ModVersion);
             version.Enabled = false;
             AddListRow(version, null, false);
@@ -527,6 +547,7 @@ namespace FrontsAndRivals.UI
             else if (owner == Owners.Player)
             {
                 for (int post = 0; post < FrontDef.MaxPosts; post++) _detail.Add(PostRow(e, def, post));
+                AddQuickActions(e, def);
             }
             else
             {
@@ -587,6 +608,41 @@ namespace FrontsAndRivals.UI
         }
 
         // ---------- upgrades ----------
+
+        /// <summary>One click instead of four: fill every empty post, or give everyone here their next gun.</summary>
+        private void AddQuickActions(Empire e, FrontDef def)
+        {
+            int empty = e.EmptyPosts(def.Id), free = e.FreeGuards().Count;
+            NativeItem fill = Row("Fill empty posts", empty == 0 ? "Every post here is covered."
+                : free == 0 ? "Nobody is waiting in the reserve. Hire recruits first."
+                : "Posts your strongest guards from the reserve: " + empty + " empty " + (empty == 1 ? "post" : "posts") + ", " + free + " free.",
+                empty > 0 ? empty + " empty" : "Full");
+            fill.Enabled = empty > 0 && free > 0;
+            fill.Activated += (s, a) => Safe("fill", () =>
+            {
+                int n = e.FillPosts(def.Id);
+                if (n > 0) { Sounds.Play(Cue.Purchase); GTA.UI.Notification.Show("Posted " + n + (n == 1 ? " guard" : " guards") + " at the " + def.ShortName + "."); }
+                Changed(true);
+            });
+            _detail.Add(fill);
+
+            int cost = e.ArmFrontPrice(def.Id);
+            NativeItem arm = Row("Arm this front", cost > 0 ? "Every guard here steps up to their next gun, all at once." : "Nobody here needs a better gun (or nobody is posted).",
+                cost > 0 ? Money(cost) : "");
+            arm.Enabled = cost > 0;
+            arm.Activated += (s, a) => Safe("arm", () =>
+            {
+                int total = e.ArmFrontPrice(def.Id);
+                if (total <= 0) return;
+                if (Game.Player.Money < total) { GTA.UI.Notification.Show("You need " + Money(total) + " to arm the " + def.ShortName + "."); return; }
+                Game.Player.Money -= total;
+                int n = e.ArmFront(def.Id);
+                Sounds.Play(Cue.Purchase);
+                GTA.UI.Notification.Show("Armed " + n + (n == 1 ? " guard" : " guards") + " at the " + def.ShortName + " for " + Money(total) + ".");
+                Changed(true);
+            });
+            _detail.Add(arm);
+        }
 
         private void AddUpgrades(Empire e, FrontDef def)
         {
@@ -669,7 +725,11 @@ namespace FrontsAndRivals.UI
             guard.CheckboxChanged += (s, a) => Safe("bodyguard", () =>
             {
                 if (!e.SetEscort(g, guard.Checked)) { GTA.UI.Notification.Show("You already have " + FrontsAndRivals.Spawn.EscortRules.Max + " bodyguards."); }
-                else GTA.UI.Notification.Show(guard.Checked ? g.ShortName + " is on the way to you." : g.ShortName + " is heading back to their post.");
+                else
+                {
+                    GTA.UI.Notification.Show(guard.Checked ? g.ShortName + " is on the way to you." : g.ShortName + " is heading back to their post.");
+                    if (guard.Checked) Tips.Show(Tip.Bodyguard);
+                }
                 Changed(true);
             });
             _detail.Add(guard);
@@ -797,6 +857,7 @@ namespace FrontsAndRivals.UI
                     Sounds.Play(Cue.Purchase);
                     Log.Write("Office: hired " + offer.FullName + " for " + price);
                     GTA.UI.Notification.Show("Hired " + Short(offer) + ". Post them from Fronts.");
+                    Tips.Show(Tip.Posting);
                     Focus(1);
                     Changed(false);
                     break;

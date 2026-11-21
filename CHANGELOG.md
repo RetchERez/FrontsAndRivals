@@ -12,6 +12,9 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Fill empty posts (strongest free guards first) and Arm this front (everyone's next gun, total shown) on each front's page
+- First-time tips for the Office, posting, attacks, buying at the door and bodyguards; Show tips again in Settings
+- The Office shrinks to fit 4:3 and 5:4 screens, and shows 12 rows so a whole front page fits
 - Killing your own guard or bodyguard (shot, blown up or run over) is recognised: its own texts, the usual death or
   injury rules, and recruits ask 25% more until the next day
 - Bodyguards: up to two guards join your own group (follow, ride along, fight); blue blips; their post waits for them;

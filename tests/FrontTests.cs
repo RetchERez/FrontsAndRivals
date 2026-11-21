@@ -82,6 +82,21 @@ static class FrontTests
         T.True("Kill one of your own: recruits want danger money", be.OfferPrice(offerNow) > calm);
         bs.Day += 2;
         T.True("...and it passes after a day", be.OfferPrice(offerNow) == calm);
+        T.Section("One-click front management");
+        var qs = SaveService.NewEmpire();
+        var qe = new Empire(qs, content);
+        qe.SetOwner("carwash_handson", Owners.Player);
+        GuardState q1 = qe.Recruit(rng), q2 = qe.Recruit(rng), q3 = qe.Recruit(rng);
+        Stats.Set(q1, new[] { 20, 20, 20, 20 }); Stats.Set(q2, new[] { 80, 80, 80, 80 }); Stats.Set(q3, new[] { 50, 50, 50, 50 });
+        int posts = content.Front("carwash_handson").Posts.Count;
+        T.Check("All posts empty to start", qe.EmptyPosts("carwash_handson"), posts, 0);
+        int placedNow = qe.FillPosts("carwash_handson");
+        T.Check("Fill posts uses everyone free (up to the posts)", placedNow, Math.Min(3, posts), 0);
+        if (posts < 3) T.True("The strongest go first", q2.IsPosted && !q1.IsPosted);
+        int armCost = qe.ArmFrontPrice("carwash_handson");
+        T.Check("Arming knife guards costs a pistol each", armCost, Economy.UpgradePrice(Weapon.Knife) * placedNow, 0);
+        T.Check("Arm this front upgrades everyone posted", qe.ArmFront("carwash_handson"), placedNow, 0);
+        T.True("...one step each", q2.Weapon == (int)Weapon.Pistol);
         var plain = new GuardState { First = "Ana", Nick = "", Last = "Diaz" };
         T.True("No empty quotes for a guard without a nickname", plain.ShortName == "Ana Diaz" && plain.FullName == "Ana Diaz");
     }

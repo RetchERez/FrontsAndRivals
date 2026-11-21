@@ -80,6 +80,7 @@ namespace FrontsAndRivals.Core
             _director = new Director(_content, _config, () => _empire, () => _rng, ActiveNow, () => _scheduler.ActiveMs,
                                      EmpireChanged, _banners, _notifier, _streamer, _live);
             _notifier.UseSettings(NoteSettingsNow);
+            Tips.State = () => _state;
             Sounds.Enabled = () => _config.SoundEffects && (_state == null || !_state.SoundOff);
             _streamer.AlertOnFootRange = _config.RivalAlertRange;
             _blips.ShowForSaleFronts = _config.ShowForSaleFronts;
@@ -138,6 +139,7 @@ namespace FrontsAndRivals.Core
         private void PromptsTick()
         {
             _director.UpdateFrame();
+            Tips.Update();
             if (!_config.OfficeButton) return;
             // Hold the Interaction Menu button (Back/View on a pad, M on keyboard) for half a second, like GTA Online.
             // A tap still changes the camera view; once the hold fires the camera change is blocked until you let go.
