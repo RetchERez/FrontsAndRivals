@@ -1,129 +1,122 @@
 # Fronts & Rivals 1.0
 
-A free single-player script mod for Grand Theft Auto V. Not affiliated with or endorsed by Rockstar Games.
+A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
-Run real Los Santos businesses as fronts, post guards with names, faces, traits and ranks, and hold them against three rival crews who already own most of the city and whose leaders remember you. Attacks resolve on their own while you're away and turn into real fights when you're close. Michael, Franklin and Trevor share one empire.
-
-## What's in 1.0
-
-- 29 real businesses as fronts across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
-- Three crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side, the Vinewood Elite out west; five fronts start for sale
-- A city that moves without you: crews grab fronts that are for sale and take each other's at night
-- The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
-- Guards with traits, ranks, experience and permanent death; a memorial for the fallen
-- Start a New Empire from Office > Settings (for a new story game); the old one is kept as empire.old.json
-- A Next Step line at the top of the Office that always says what to do next
-- Raids: send your four strongest guards to take a rival front without you (odds shown first, call them back any time);
-  drop a waypoint on a front on GTA's own map and the Office opens on that front's page
-- Guard posts and upgrades by size: small fronts take 2 guards and Cameras/Floodlights; mid-size 3 guards and Reinforced
-  Doors too; the biggest 4 guards and an Armory
-- Difficulty from Relaxed to Brutal (Office > Settings), and Reset the City to take Los Santos again with the crew you built
-- A Story Mode economy: a front pays about what a Story Mode property does, with costs to match (IncomeMultiplier raises it)
-- More fronts, more money: fronts pay more the longer you hold them (up to +30%) and each one boosts the rest (up to +20%)
-- Progression that money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held),
-  and new fronts get two quiet days
-- One-click front management: Fill Empty Posts and Arm This Front on every front's page
-- First-time tips in GTA's help box (Office > Settings > Show Tips Again)
-- Bodyguards: call up to two of your guards from the Office to follow you around the city, on foot or in your car,
-  and fight at your side. Their front is a guard short while they're with you
-- Guard skills like the player's: Shooting (aim and power), Strength (power and health), Stamina (fewer injuries,
-  quicker recovery) and Stealth (fewer deaths). They grow on the job: every midnight on a post, every fight, every kill,
-  every promotion. Better recruits cost more; fire anyone from their page in the Office
-- Staff at the front you're standing near: a cashier on the phone, a janitor sweeping, a chef on a smoke break.
-  They only appear when there's ped budget to spare and leave the moment guards or a fight need it
-- A big, mixed cast: guards and crews are ordinary Los Santos street people, women and men from every part of the city,
-  with 87 men's and 65 women's first names, 95 surnames, and nicknames for only some of them
-- Attacks come without warning: one alert when a front is hit, a timer showing how long your guards can hold, a GPS route, and a bonus for holding the door yourself
-- Crews never die out: they recruit off the street every night and come back for what you took
-- A weapon ladder: every guard starts with a knife and is armed one gun at a time, each a big step up:
-  pistol $350 (x1.0), pump shotgun $550 (x1.3), SMG $1,300 (x1.6), carbine rifle $2,100 (x2.0), Ammu-Nation's own prices; the knife is x0.6
-- Three original crews (Dead Kings, Hellfire MC, the Vinewood Elite), each with a named boss and three lieutenants
-- Attacks are already underway when you hear about them; within 300 m they become a live defense with convoys, timer bars and a door to hold
-- Take rival fronts by clearing their guards and claiming the door
-- A nemesis loop: leaders who escape come back with scars and text you about it; dead lieutenants are replaced by promoted survivors
-- Midnight payouts with wages, front upgrades, and a protected mode for a lower-stakes game
-- The game's own alert and cash sounds, a message queue that never spams, and full controller support
-- Nothing to collect and no upkeep; good guards win without you
+Buy real Los Santos businesses as fronts, post guards with names, faces, skills and ranks, and hold them against three rival crews who already own most of the city and fight each other for the rest. Attacks play out on their own while you're away and turn into real fights when you're close. Michael, Franklin and Trevor share one empire, and it runs alongside the whole story.
 
 ## Requirements
 
-Install these yourself; the mod never bundles them:
+Install these yourself first. The mod never bundles them.
 
-- BattlEye off for Story Mode (Rockstar Games Launcher setting, or the `-nobattleye` launch argument)
-- ScriptHookV for your game build
-- ScriptHookVDotNet: a nightly build (3.6.0-nightly.89 or later) on Legacy, or SHVDN Enhanced on Enhanced
-- LemonUI (SHVDN3 build)
-- iFruitAddon2 3.x, for the phone contact
+| What | Why | Where to get it |
+|---|---|---|
+| **GTA V Enhanced**, Story Mode | The game | Steam, Epic or the Rockstar Games Launcher |
+| **BattlEye off** | Script mods can't load with it on | Rockstar Games Launcher > Settings > GTA V Enhanced, or add `-nobattleye` to the launch options |
+| **Script Hook V** | Loads script mods into the game | http://www.dev-c.com/gtav/scripthookv/ |
+| **Script Hook V .NET Enhanced** | Runs .NET script mods like this one | https://github.com/Chiheb-Bacha/ScriptHookVDotNetEnhanced/releases |
+| **LemonUI** (the SHVDN3 build, 2.2 or later) | The game-style menus | https://github.com/LemonUIbyLemon/LemonUI/releases |
+| **iFruitAddon2** (3.x) | The Office contact on your phone (optional: without it, hold Back/View or M to open the Office) | https://github.com/Bob74/iFruitAddon2/releases |
+| **.NET Framework 4.8** | Needed by Script Hook V .NET (already on most Windows 10 and 11 PCs) | https://dotnet.microsoft.com/download/dotnet-framework/net48 |
+| **Visual C++ Redistributable** (x64, latest) | Needed by Script Hook V .NET (already on most PCs) | https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist |
 
-After a GTA V update, wait for ScriptHookV to update before reporting bugs.
+Tested with Script Hook V v3889.0, Script Hook V .NET Enhanced 1.1.0.6, LemonUI 2.2 and iFruitAddon2 3.1.1. After a GTA V update, wait for Script Hook V to update before playing or reporting bugs.
+
+Playing on the older Legacy edition? Use the Script Hook V .NET nightly build instead (3.6.0-nightly.89 or later): https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases
 
 ## Install
 
-1. Copy `FrontsAndRivals.dll` and `FrontsAndRivals.ini` into `<GTA V>\scripts\`
-2. Copy the `FrontsAndRivals` folder into `<GTA V>\scripts\` too
-3. Start Story Mode; about ten minutes in, the Broker texts you
+1. Install everything in Requirements
+2. Copy the contents of this zip's `scripts` folder into `<GTA V>\scripts\`: `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `FrontsAndRivals` folder
+3. Start Story Mode; once you have $10,000, the Broker texts you about a car wash for sale
 
-Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2 also writes its settings to `scripts\iFruitAddon2\`.
+Windows may need to let mods create files in the GTA V folder; the mod saves to `scripts\FrontsAndRivals\empire.json`.
 
-## Playing
+## Getting started
 
-- Call **The Office** on your phone to open the menu; it's near the end of your contacts list
-- In the Office, **Enter** opens the next panel and **Backspace** goes back; **Left/Right** changes a guard's post or a setting
-- Buy the car wash from the Broker, hire recruits, post them, and you're in business
-- Income arrives at every in-game midnight, after wages; sleeping across midnights pays each one (up to three)
-- When a front is hit, you can race there and fight beside your guards before they break, or leave it to them
-- Rival fronts show on the map in their crew's colour; their soldiers ignore you while you drive past, but walk up on foot, shoot nearby or hurt one of them and the whole front fights
-- Clear a rival front's soldiers, stand at the door and press **E** to claim it
-- Fronts that are for sale are bought in person at their door, like GTA's own properties, priced like Story Mode property, about 20 weeks of their takings (the car wash is the Broker's $10,000 starter)
+- **Open the Office:** hold Back/View on a controller (or M) for half a second, or call The Office on your phone
+- **Buy your first front:** go to the Hands On Car Wash in Strawberry and buy it at the door, like GTA's own properties; $10,000, and two of the old crew come with it
+- **Follow the Next Step line** at the top of the Office: it always says what to do next
+- **Hire and post guards** from the Office, then arm them and give them body armour
+- **Get paid at midnight:** every front pays out at in-game midnight, after wages
+- **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
+- **Take rival fronts:** clear a crew's soldiers, stand at the door and press the prompt's button; or send a crew from the Office
 
-## Settings
+## What's in 1.0
 
-Most players never need to touch these. The everyday ones are in the game under **The Office > Settings**:
-attack frequency, rival turf moves, notifications, live defenses, sound effects and map blips.
+- 29 real businesses across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
+- Three original crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side and the Vinewood Elite out west; each has a boss and three lieutenants
+- A city that moves without you: crews buy fronts that come up for sale, feud with each other and take each other's fronts at night
+- Attacks with no warning: one alert when a front is hit, a timer showing how long your guards can hold (about 5 minutes, more with Cameras), a GPS route and a bonus for holding the door yourself
+- Live defenses within 300 m: crews arrive in convoys in their own vehicles (Hellfire MC on motorcycles), with their own guns and the odd explosive
+- A nemesis loop: leaders who escape come back with scars and text you about it; dead lieutenants are replaced by promoted survivors
+- Guards with skills like the player's (Shooting, Strength, Stamina and Stealth) that grow on the job; ranks, experience, traits and a memorial for the fallen
+- A weapon ladder: every guard starts with a knife and is armed one gun at a time at Ammu-Nation's prices; better guns unlock with rank
+- Body armour that stays on: guards heal and re-vest after every fight
+- Bodyguards: call up to two guards to follow you around the city and fight at your side
+- Raids: send up to four reserve guards to take a rival front without you, with the odds shown first
+- Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and the biggest 4; Cameras, Floodlights, Reinforced Doors and an Armory
+- A Story Mode economy: fronts cost and pay about what Story Mode properties do; they pay more the longer you hold them and the more you own
+- Progression money can't skip: guns unlock with rank, bigger fronts need the Broker's trust (3 and 8 fronts held) and new fronts get two quiet days
+- Staff at the front you're near: a cashier on the phone, a janitor sweeping, a chef on a smoke break
+- A big, mixed cast of ordinary Los Santos street people, women and men, with nicknames for only some of them
+- Difficulty from Relaxed to Brutal, Reset the City to take Los Santos again with the crew you built, and Start a New Empire for a new story game
+- The game's own sounds, a message queue that never spams, first-time tips in GTA's help box and full controller support
+- Nothing to collect and no upkeep chores; good guards win without you
 
-Everything else is in `scripts\FrontsAndRivals.ini`, each line explained in the file:
+## Controls
 
-- `OfficeHotkey` (keyboard key, e.g. `F7`) and `OfficeButton` (true, the default = hold the controller's Back/View button, or M, for half a second to open the Office)
-- Attacks: `Frequency`, `CooldownMinutes` (exact minutes between attacks), `FirstAttackDelayMinutes`, `HoldMinutes`, `LiveDefense`, `PoliceRespond`, `EmpirePressure` (the more fronts you hold, the sooner and bigger the attacks)
-- Turf: `Frequency` for how often crews grab and fight over fronts at night
-- Notifications: `Level` (All, Important, Minimal), `MinSecondsBetween` (default 20 s so messages never pile up), `Taunts`, `StreetWord`, `MidnightReport`
-- Sound: `Effects` for the game's alert and cash sounds
-- Economy: income and wage multipliers, `FrontPriceDays`
-- Guards: `PermanentDeath`, `ProtectedMode` (fronts can't be lost)
-- Rivals: `AlertRange` for how close you can walk to a rival front before its soldiers fight
-- Map: `ShowRivalFronts`, `ShowForSaleFronts`
+| Action | Controller | Keyboard |
+|---|---|---|
+| Open or close the Office | Hold Back/View for half a second (a tap still changes the camera) | Hold M, or set `OfficeHotkey` |
+| Move in the Office | D-pad | Arrow keys |
+| Select or open | A | Enter |
+| Back | B | Backspace |
+| Change a post or a setting | D-pad left/right | Left/Right |
+| Buy or claim at a door | The button shown in the prompt | E |
 
 ## Playing alongside the story
 
-Fronts & Rivals is built to run for your whole Story Mode playthrough. Everything pauses during missions, cutscenes,
-random events and character switches, and attacks only count free-roam time, so a long mission never costs you a front.
-Money is at Story Mode scale: early Franklin can buy the car wash (it comes with two guards) and grow slowly; Michael
-after the heists can buy what's for sale outright, but the other 24 fronts still have to be taken by force.
+Fronts & Rivals is built to run for your whole Story Mode playthrough. Everything pauses during missions, cutscenes, random events and character switches, and attacks only count free-roam time, so a long mission never costs you a front.
 
-## Controller
+Money is at Story Mode scale. Early Franklin can afford the car wash and grow slowly; after the Jewel Store Job he can buy a second front. Michael after the heists can buy whatever is for sale, but the crews' fronts still have to be taken by force.
 
-Everything works on a gamepad. **Hold Back/View for half a second** to open or close the Office (a quick tap still changes the camera), or call The Office from your phone. In the Office, the D-pad moves, **A** opens or selects, **B** goes back, and left/right on the D-pad changes a post or a setting. The claim prompt at a rival front's door shows your controller's button. With `DevTools=true`, the dev menu is under Office > Settings > Dev Tools, so it needs no keyboard either.
+## Settings
 
-## Uninstall
+The everyday ones are in the game under **The Office > Settings**: notifications, sound effects, GPS routes to attacks, map blips, difficulty, attack frequency, rival turf moves, live defenses and permanent death.
 
-Delete `FrontsAndRivals.dll`, `FrontsAndRivals.pdb` (if present), `FrontsAndRivals.ini` and the `scripts\FrontsAndRivals` folder. The mod never touches GTA V's own save files; cash it paid out stays with your characters.
+Everything else is in `scripts\FrontsAndRivals.ini`, with each line explained in the file:
+
+- General: `OfficeHotkey`, `OfficeButton`, `PurchaseShot` (the establishing shot when you buy a front), `Tips`
+- Attacks: `Difficulty`, `Frequency`, `CooldownMinutes`, `HoldMinutes`, `LiveDefense`, `PoliceRespond`, `EmpirePressure`
+- Turf: `Frequency` for how often crews move at night
+- Notifications: `Level`, `MinSecondsBetween`, `Taunts`, `StreetWord`, `MidnightReport`
+- Economy: `IncomeMultiplier`, `WageMultiplier`, `FrontPriceDays`
+- Guards: `PermanentDeath`, `ProtectedMode` (fronts can't be lost), `Raids`, `Bodyguards`
+- Map: `ShowRivalFronts`, `ShowForSaleFronts`, `FrontStaff`
 
 ## Compatibility
 
 - Single-player only; the mod switches itself off if a GTA Online session starts
-- It pauses during story missions, random events, cutscenes and character switches, and removes its people so missions never see them
-- Other gang mods are fine; all of this mod's groups are prefixed `FR_`
+- It never changes story missions, characters or GTA V's own save files
+- It removes its people during missions, so missions never see them
 - At most 28 people and 8 vehicles at once, all cleaned up when you leave, reload scripts or start a mission
+- Job and money mods should be fine; they just give you more cash (lower `IncomeMultiplier` to compensate)
+- Don't run it alongside other gang or turf-war overhauls; both would compete for the same people and gangs
+
+## Uninstall
+
+Delete `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `scripts\FrontsAndRivals` folder. Cash the mod paid out stays with your characters.
 
 ## Known issues
 
-- The Office contact sits at the end of the phone's contact list; that's where iFruitAddon2 places mod contacts so story contacts are never overwritten
+- The Office contact sits at the end of the phone's contact list; that's where iFruitAddon2 puts mod contacts so story contacts are never overwritten
 - A few fronts have fewer than four guard posts where the street layout leaves no safe spot
 
 ## For developers
 
 - `cd src; dotnet build -c Release` builds the DLL and, if `Directory.Build.props.user` sets `GtaVDir`, deploys it to `<GtaVDir>\scripts` (start from `Directory.Build.props.user.example`)
 - `cd tests; dotnet run` runs the unit tests for every pure system
+- `dotnet run --project tools/BalanceSim -c Release` runs the Monte Carlo balance simulator
 - `powershell -File tools\package.ps1` builds the release zip in `dist\`
-- `DevTools=true` in the INI turns on F9 (copy position), F10 (dev menu: scout fronts, force attack, test spawns) and an entity counter
+- `DevTools=true` in the INI turns on F9 (copy position), F10 (dev menu) and an entity counter; it's off in the release
 - Content lives in `scripts\FrontsAndRivals\`: `fronts.json`, `crews.json`, `lines.json`, `names.json`, `models.json`

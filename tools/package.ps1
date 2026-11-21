@@ -15,6 +15,7 @@ Copy-Item (Join-Path $bin 'FrontsAndRivals.dll') (Join-Path $stage 'scripts')
 Copy-Item (Join-Path $src 'FrontsAndRivals.ini') (Join-Path $stage 'scripts')
 Copy-Item (Join-Path $src 'Content\*.json') (Join-Path $stage 'scripts\FrontsAndRivals')
 Copy-Item (Join-Path $root 'README.md') (Join-Path $stage 'README.md')
+Copy-Item (Join-Path $root 'README.txt') (Join-Path $stage 'README.txt')
 Copy-Item (Join-Path $root 'CHANGELOG.md') (Join-Path $stage 'CHANGELOG.md')
 
 $zip = Join-Path $root "dist\FrontsAndRivals-$version.zip"
