@@ -140,6 +140,11 @@ static class FrontTests
         T.True("...you keep your people, ranks and guns, in the reserve", ds.Guards.Contains(vet) && vet.Rank == (int)Rank.Veteran && vet.Weapon == (int)Weapon.Smg && !vet.IsPosted);
         T.True("...the crews come back and the run is counted", ds.Crews.Count == content.Crews.Count && ds.CityResets == 1 && ds.Attack == null);
 
+        T.Section("Map icons");
+        T.True("Each kind of business gets the game's own icon", WorkerRules.MapIcon("carwash_handson", false) == 100 && WorkerRules.MapIcon("bar_himen", false) == 93
+               && WorkerRules.MapIcon("club_cockatoos", false) == 614 && WorkerRules.MapIcon("liquor_brouge", false) == 52 && WorkerRules.MapIcon("depot_fridgit", false) == 473);
+        T.True("For sale uses the for-sale icons", WorkerRules.MapIcon("cafe_noodleexchange", true) == 375 && WorkerRules.MapIcon("factory_bagco", true) == 474);
+
         T.Section("Early-game safeguards");
         T.True("Before you own a front: walking up or shooting nearby doesn't start a fight", !StreamRules.CrewProvoked(false, true, true, false));
         T.True("...but hurting one of them does", StreamRules.CrewProvoked(false, false, false, true));

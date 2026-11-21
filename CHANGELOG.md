@@ -12,6 +12,8 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $750, pump shotgun $1,500, SMG $3,000, carbine rifle $6,000); older saves keep each guard's gun
+- Map: each front shows the game's own icon for its kind of business (Car Wash, Bar, Store, Nightclub, Jewel, Repair,
+  Warehouse, Business), the for-sale icons while it's for sale, and flashes for a few seconds when it changes hands
 - Monte Carlo balance pass (tools/BalanceSim, the mod's own rules, 150 games per setting): raids now only take guards
   waiting in the reserve and run once a day; a front taken by raid can be staffed straight away (its posts are placed on
   your first visit); grudge is gentler (+12 per front taken, -8 a day, up to +25% strength and +2 attackers); empire

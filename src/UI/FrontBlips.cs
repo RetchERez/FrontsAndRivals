@@ -1,4 +1,4 @@
-// Fronts & Rivals: map blips. Business icon for every front:
+// Fronts & Rivals: map blips. The game's own icon for each kind of business (car wash, bar, store, nightclub...):
 //   yours: green, short range on the minimap        threatened (warning text sent): yellow, flashing
 //   under attack: red, flashing, with a red radius ring     rival-held: the crew's colour (Map > ShowRivalFronts)
 // A threatened or attacked front also gets a GPS route, unless Office > Settings > Route to attacks is off.
@@ -18,6 +18,8 @@ namespace FrontsAndRivals.UI
             public Blip Blip;
             public Blip Ring;
             public string Shown; // what the blip currently shows, so nothing changes when nothing changed
+            public string Owner; // who held it last time, so a change of hands can flash
+            public int FlashUntil;
         }
 
         private readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
@@ -35,6 +37,13 @@ namespace FrontsAndRivals.UI
                 string owner = empire.OwnerOf(def.Id);
                 string want = Want(empire, def, owner, attack);
 
+                if (en.FlashUntil > 0 && GTA.Game.GameTime > en.FlashUntil && en.Blip != null && en.Blip.Exists() && !en.Shown.StartsWith("attack"))
+                {
+                    en.Blip.IsFlashing = false;
+                    en.FlashUntil = 0;
+                }
+                bool changedHands = en.Owner != null && en.Owner != owner;
+                en.Owner = owner;
                 if (want == en.Shown && en.Blip != null && en.Blip.Exists()) continue;
                 Remove(en);
                 en.Shown = want;
@@ -42,7 +51,8 @@ namespace FrontsAndRivals.UI
 
                 var pos = new Vector3(def.Door.X, def.Door.Y, def.Door.Z);
                 Blip b = GTA.World.CreateBlip(pos);
-                b.Sprite = BlipSprite.Business;
+                // The game's own icon for this kind of business (car wash, bar, store, nightclub...).
+                b.Sprite = (BlipSprite)FrontsAndRivals.Spawn.WorkerRules.MapIcon(def.Id, owner == Owners.ForSale);
                 b.Name = def.Name;
                 b.IsShortRange = want == "yours" || want.StartsWith("crew");
                 bool route = want.EndsWith("+route");
@@ -56,7 +66,7 @@ namespace FrontsAndRivals.UI
                         en.Ring.Color = BlipColor.Red;
                         en.Ring.Alpha = 90;
                         break;
-                    case "forsale": b.Color = BlipColor.White; b.Name = def.Name + " (for sale)"; break;
+                    case "forsale": b.Color = BlipColor.White; b.Name = def.Name + " (For Sale)"; break;
                     default:
                         CrewDef crew = content.Crew(owner);
                         b.Color = crew != null ? (BlipColor)crew.BlipColor : BlipColor.Grey;
@@ -64,6 +74,13 @@ namespace FrontsAndRivals.UI
                         break;
                 }
                 if (route) b.ShowRoute = true;
+                b.Scale = owner == Owners.Player ? 0.9f : 0.8f;
+                if (changedHands && !want.StartsWith("attack") && !want.StartsWith("threat"))
+                {
+                    // Changed hands (a turf move overnight, a raid, a claim): flash a few seconds so you notice.
+                    b.IsFlashing = true;
+                    en.FlashUntil = GTA.Game.GameTime + 10000;
+                }
                 en.Blip = b;
             }
         }

@@ -38,6 +38,24 @@ namespace FrontsAndRivals.Spawn
             return cut > 0 ? frontId.Substring(0, cut) : frontId;
         }
 
+        /// <summary>The map icon for a kind of business, as the game's BlipSprite numbers (checked against SHVDN 3.6.0):
+        /// CarWash 100, Bar 93, NightclubProperty 614, Store 52, Jewel 617, Repair 402, Warehouse 473, Business 374.
+        /// For sale: Warehouse becomes WarehouseForSale 474, everything else BusinessForSale 375.</summary>
+        public static int MapIcon(string frontId, bool forSale)
+        {
+            switch (Kind(frontId))
+            {
+                case "carwash": return forSale ? 375 : 100;
+                case "bar": case "lounge": return forSale ? 375 : 93;
+                case "club": return forSale ? 375 : 614;
+                case "shop": case "liquor": case "market": case "mall": case "plaza": return forSale ? 375 : 52;
+                case "jewelry": return forSale ? 375 : 617;
+                case "autoshop": return forSale ? 375 : 402;
+                case "depot": case "factory": return forSale ? 474 : 473;
+                default: return forSale ? 375 : 374;
+            }
+        }
+
         /// <summary>Ped models by kind of business, women and men mixed (names checked against the game's ped list).</summary>
         public static string[] Models(string frontId)
         {
