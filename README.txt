@@ -1,4 +1,4 @@
-FRONTS & RIVALS 1.2
+FRONTS & RIVALS 1.3
 ===================
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
@@ -83,7 +83,7 @@ GETTING STARTED
                        yours on the spot, or send a crew from the Office
 
 
-WHAT'S IN 1.2
+WHAT'S IN 1.3
 -------------
  - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels,
    diners, markets, factories and garages

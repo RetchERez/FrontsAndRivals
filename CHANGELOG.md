@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.0 (2026-11-20)
+
+Safeguards and a self-check, no new content.
+
+- Outfit check: the first time you play each session, every clothing piece is checked against your copy of the game
+  (on two hidden test characters, removed straight away). Any piece the game doesn't have is dropped before anyone
+  wears it, so a mismatch between the Legacy-edition clothing data and Enhanced can never show as a broken outfit.
+  The log says how many pieces were checked and dropped
+- Real police: the cops who chase crew cars and break up street fights are now the game's own police, so shooting
+  them gets you a wanted level like any cop. They're still counted and cleaned up by the mod
+- Frame-rate safeguard: street groups are scenery, so when the game is struggling (under 40 FPS) only one is out, and
+  under 30 none, until it recovers
+- Before a different version of Fronts & Rivals uses your empire, a copy is kept as empire.before-<version>.json
+- If LemonUI is missing from the scripts folder, a message says so on screen instead of the mod failing silently, and
+  an older LemonUI than 2.2 is flagged in the log
+
 ## 1.2.0 (2026-11-20)
 
 - Bodyguards are a perk of a real empire: the first at 8 fronts, the second at 14 (Soldiers or better). Lose fronts

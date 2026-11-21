@@ -84,6 +84,46 @@ namespace FrontsAndRivals.Data
 
     public static class OutfitRules
     {
+        /// <summary>Drops every clothing piece the game said isn't valid (valid(model, component, drawable, texture)):
+        /// a colour a piece doesn't come in, a neutral piece that doesn't exist, a look left with no colour at all.
+        /// Returns how many pieces were removed. Pure: the check itself is passed in.</summary>
+        public static int Prune(OutfitData data, Func<bool, int, int, int, bool> valid)
+        {
+            if (data == null || data.Styles == null) return 0;
+            int removed = 0;
+            foreach (List<OutfitLook> looks in data.Styles.Values)
+            {
+                for (int i = looks.Count - 1; i >= 0; i--)
+                {
+                    OutfitLook l = looks[i];
+                    bool female = l.Gender == "f", broken = false;
+                    foreach (OutfitPart p in l.Parts)
+                    {
+                        if (p.Coloured)
+                        {
+                            foreach (string colour in new List<string>(p.Textures.Keys))
+                                if (!valid(female, p.Component, p.Drawable, p.Textures[colour])) { p.Textures.Remove(colour); removed++; }
+                            if (p.Textures.Count == 0) broken = true;
+                        }
+                        else if (!valid(female, p.Component, p.Drawable, p.FixedTexture)) { broken = true; removed++; }
+                    }
+                    if (broken) looks.RemoveAt(i);
+                }
+            }
+            if (data.Neutral != null)
+                foreach (KeyValuePair<string, OutfitNeutral> kv in data.Neutral)
+                {
+                    bool female = kv.Key == "f";
+                    foreach (KeyValuePair<string, List<OutfitPiece>> legs in kv.Value.Legs) removed += legs.Value.RemoveAll(x => !valid(female, 4, x.Drawable, x.Texture));
+                    foreach (KeyValuePair<string, List<OutfitPiece>> shoes in kv.Value.Shoes) removed += shoes.Value.RemoveAll(x => !valid(female, 6, x.Drawable, x.Texture));
+                    foreach (string k in new List<string>(kv.Value.Under.Keys))
+                        if (!valid(female, 8, kv.Value.Under[k].Drawable, kv.Value.Under[k].Texture)) { kv.Value.Under.Remove(k); removed++; }
+                }
+            if (data.Hair != null)
+                foreach (KeyValuePair<string, List<int>> h in data.Hair) { bool female = h.Key == "f"; removed += h.Value.RemoveAll(d => !valid(female, 2, d, 0)); }
+            return removed;
+        }
+
         private static uint Mix(int n) { return unchecked((uint)n * 2654435761u); }
         private static int Pick(int seed, int salt, int count) { return count <= 0 ? 0 : (int)(Mix(seed * 31 + salt) % (uint)count); }
 

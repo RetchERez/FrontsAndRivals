@@ -56,6 +56,7 @@ namespace FrontsAndRivals.Spawn
         private readonly List<Group> _groups = new List<Group>();
         private readonly Random _rng = new Random();
         private int _nextSpawn, _nextCrime;
+        private double _fps;
         private static readonly Model CopModel = new Model("s_m_y_cop_01"), CopCarModel = new Model("police");
 
         /// <summary>INI Attacks.PoliceRespond (Main supplies it).</summary>
@@ -114,7 +115,9 @@ namespace FrontsAndRivals.Spawn
             }
 
             int heat = e.State.Heat;
-            if (_groups.Count >= HangoutRules.MaxGroups(heat) || Game.GameTime < _nextSpawn) return;
+            double fps = Game.FPS;
+            if (fps > 0 && fps < 300) _fps = _fps <= 0 ? fps : _fps * 0.8 + fps * 0.2; // smoothed over a few seconds
+            if (_groups.Count >= HangoutRules.MaxGroups(heat, _fps) || Game.GameTime < _nextSpawn) return;
             _nextSpawn = Game.GameTime + HangoutRules.RespawnMs(heat);
             try { Plan(e, p); } catch (Exception ex) { Log.Error("Hangouts plan", ex); }
         }
@@ -611,8 +614,8 @@ namespace FrontsAndRivals.Spawn
             {
                 Ped cop = GTA.World.CreatePed(CopModel, at + new Vector3(0f, 0f, 2f), heading);
                 if (cop == null) continue;
-                cop.RelationshipGroup = Factions.Police; // before Track: their own FR_ group, against the crews
-                _registry.Track(cop);
+                // Real police (the game's COP group): shoot them and the game gives you a wanted level, like any cop.
+                _registry.TrackKeepGroup(cop);
                 cop.SetIntoVehicle(v, i == 0 ? VehicleSeat.Driver : VehicleSeat.Passenger);
                 cop.Weapons.Give(WeaponHash.Pistol, 200, true, true);
                 g.Cops.Add(cop);

@@ -28,12 +28,56 @@ namespace FrontsAndRivals.Spawn
 
         public static bool Enabled { get { return Data != null && Data.Styles != null; } }
 
-        /// <summary>Keeps both character models loaded (cheap, called with the streamer).</summary>
+        /// <summary>Set by Main so the one-off outfit check can track its two test characters.</summary>
+        public static Registry Registry;
+        private static bool _checked;
+
+        /// <summary>Keeps both character models loaded (cheap, called with the streamer), and the first time both are
+        /// ready, checks every clothing piece against this game version.</summary>
         public static void Keep()
         {
             if (!Enabled) return;
             if (!_m.IsLoaded) _m.Request();
             if (!_f.IsLoaded) _f.Request();
+            if (!_checked && _m.IsLoaded && _f.IsLoaded && Registry != null)
+            {
+                _checked = true;
+                try { SelfCheck(); } catch (Exception ex) { Log.Error("Outfit check", ex); }
+            }
+        }
+
+        // Every piece is asked about on a real character of each model (IS_PED_COMPONENT_VARIATION_VALID), so a piece
+        // this version of the game doesn't have (the clothing numbers come from the Legacy edition's data) is dropped
+        // before anyone wears it. The two test characters are hidden, frozen and removed straight away.
+        private static void SelfCheck()
+        {
+            Ped me = Game.Player.Character;
+            if (me == null || !me.Exists()) { _checked = false; return; }
+            var at = me.Position + new GTA.Math.Vector3(0f, 0f, -30f);
+            Ped man = GTA.World.CreatePed(_m, at), woman = GTA.World.CreatePed(_f, at);
+            try
+            {
+                if (man == null || woman == null) { _checked = false; return; }
+                foreach (Ped p in new[] { man, woman })
+                {
+                    p.RelationshipGroup = Factions.Staff;
+                    Registry.Track(p);
+                    p.IsVisible = false; p.IsPositionFrozen = true; p.IsInvincible = true; p.IsCollisionEnabled = false;
+                }
+                int asked = 0;
+                int removed = OutfitRules.Prune(Data, (female, c, d, t) =>
+                {
+                    asked++;
+                    return Function.Call<bool>(Hash.IS_PED_COMPONENT_VARIATION_VALID, female ? woman : man, c, d, t);
+                });
+                Log.Write("Outfit check: " + asked + " clothing pieces checked against this game, " + removed + " dropped"
+                          + (removed > 0 ? " (those looks or colours simply aren't used)" : ""));
+            }
+            finally
+            {
+                if (man != null && man.Exists()) Registry.Despawn(man);
+                if (woman != null && woman.Exists()) Registry.Despawn(woman);
+            }
         }
 
         /// <summary>A rival crew member: their crew's style and colour.</summary>

@@ -187,6 +187,7 @@ static class FrontTests
         T.True("Walkers alone or in pairs, cruisers 2-4", Enumerable.Range(0, 100).All(i => HangoutRules.GroupSize(HangoutKind.Walk, i) <= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) >= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) <= 4));
         T.True("A car kill is spotted (and calls for backup)", StreamRules.VehicleKill(StreamRules.RunOverHash, false) && StreamRules.VehicleKill(0, true) && !StreamRules.VehicleKill(Markers.Hash("WEAPON_PISTOL"), false) && StreamRules.BackupSize == 2 && StreamRules.BackupDelayMs == 20000);
 
+        T.True("Frame-rate safeguard: fewer street groups when the game struggles", HangoutRules.MaxGroups(50, 60) == 3 && HangoutRules.MaxGroups(50, 35) == 1 && HangoutRules.MaxGroups(50, 25) == 0 && HangoutRules.MaxGroups(50, 0) == 3);
         T.True("Street fights on turf borders, now and then", Enumerable.Range(0, 100).Count(i => HangoutRules.Clash(i)) == HangoutRules.ClashChancePct);
 
         T.True("Street crime is occasional: most groups do nothing", Enumerable.Range(0, 100).Count(i => HangoutRules.CrimeFor(HangoutKind.Walk, i) == StreetCrime.None) == 68
@@ -221,6 +222,10 @@ static class FrontTests
                         if (d == null || d.Female != female || !d.Look.Wears(c.Key)) playerOk = false;
                     }
         T.True("Your crew: every style in every colour, for men and women", playerOk);
+        var od2 = OutfitData.Load(System.IO.Path.Combine(content.ContentDir, "outfits.json"));
+        int dropped = OutfitRules.Prune(od2, (female, c, d, t) => !(c == 11 && d == 384)); // pretend the game lacks one hoodie
+        T.True("The outfit check drops pieces the game rejects and keeps the rest", dropped > 0 && od2.Styles["CK"].All(l => !l.Parts.Any(p => p.Component == 11 && p.Drawable == 384))
+            && OutfitRules.Choose(od2, "CK", "forest", 3) != null);
         T.True("Vinewood Elite are mostly suits", Enumerable.Range(0, 200).Count(i => OutfitRules.Choose(od, "VS", "blue", i).Look.Shoes == "formal") == 200);
         T.True("The same guard always looks the same", OutfitRules.Choose(od, "player_street", "red", 42).Hair == OutfitRules.Choose(od, "player_street", "red", 42).Hair);
         T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));

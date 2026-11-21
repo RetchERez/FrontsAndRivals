@@ -51,6 +51,15 @@ namespace FrontsAndRivals.Spawn
         /// has room for a real fight at a front.</summary>
         public static int MaxGroups(int heat) { return heat >= 40 ? 3 : 2; }
 
+        /// <summary>The frame-rate safeguard: street groups are scenery, so when the game is struggling (smoothed FPS under
+        /// 40) only one is out, and under 30 none, until it recovers.</summary>
+        public static int MaxGroups(int heat, double fps)
+        {
+            if (fps > 0 && fps < 30) return 0;
+            if (fps > 0 && fps < 40) return Math.Min(1, MaxGroups(heat));
+            return MaxGroups(heat);
+        }
+
         /// <summary>Time between new groups: 30 seconds on cool streets down to 15 at full heat.</summary>
         public static int RespawnMs(int heat) { return 30000 - 150 * Math.Max(0, Math.Min(100, heat)); }
 

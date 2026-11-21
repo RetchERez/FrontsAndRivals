@@ -64,7 +64,9 @@ namespace FrontsAndRivals.Data
         /// <summary>Your crew's look (CrewColors.Styles): Street, Smart, Biker or Mixed.</summary>
         [DataMember(Name = "crewStyle", Order = 41)] public string CrewStyle;
         /// <summary>The Office's Messages page, newest first, kept with the save so it survives a reload.</summary>
-        [DataMember(Name = "messages", Order = 42)] public List<MessageEntry> Messages;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "messages", Order = 42)] public List<MessageEntry> Messages;
+        /// <summary>The Fronts & Rivals version that last saved this empire (a copy is kept before a different version uses it).</summary>
+        [DataMember(Name = "modVersion", Order = 43)] public string ModVersion;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]

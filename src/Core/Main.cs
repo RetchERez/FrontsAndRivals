@@ -18,7 +18,7 @@ namespace FrontsAndRivals.Core
 {
     public sealed class Main : Script
     {
-        public const string ModVersion = "1.2.0";
+        public const string ModVersion = "1.3.0";
         private const int SaveEveryMs = 120000;          // one in-game hour = 2 real minutes
         private const long InjuryRecoveryMs = 96L * 60000; // 2 in-game days = 96 real minutes of free roam
 
@@ -56,6 +56,8 @@ namespace FrontsAndRivals.Core
         private bool _started;
         private bool _shutDown;
 
+        private string dataDir() { return Path.Combine(BaseDirectory, "FrontsAndRivals"); }
+
         public Main()
         {
             string dataDir = Path.Combine(BaseDirectory, "FrontsAndRivals");
@@ -70,6 +72,23 @@ namespace FrontsAndRivals.Core
                 return;
             }
 
+            // LemonUI draws every menu. Without it the mod can't run, so say so on screen instead of failing silently.
+            string lemon = Path.Combine(BaseDirectory, "LemonUI.SHVDN3.dll");
+            if (!File.Exists(lemon))
+            {
+                Log.Write("LemonUI.SHVDN3.dll is missing from the scripts folder. Fronts & Rivals needs LemonUI (SHVDN3 build) and is switching off.");
+                _shutDown = true;
+                bool told = false;
+                Tick += (s, a) => { if (!told && !Game.IsLoading) { told = true; GTA.UI.Notification.Show("~r~Fronts & Rivals~s~ needs LemonUI (the SHVDN3 build) in your scripts folder. See the readme."); } };
+                return;
+            }
+            try
+            {
+                Version lv = System.Reflection.AssemblyName.GetAssemblyName(lemon).Version;
+                if (lv < new Version(2, 2)) Log.Write("WARNING: LemonUI " + lv + " is older than 2.2, the version Fronts & Rivals is built for. Menus may misbehave; update LemonUI.");
+            }
+            catch (Exception ex) { Log.Error("LemonUI version", ex); }
+
             Interval = 0; // every frame; the Scheduler spreads the real work out
             _saves = new SaveService(dataDir, Log.Write);
             _scheduler = new Scheduler(OnSystemFailure);
@@ -79,6 +98,7 @@ namespace FrontsAndRivals.Core
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
             _live = new LiveDefense(_registry, _streamer);
             _live.Heat = () => _state != null ? _state.Heat : 0;
+            Wardrobe.Registry = _registry;
             Wardrobe.PlayerColour = () => _state != null && _state.CrewColor != null ? _state.CrewColor : CrewColors.DefaultPlayer;
             Wardrobe.PlayerStyle = () => _state != null && _state.CrewStyle != null ? _state.CrewStyle : CrewColors.DefaultStyle;
             try { Wardrobe.Data = OutfitData.Load(System.IO.Path.Combine(_content.ContentDir, "outfits.json")); Log.Write("Outfits: " + (Wardrobe.Enabled ? "loaded" : "missing, using the old models")); }
@@ -252,6 +272,18 @@ namespace FrontsAndRivals.Core
                 loaded = new SaveService.LoadResult { State = SaveService.NewEmpire(), Source = "new" };
             }
             _state = loaded.State;
+            if (loaded.Source != "new" && loaded.Source != "locked" && _state.ModVersion != ModVersion)
+            {
+                // A different version is about to use this empire: keep a copy of it as it was, just in case.
+                try
+                {
+                    string from = Path.Combine(dataDir(), "empire.json");
+                    string copy = Path.Combine(dataDir(), "empire.before-" + ModVersion + ".json");
+                    if (File.Exists(from) && !File.Exists(copy)) { File.Copy(from, copy); Log.Write("Kept a copy of the empire from " + (_state.ModVersion ?? "an older version") + " as " + Path.GetFileName(copy)); }
+                }
+                catch (Exception ex) { Log.Error("Version backup", ex); }
+            }
+            _state.ModVersion = ModVersion;
             _rng = new Rng(_state.RngState);
             _activeBase = _state.ActiveMs - _scheduler.ActiveMs;
             Log.Write("Empire loaded from " + loaded.Source + " (save #" + _state.SaveCount + ", schema " + _state.SchemaVersion + ")");

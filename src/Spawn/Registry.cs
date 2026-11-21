@@ -19,6 +19,15 @@ namespace FrontsAndRivals.Spawn
         public bool CanSpawnPed { get { return _peds.Count < MaxPeds; } }
         public bool CanSpawnVehicle { get { return _vehicles.Count < MaxVehicles; } }
 
+        /// <summary>Takes ownership of a game-group ped (the real police the mod sends to street crime): counted and cleaned
+        /// up like the rest, but left in the game's own group so the game treats them as police.</summary>
+        public void TrackKeepGroup(Ped ped)
+        {
+            if (ped == null) return;
+            ped.IsPersistent = true;
+            _peds.Add(ped);
+        }
+
         /// <summary>Takes ownership of a ped. It must already be in an FR_ group, or it couldn't be swept later.</summary>
         public void Track(Ped ped)
         {
