@@ -42,6 +42,8 @@ namespace FrontsAndRivals.Spawn
             public int PatrolAt = -1;    // patrol point this person is heading to or standing at
             public bool PatrolWalking;
             public int PatrolSince, PatrolNext; // game time
+            public int ReinforceAt;      // game time a replacement for a run-over soldier comes out
+            public string Colour;        // the crew colour this guard was dressed in
         }
 
         private sealed class StreamedFront
@@ -58,6 +60,7 @@ namespace FrontsAndRivals.Spawn
             public int CrewCount = -1;    // soldiers this visit, fixed when the front streams in
             public List<Vector3> Patrol;  // walkable points around the building, found once per visit
             public bool PatrolTried;
+            public int Reinforcements;    // run-over soldiers replaced this visit
 
             public StreamedFront(FrontDef def, string owner)
             {
@@ -193,6 +196,7 @@ namespace FrontsAndRivals.Spawn
                     f.CrewCount = -1;
                     f.Patrol = null;
                     f.PatrolTried = false;
+                    f.Reinforcements = 0;
                     for (int i = 0; i < f.Slots.Length; i++) f.Slots[i].PatrolAt = -1;
                     StreamIns++;
                 }
@@ -339,6 +343,11 @@ namespace FrontsAndRivals.Spawn
                     {
                         Restore(slot.Ped, g); // calm again: back to full, vest topped up
                     }
+                    else if (g != null && Wardrobe.Enabled && slot.Colour != Wardrobe.PlayerColour() + "/" + Wardrobe.PlayerStyle())
+                    {
+                        Wardrobe.Apply(slot.Ped, Wardrobe.ForGuard(g)); // new crew colour or style: changes on the spot
+                        slot.Colour = Wardrobe.PlayerColour() + "/" + Wardrobe.PlayerStyle();
+                    }
                     else if (g != null && slot.Weapon != g.Weapon)
                     {
                         // A new gun was bought in the Office: hand it over on the spot, no respawn.
@@ -350,7 +359,12 @@ namespace FrontsAndRivals.Spawn
 
                 if (slot.Ped != null || wantId == 0) { CancelPending(slot); continue; }
                 if (now < slot.RespawnAt) continue;
-                Load(slot, g.Model, wantId, now, () => SpawnGuard(slot, g, f.Def.Posts[post], hour, f.Def.Id == LiveFrontId));
+                Dressing gd = Wardrobe.ForGuard(g);
+                Load(slot, gd != null ? Wardrobe.ModelName(gd) : g.Model, wantId, now, () =>
+                {
+                    SpawnGuard(slot, g, f.Def.Posts[post], hour, f.Def.Id == LiveFrontId);
+                    if (slot.Ped != null && gd != null) { Wardrobe.Apply(slot.Ped, gd); slot.Colour = Wardrobe.PlayerColour() + "/" + Wardrobe.PlayerStyle(); }
+                });
             }
         }
 
@@ -429,23 +443,42 @@ namespace FrontsAndRivals.Spawn
                     if (!slot.Ped.Exists()) { slot.Ped = null; continue; } // deleted elsewhere: no credit, respawns next visit
                     if (slot.Ped.IsDead)
                     {
+                        Ped body = slot.Ped;
+                        bool byCar = false;
+                        try { byCar = StreamRules.VehicleKill((int)body.CauseOfDeath, body.Killer is Vehicle); } catch { }
                         if (slot.Body != null) _registry.Despawn(slot.Body);
-                        slot.Body = slot.Ped;
+                        slot.Body = body;
                         slot.Ped = null;
-                        slot.Killed = true;
                         if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, slot.Body, false);
+                        if (byCar && f.Reinforcements < StreamRules.MaxReinforcements)
+                        {
+                            // Run over: it doesn't count. Another one comes out of the building, and they're all on you now.
+                            f.Reinforcements++;
+                            slot.ReinforceAt = Game.GameTime + 3000;
+                            if (!f.Alerted) Alert(f, count);
+                            continue;
+                        }
+                        slot.Killed = true;
                         continue;
                     }
                     alive++;
                     continue;
                 }
                 if (slot.Killed) { killed++; continue; }
-                string model = crew.Models[Math.Abs(f.Def.Id.GetHashCode() + post * 7) % crew.Models.Count];
+                if (Game.GameTime < slot.ReinforceAt) continue;
                 int pick = Markers.Hash(f.Def.Id) + post * 7;
+                Dressing dress = Wardrobe.ForCrew(f.Owner, pick + f.Reinforcements * 101); // in the crew's colour
+                string model = dress != null ? Wardrobe.ModelName(dress) : crew.Models[Math.Abs(f.Def.Id.GetHashCode() + post * 7) % crew.Models.Count];
                 int tier = f.Def.Tier, grudge = cs.Grudge + Heat.ExtraGrudge(_empire.State.Heat); // on alert: heavier guns
                 int index = post;
                 bool starter = f.Def.Starter;
-                Load(slot, model, -1, 0, () => SpawnCrewGuard(slot, crew, CrewSpot(f.Def, index), hour, pick, tier, grudge, starter));
+                StreamedFront front = f;
+                Load(slot, model, -1, 0, () =>
+                {
+                    SpawnCrewGuard(slot, crew, CrewSpot(front.Def, index), hour, pick, tier, grudge, starter);
+                    if (slot.Ped != null) Wardrobe.Apply(slot.Ped, dress);
+                    if (front.Alerted && slot.Ped != null) { slot.Ped.BlockPermanentEvents = false; slot.Ped.Task.FightAgainstHatedTargets(60f); }
+                });
             }
             if (alive > 0 || killed > 0) f.CrewSpawnedThisVisit = true;
             if (!f.Alerted && alive > 0 && ShouldAlert(f, count)) Alert(f, count);

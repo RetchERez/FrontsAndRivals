@@ -79,6 +79,10 @@ namespace FrontsAndRivals.Core
             _streamer = new Streamer(_registry, _content, ActiveNow, OnGuardDown);
             _live = new LiveDefense(_registry, _streamer);
             _live.Heat = () => _state != null ? _state.Heat : 0;
+            Wardrobe.PlayerColour = () => _state != null && _state.CrewColor != null ? _state.CrewColor : CrewColors.DefaultPlayer;
+            Wardrobe.PlayerStyle = () => _state != null && _state.CrewStyle != null ? _state.CrewStyle : CrewColors.DefaultStyle;
+            try { Wardrobe.Data = OutfitData.Load(System.IO.Path.Combine(_content.ContentDir, "outfits.json")); Log.Write("Outfits: " + (Wardrobe.Enabled ? "loaded" : "missing, using the old models")); }
+            catch (Exception ex) { Log.Error("Outfits", ex); }
             _live.Grudge = id => { CrewState c = _state != null ? Nemesis.Crew(_state, id) : null; return c != null ? c.Grudge : 0; };
             _workers = new Workers(_registry, _content, () => _empire);
             _escorts = new Escorts(_registry, () => _empire, OnBodyguardDown);
@@ -297,6 +301,7 @@ namespace FrontsAndRivals.Core
         private void StreamerTick()
         {
             _registry.Prune();
+            Wardrobe.Keep();
             _streamer.Update();
             _director.UpdateLive();
             if (_dev != null) _dev.UpdateSpawns();

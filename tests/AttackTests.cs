@@ -59,7 +59,7 @@ static class AttackTests
 
         T.True("Crew colours: Dead Kings forest green, Hellfire MC orange, Vinewood Elite royal blue", CrewColors.ForCrew("CK") == "forest" && CrewColors.ForCrew("IR") == "orange" && CrewColors.ForCrew("VS") == "blue");
         T.True("Map blips match the colours", mcontent.Crew("CK").BlipColor == CrewColors.Get("forest").Blip && mcontent.Crew("IR").BlipColor == CrewColors.Get("orange").Blip && mcontent.Crew("VS").BlipColor == CrewColors.Get("blue").Blip);
-        T.True("Thirteen colours to pick from, white by default", CrewColors.All.Length == 13 && CrewColors.DefaultPlayer == "white" && CrewColors.Get("nonsense").Key == "white");
+        T.True("Nineteen colours to pick from, white by default", CrewColors.All.Length == 19 && CrewColors.DefaultPlayer == "white" && CrewColors.Get("nonsense").Key == "white");
 
         T.Section("Street heat");
         var hs = SaveService.NewEmpire();

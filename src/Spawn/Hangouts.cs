@@ -1,7 +1,9 @@
-// Fronts & Rivals: crew hangouts in the world (rules in HangoutRules). Groups of two or three of a crew's people hang
-// out on the streets of their turf, sometimes round one of their cars. They're calm until provoked (the same rules
-// as a front's soldiers), then fight. Every one you kill costs their crew a soldier. Every entity goes through the
-// Registry, so the ped budget and cleanup cover them; models load without blocking the game thread.
+// Fronts & Rivals: crews on their streets, like Saints Row (rules in HangoutRules). Anywhere on a crew's turf - the
+// streets whose nearest front it owns - a few of its people hang out (sometimes round one of their cars), one or two
+// walk the block, or a car full of them cruises past. Around your own fronts it's your crew, in your colour, and
+// friendly. Rival crews are calm until provoked (the same rules as a front's soldiers), then fight; every one you
+// kill costs their crew a soldier. Everything goes through the Registry (ped budget, cleanup) and models load
+// without blocking the game thread.
 using System;
 using System.Collections.Generic;
 using GTA;
@@ -17,17 +19,27 @@ namespace FrontsAndRivals.Spawn
     {
         private sealed class Group
         {
-            public string Crew;
+            public string Crew;            // a crew id, or Owners.Player for your own people
+            public HangoutKind Kind;
             public Vector3 Spot;
             public float Heading;
-            public int Size;
+            public int Size, Seed;
             public string CarModel;
             public readonly List<Model> Models = new List<Model>();
+            public readonly List<Dressing> Dress = new List<Dressing>();
             public readonly List<Ped> Peds = new List<Ped>();
             public readonly HashSet<int> Counted = new HashSet<int>();
             public Vehicle Car;
             public bool Spawned, Alerted;
             public int RequestedAt;
+            public bool Mine { get { return Crew == Owners.Player; } }
+
+            public Vector3 Where()
+            {
+                if (Car != null && Car.Exists()) return Car.Position;
+                foreach (Ped p in Peds) if (p != null && p.Exists() && !p.IsDead) return p.Position;
+                return Spot;
+            }
         }
 
         private readonly Registry _registry;
@@ -59,113 +71,176 @@ namespace FrontsAndRivals.Spawn
             for (int i = _groups.Count - 1; i >= 0; i--)
             {
                 Group g = _groups[i];
-                if (!g.Spawned) { TrySpawn(g, e); if (!g.Spawned && Game.GameTime - g.RequestedAt > 15000) _groups.RemoveAt(i); continue; }
-                if (g.Spot.DistanceTo(p) > HangoutRules.DespawnRange) { Remove(g); _groups.RemoveAt(i); continue; }
-                Tend(g, e, me);
+                if (!g.Spawned)
+                {
+                    TrySpawn(g, e);
+                    if (!g.Spawned && Game.GameTime - g.RequestedAt > 15000) { Release(g); _groups.RemoveAt(i); }
+                    continue;
+                }
+                if (g.Where().DistanceTo(p) > HangoutRules.DespawnRange) { Remove(g); _groups.RemoveAt(i); continue; }
+                if (!g.Mine) Tend(g, e, me);
             }
 
-            if (_groups.Count >= HangoutRules.MaxGroups || Game.GameTime < _nextSpawn) return;
-            _nextSpawn = Game.GameTime + HangoutRules.RespawnMs;
-            Plan(e, p);
+            int heat = e.State.Heat;
+            if (_groups.Count >= HangoutRules.MaxGroups(heat) || Game.GameTime < _nextSpawn) return;
+            _nextSpawn = Game.GameTime + HangoutRules.RespawnMs(heat);
+            try { Plan(e, p); } catch (Exception ex) { Log.Error("Hangouts plan", ex); }
         }
 
-        // Pick the nearest crew front, then a sidewalk spot on its streets that's out of your sight.
+        // A spot out of your sight, then whoever owns the nearest front owns that street.
         private void Plan(Empire e, Vector3 p)
         {
-            FrontDef near = null;
-            float best = HangoutRules.TurfRange;
-            foreach (FrontDef def in _content.Fronts)
-            {
-                if (!def.Door.IsSet || !Owners.IsCrew(e.OwnerOf(def.Id))) continue;
-                float d = def.Door.DistanceTo(p.X, p.Y, p.Z);
-                if (d < best) { best = d; near = def; }
-            }
-            if (near == null) return;
-            string crewId = e.OwnerOf(near.Id);
-            CrewDef crew = _content.Crew(crewId);
-            CrewState cs = Nemesis.Crew(e.State, crewId);
-            if (crew == null || cs == null || cs.Manpower < 3 || crew.Models == null || crew.Models.Count == 0) return;
-            int size = HangoutRules.GroupSize(_rng.Next());
-            if (!HangoutRules.Fits(_registry.PedCount, size, Registry.MaxPeds)) return;
-
-            var door = new Vector3(near.Door.X, near.Door.Y, near.Door.Z);
+            HangoutKind kind = HangoutRules.Kind(_rng.Next());
             for (int attempt = 0; attempt < 6; attempt++)
             {
                 double a = _rng.NextDouble() * Math.PI * 2.0;
-                float r = HangoutRules.FrontMin + (float)_rng.NextDouble() * (HangoutRules.FrontMax - HangoutRules.FrontMin);
-                Vector3 want = door + new Vector3((float)Math.Cos(a) * r, (float)Math.Sin(a) * r, 0f);
-                Vector3 spot = GTA.World.GetNextPositionOnSidewalk(want);
+                float r = HangoutRules.SpawnMin + (float)_rng.NextDouble() * (HangoutRules.SpawnMax - HangoutRules.SpawnMin);
+                Vector3 want = p + new Vector3((float)Math.Cos(a) * r, (float)Math.Sin(a) * r, 0f);
+                Vector3 spot = kind == HangoutKind.Cruise ? GTA.World.GetNextPositionOnStreet(want, true) : GTA.World.GetNextPositionOnSidewalk(want);
                 if (spot == Vector3.Zero) continue;
                 float fromMe = spot.DistanceTo(p);
-                if (fromMe < HangoutRules.SpawnMin || fromMe > HangoutRules.SpawnMax) continue;
+                if (fromMe < HangoutRules.SpawnMin * 0.8f || fromMe > HangoutRules.SpawnMax * 1.3f) continue;
                 bool crowded = false;
-                foreach (Group other in _groups) if (other.Spot.DistanceTo(spot) < 50f) crowded = true;
+                foreach (Group other in _groups) if (other.Where().DistanceTo(spot) < 50f) crowded = true;
                 if (crowded) continue;
 
-                var g = new Group { Crew = crewId, Spot = spot, Heading = (float)(_rng.NextDouble() * 360.0), Size = size, RequestedAt = Game.GameTime };
-                for (int k = 0; k < size; k++) g.Models.Add(new Model(crew.Models[_rng.Next(crew.Models.Count)]));
-                if (HangoutRules.WithCar(_rng.Next()) && _registry.CanSpawnVehicle)
+                string owner = TurfOwner(e, spot);
+                if (owner == null) return; // nobody's turf out here
+                bool mine = owner == Owners.Player;
+                CrewDef crew = mine ? null : _content.Crew(owner);
+                if (!mine)
                 {
-                    List<string> rides = crew.RidesFor(Math.Min(1, CrewDef.TierFor(cs.Grudge, e.State.Heat)));
-                    if (rides != null && rides.Count > 0) { g.CarModel = rides[_rng.Next(rides.Count)]; g.Models.Add(new Model(g.CarModel)); }
+                    CrewState cs = Nemesis.Crew(e.State, owner);
+                    if (crew == null || cs == null || cs.Manpower < 3) return;
                 }
+
+                int size = HangoutRules.GroupSize(kind, _rng.Next());
+                if (!HangoutRules.Fits(_registry.PedCount, size, Registry.MaxPeds)) return;
+                var g = new Group { Crew = owner, Kind = kind, Spot = spot, Heading = (float)(_rng.NextDouble() * 360.0), Size = size, Seed = _rng.Next(), RequestedAt = Game.GameTime };
+                bool car = kind == HangoutKind.Cruise || (kind == HangoutKind.HangOut && HangoutRules.WithCar(_rng.Next()));
+                if (car && _registry.CanSpawnVehicle) g.CarModel = PickCar(e, owner);
+                if (kind == HangoutKind.Cruise && g.CarModel == null) g.Kind = HangoutKind.Walk;
+                for (int k = 0; k < size; k++)
+                {
+                    Dressing d = mine ? PlayerDressing(g.Seed + k * 131) : Wardrobe.ForCrew(owner, g.Seed + k * 131);
+                    g.Dress.Add(d);
+                    g.Models.Add(new Model(d != null ? Wardrobe.ModelName(d) : (crew != null && crew.Models != null && crew.Models.Count > 0 ? crew.Models[_rng.Next(crew.Models.Count)] : "a_m_y_genstreet_01")));
+                }
+                if (g.CarModel != null) g.Models.Add(new Model(g.CarModel));
                 foreach (Model m in g.Models) if (m.IsValid) m.Request();
                 _groups.Add(g);
                 return;
             }
         }
 
+        private string TurfOwner(Empire e, Vector3 spot)
+        {
+            string owner = null;
+            float best = HangoutRules.TurfRange;
+            foreach (FrontDef def in _content.Fronts)
+            {
+                if (!def.Door.IsSet) continue;
+                string o = e.OwnerOf(def.Id);
+                if (o != Owners.Player && !Owners.IsCrew(o)) continue;
+                float d = def.Door.DistanceTo(spot.X, spot.Y, spot.Z);
+                if (d < best) { best = d; owner = o; }
+            }
+            return owner;
+        }
+
+        private string PickCar(Empire e, string owner)
+        {
+            if (owner == Owners.Player)
+            {
+                // Your people drive the everyday rides of whoever's turf they took it from: a plain sedan, painted yours.
+                string[] own = { "washington", "schafter2", "primo2", "baller3" };
+                return own[_rng.Next(own.Length)];
+            }
+            CrewDef crew = _content.Crew(owner);
+            CrewState cs = Nemesis.Crew(e.State, owner);
+            if (crew == null) return null;
+            List<string> rides = crew.RidesFor(Math.Min(1, CrewDef.TierFor(cs != null ? cs.Grudge : 0, e.State.Heat)));
+            return rides != null && rides.Count > 0 ? rides[_rng.Next(rides.Count)] : null;
+        }
+
+        private static Dressing PlayerDressing(int seed)
+        {
+            if (!Wardrobe.Enabled) return null;
+            return OutfitRules.Choose(Wardrobe.Data, CrewColors.StyleKey(Wardrobe.PlayerStyle()), Wardrobe.PlayerColour(), seed, null);
+        }
+
         private void TrySpawn(Group g, Empire e)
         {
             foreach (Model m in g.Models) if (m.IsValid && !m.IsLoaded) return;
-            CrewDef crew = _content.Crew(g.Crew);
-            CrewState cs = Nemesis.Crew(e.State, g.Crew);
-            if (crew == null || !HangoutRules.Fits(_registry.PedCount, g.Size, Registry.MaxPeds)) return;
+            if (!HangoutRules.Fits(_registry.PedCount, g.Size, Registry.MaxPeds)) return;
+            CrewDef crew = g.Mine ? null : _content.Crew(g.Crew);
+            CrewState cs = g.Mine ? null : Nemesis.Crew(e.State, g.Crew);
             g.Spawned = true;
+            string colourKey = g.Mine ? Wardrobe.PlayerColour() : CrewColors.ForCrew(g.Crew);
 
             if (g.CarModel != null && _registry.CanSpawnVehicle)
             {
                 Model cm = g.Models[g.Models.Count - 1];
-                Vehicle v = GTA.World.CreateVehicle(cm, g.Spot + new Vector3(3.5f, 0f, 0.5f), g.Heading);
+                Vector3 at = g.Kind == HangoutKind.Cruise ? g.Spot + new Vector3(0f, 0f, 0.5f) : g.Spot + new Vector3(3.5f, 0f, 0.5f);
+                Vehicle v = GTA.World.CreateVehicle(cm, at, g.Heading);
                 if (v != null)
                 {
-                    _registry.Track(v, Markers.MakePlate(0, crew.Id));
-                    CrewColor paint = CrewColors.Get(CrewColors.ForCrew(crew.Id));
+                    _registry.Track(v, Markers.MakePlate(0, g.Mine ? "FR" : g.Crew));
+                    CrewColor paint = CrewColors.Get(colourKey);
                     v.Mods.CustomPrimaryColor = System.Drawing.Color.FromArgb(paint.R, paint.G, paint.B);
                     v.Mods.CustomSecondaryColor = System.Drawing.Color.FromArgb(paint.R / 3, paint.G / 3, paint.B / 3);
                     v.MaxHealth = 2000; v.Health = 2000; v.BodyHealth = 2000f; v.EngineHealth = 2000f; v.PetrolTankHealth = 2000f;
                     v.PlaceOnGround();
-                    v.IsEngineRunning = false;
+                    if (g.Kind != HangoutKind.Cruise) v.IsEngineRunning = false;
                     g.Car = v;
                 }
             }
 
             int grudge = cs != null ? cs.Grudge : 0;
+            int seats = g.Car != null ? Math.Max(1, g.Car.PassengerCapacity + 1) : 0;
             for (int k = 0; k < g.Size; k++)
             {
                 if (!_registry.CanSpawnPed) break;
+                if (g.Kind == HangoutKind.Cruise && (g.Car == null || k >= seats)) break;
                 double a = (k / (double)g.Size) * Math.PI * 2.0;
                 Vector3 at = g.Spot + new Vector3((float)Math.Cos(a) * 1.3f, (float)Math.Sin(a) * 1.3f, 0f);
                 float face = (float)(Math.Atan2(-(g.Spot.X - at.X), g.Spot.Y - at.Y) * 180.0 / Math.PI); // face each other
                 Ped ped = GTA.World.CreatePed(g.Models[k], at, face);
                 if (ped == null) continue;
-                ped.RelationshipGroup = Factions.CrewGroup(crew.Id);
+                ped.RelationshipGroup = g.Mine ? Factions.Guards : Factions.CrewGroup(g.Crew);
                 _registry.Track(ped);
-                ped.Weapons.Give(Streamer.CrewWeapon(crew.WeaponFor(Markers.Hash(crew.Id) + k * 17 + g.Heading.GetHashCode(), 0, grudge)), 250, false, true);
+                if (k < g.Dress.Count) Wardrobe.Apply(ped, g.Dress[k]);
+                string gun = crew != null ? crew.WeaponFor(g.Seed + k * 17, 0, grudge) : (k % 2 == 0 ? "pistol" : "microsmg");
+                ped.Weapons.Give(Streamer.CrewWeapon(gun), 250, false, true);
                 ped.Accuracy = CrewDef.FrontAccuracy(0);
                 ped.MaxHealth = Rules.Stats.CrewHealth;
                 ped.Health = ped.MaxHealth;
-                ped.BlockPermanentEvents = true; // calm until provoked
+                if (g.Mine) Function.Call(Hash.SET_PED_CAN_BE_TARGETTED_BY_PLAYER, ped, Game.Player, false);
                 Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
-                ped.Task.StartScenario(HangoutRules.Scenario(k + (int)g.Heading), at, face);
+                if (g.Kind == HangoutKind.Cruise)
+                {
+                    ped.SetIntoVehicle(g.Car, k == 0 ? VehicleSeat.Driver : (VehicleSeat)(k - 1));
+                    if (k == 0) ped.Task.CruiseWithVehicle(g.Car, 12f, DrivingStyle.Normal);
+                    ped.BlockPermanentEvents = !g.Mine;
+                }
+                else if (g.Kind == HangoutKind.Walk)
+                {
+                    ped.BlockPermanentEvents = !g.Mine;
+                    ped.Task.WanderAround(g.Spot, 60f);
+                }
+                else
+                {
+                    ped.BlockPermanentEvents = !g.Mine; // rivals calm until provoked; your own people react like any ally
+                    ped.Task.StartScenario(HangoutRules.Scenario(k + g.Seed), at, face);
+                }
                 g.Peds.Add(ped);
             }
-            Log.Write("Hangouts: " + g.Peds.Count + " " + crew.Id + (g.Car != null ? " with a " + g.CarModel : "") + " near " + g.Spot);
+            Log.Write("Hangouts: " + g.Peds.Count + " " + (g.Mine ? "of yours" : g.Crew) + " " + g.Kind + (g.Car != null ? " with a " + g.CarModel : ""));
         }
 
         private void Tend(Group g, Empire e, Ped me)
         {
-            float dist = g.Spot.DistanceTo(me.Position);
+            float dist = g.Where().DistanceTo(me.Position);
             bool hurt = false;
             foreach (Ped ped in g.Peds)
             {
@@ -211,7 +286,13 @@ namespace FrontsAndRivals.Spawn
         {
             foreach (Ped ped in g.Peds) if (ped != null && ped.Exists()) _registry.Despawn(ped);
             if (g.Car != null && g.Car.Exists()) _registry.Despawn(g.Car);
-            foreach (Model m in g.Models) m.MarkAsNoLongerNeeded();
+            Release(g);
+        }
+
+        private static void Release(Group g)
+        {
+            foreach (Model m in g.Models)
+                if (m.Hash != Game.GenerateHash(Wardrobe.Male) && m.Hash != Game.GenerateHash(Wardrobe.Female)) m.MarkAsNoLongerNeeded(); // the two character models stay loaded
         }
     }
 }

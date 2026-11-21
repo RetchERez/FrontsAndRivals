@@ -67,6 +67,7 @@ namespace FrontsAndRivals.Attacks
         private readonly List<Blip> _pedBlips = new List<Blip>();
         private List<string> _convoy = new List<string>();
         private int _tier;
+        private readonly List<Dressing> _dress = new List<Dressing>();
 
         /// <summary>Street heat now (Main supplies it): part of how hard a crew comes for you.</summary>
         public Func<int> Heat;
@@ -119,7 +120,14 @@ namespace FrontsAndRivals.Attacks
             _convoy = crew.ConvoyPlan(attack.Squad, _tier);
             Log.Write("LiveDefense: " + crew.Id + " convoy tier " + _tier + ": " + string.Join(", ", _convoy.ToArray()));
             foreach (string vehicle in _convoy) _models.Add(new Model(vehicle));
-            for (int i = 0; i < attack.Squad; i++) _models.Add(new Model(i == 0 && leader != null && leader.Model != null ? leader.Model : crew.Models[i % crew.Models.Count]));
+            _dress.Clear();
+            for (int i = 0; i < attack.Squad; i++)
+            {
+                // Everyone in the crew's colour, the leader too.
+                Dressing dr = Wardrobe.ForCrew(crew.Id, front.Number * 53 + i * 7 + attack.Squad);
+                _dress.Add(dr);
+                _models.Add(new Model(dr != null ? Wardrobe.ModelName(dr) : (i == 0 && leader != null && leader.Model != null ? leader.Model : crew.Models[i % crew.Models.Count])));
+            }
             foreach (Model m in _models) if (m.IsValid) m.Request();
             _loadStarted = Game.GameTime;
             _stage = Stage.Loading;
@@ -257,6 +265,7 @@ namespace FrontsAndRivals.Attacks
                     if (!pm.IsLoaded) pm = _models[pedModel];
                     Ped ped = GTA.World.CreatePed(pm, pos + new Vector3(0, 0, 2f), _spawnHeading);
                     if (ped == null) continue;
+                    if (placed < _dress.Count && pm == _models[pedModel + placed]) Wardrobe.Apply(ped, _dress[placed]);
                     ped.RelationshipGroup = Factions.CrewGroup(_crew.Id);
                     _registry.Track(ped);
                     ped.SetIntoVehicle(v, seat == 0 ? VehicleSeat.Driver : (VehicleSeat)(seat - 1));

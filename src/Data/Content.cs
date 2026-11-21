@@ -152,6 +152,7 @@ namespace FrontsAndRivals.Data
         }
 
         public string FrontsPath { get { return Path.Combine(_dir, "fronts.json"); } }
+        public string ContentDir { get { return _dir; } }
 
         public FrontDef Front(string id)
         {

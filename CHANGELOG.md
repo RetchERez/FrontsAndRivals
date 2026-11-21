@@ -9,8 +9,19 @@ First full release.
   thing to do and goes straight there. Short banner titles that always fit; GTA's own menu arrow
   (the old arrow character drew as a white block); owners in their crew's colour on the Fronts list; a Messages page
   that keeps every text and alert to read again
-- Crew hangouts: two groups at most of 2-3 crew members loiter on their crew's streets (40-120 m from its fronts),
-  sometimes round a crew car; calm until provoked like front soldiers, each kill costs the crew a soldier (INI Map Hangouts)
+- Crew colours on clothing, Saints Row style: every crew member wears their crew colour on a major piece (Dead Kings
+  forest green hoodies, jackets and joggers; Hellfire MC orange vests and biker jackets; the Vinewood Elite in royal blue
+  suits, shirts and cardigans), with varied looks, faces and hair. Your guards and bodyguards wear your colour in the
+  style you pick (Office > Settings > Crew Style: Street, Smart, Biker or Mixed), and change on the spot when you switch.
+  Built on GTA Online-style characters with the game's own documented clothing; any piece the game doesn't have is
+  skipped rather than shown broken
+- 19 crew colours to pick from (burgundy, gold, cyan, lime, lavender and bright blue added)
+- Crews on their streets: anywhere on a crew's turf its people hang out (sometimes round a car), walk alone or in pairs,
+  or cruise in a car together, two groups out at once on cool streets and three on warm ones. Around your fronts it's
+  your own crew, friendly, in your colour. Rivals are calm until provoked; each kill costs their crew a soldier
+  (INI Map Hangouts)
+- Running soldiers over doesn't take a front: a soldier killed by a car is replaced by another from inside (up to four a
+  visit) and the rest turn on you, so fronts are taken on foot
 - Crew rides in three tiers, by revenge intensity (grudge plus half the street heat): Dead Kings Manana/Emperor, then
   Primo Custom/Tornado Custom, then Dominator/Buccaneer Custom; Hellfire MC Daemon/Hexer, then Zombie Chopper/Daemon
   Custom, then Nightblade/Gargoyle; Vinewood Elite Washington/Schafter, then Cognoscenti/Baller LE, then the armoured

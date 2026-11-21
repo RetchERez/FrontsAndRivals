@@ -34,11 +34,22 @@ namespace FrontsAndRivals.Data
             new CrewColor { Name = "Royal Blue", Key = "blue", Blip = 3, Text = "~b~", R = 30, G = 70, B = 200 },
             new CrewColor { Name = "Purple", Key = "purple", Blip = 50, Text = "~p~", R = 120, G = 40, B = 170 },
             new CrewColor { Name = "Pink", Key = "pink", Blip = 61, Text = "~q~", R = 230, G = 80, B = 160 },
+            new CrewColor { Name = "Burgundy", Key = "burgundy", Blip = 76, Text = "~r~", R = 110, G = 20, B = 35 },
+            new CrewColor { Name = "Gold", Key = "gold", Blip = 56, Text = "~y~", R = 205, G = 150, B = 30 },
+            new CrewColor { Name = "Cyan", Key = "cyan", Blip = 57, Text = "~b~", R = 0, G = 190, B = 220 },
+            new CrewColor { Name = "Lime", Key = "lime", Blip = 69, Text = "~g~", R = 140, G = 210, B = 30 },
+            new CrewColor { Name = "Lavender", Key = "lavender", Blip = 50, Text = "~p~", R = 175, G = 140, B = 220 },
+            new CrewColor { Name = "Bright Blue", Key = "brightblue", Blip = 3, Text = "~b~", R = 20, G = 110, B = 240 },
             new CrewColor { Name = "Black", Key = "black", Blip = 40, Text = "~s~", R = 15, G = 15, B = 15 },
             new CrewColor { Name = "Grey", Key = "grey", Blip = 55, Text = "~c~", R = 120, G = 120, B = 120 },
         };
 
         public const string DefaultPlayer = "white";
+
+        /// <summary>Your crew's look, picked in Settings: every guard wears it in your colour.</summary>
+        public static readonly string[] Styles = { "Street", "Smart", "Biker", "Mixed" };
+        public const string DefaultStyle = "Street";
+        public static string StyleKey(string style) { return "player_" + (Array.IndexOf(Styles, style) >= 0 ? style : DefaultStyle).ToLowerInvariant(); }
 
         /// <summary>The rival crews' colours (fixed).</summary>
         public static string ForCrew(string crewId)

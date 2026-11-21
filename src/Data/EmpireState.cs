@@ -60,7 +60,9 @@ namespace FrontsAndRivals.Data
         /// <summary>Street heat 0-100 (Rules.Heat): taking fronts raises it, every midnight cools it.</summary>
         [DataMember(Name = "heat", Order = 39)] public int Heat;
         /// <summary>Your crew's colour (Data.CrewColors key): your guards wear it, your fronts show it on the map.</summary>
-        [DataMember(Name = "crewColor", Order = 40)] public string CrewColor;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "crewColor", Order = 40)] public string CrewColor;
+        /// <summary>Your crew's look (CrewColors.Styles): Street, Smart, Biker or Mixed.</summary>
+        [DataMember(Name = "crewStyle", Order = 41)] public string CrewStyle;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]

@@ -174,8 +174,36 @@ static class FrontTests
         T.True("Patrol points walk a loop around the door", loop[0] == 3 && loop[1] == 2 && loop[2] == 0 && loop[3] == 1);
         T.True("Hangouts: groups of 2 or 3", Enumerable.Range(0, 200).All(i => HangoutRules.GroupSize(i) == 2 || HangoutRules.GroupSize(i) == 3)
             && Enumerable.Range(0, 200).Any(i => HangoutRules.GroupSize(i) == 3));
-        T.True("...some round a car, never more than two groups, room kept for a fight", Enumerable.Range(0, 100).Count(i => HangoutRules.WithCar(i)) == HangoutRules.CarChancePct
-            && HangoutRules.MaxGroups == 2 && HangoutRules.Fits(10, 3, 28) && !HangoutRules.Fits(16, 3, 28));
+        T.True("...some round a car, room kept for a fight", Enumerable.Range(0, 100).Count(i => HangoutRules.WithCar(i)) == HangoutRules.CarChancePct
+            && HangoutRules.Fits(10, 3, 28) && !HangoutRules.Fits(16, 3, 28));
+        T.True("Crews on their streets: hanging out, walking, cruising", Enumerable.Range(0, 100).Select(i => HangoutRules.Kind(i)).Distinct().Count() == 3);
+        T.True("Two groups on cool streets, three once it's warm; quicker when hot", HangoutRules.MaxGroups(0) == 2 && HangoutRules.MaxGroups(50) == 3 && HangoutRules.RespawnMs(100) < HangoutRules.RespawnMs(0));
+        T.True("Walkers alone or in pairs, cruisers 2-4", Enumerable.Range(0, 100).All(i => HangoutRules.GroupSize(HangoutKind.Walk, i) <= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) >= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) <= 4));
+        T.True("Running a soldier over doesn't count", StreamRules.VehicleKill(StreamRules.RunOverHash, false) && StreamRules.VehicleKill(0, true) && !StreamRules.VehicleKill(Markers.Hash("WEAPON_PISTOL"), false));
+
+        T.Section("Crew outfits");
+        var od = OutfitData.Load(System.IO.Path.Combine(content.ContentDir, "outfits.json"));
+        T.True("Outfit data loads", od != null && od.Styles != null && od.Styles.Count >= 7);
+        bool allColoured = true;
+        foreach (string crewId in new[] { "CK", "IR", "VS" })
+            for (int seed = 0; seed < 300; seed++)
+            {
+                Dressing d = OutfitRules.Choose(od, crewId, CrewColors.ForCrew(crewId), seed);
+                if (d == null || !d.Look.Wears(CrewColors.ForCrew(crewId))) allColoured = false;
+            }
+        T.True("Every rival crew member wears their crew colour on a major piece (900 checked)", allColoured);
+        bool playerOk = true;
+        foreach (string style in CrewColors.Styles)
+            foreach (CrewColor c in CrewColors.All)
+                foreach (bool female in new[] { false, true })
+                    for (int seed = 0; seed < 20; seed++)
+                    {
+                        Dressing d = OutfitRules.Choose(od, CrewColors.StyleKey(style), c.Key, seed, female);
+                        if (d == null || d.Female != female || !d.Look.Wears(c.Key)) playerOk = false;
+                    }
+        T.True("Your crew: every style in every colour, for men and women", playerOk);
+        T.True("Vinewood Elite are mostly suits", Enumerable.Range(0, 200).Count(i => OutfitRules.Choose(od, "VS", "blue", i).Look.Shoes == "formal") == 200);
+        T.True("The same guard always looks the same", OutfitRules.Choose(od, "player_street", "red", 42).Hair == OutfitRules.Choose(od, "player_street", "red", 42).Hair);
         T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));
         be2.SetOwner("carwash_handson", Owners.Velvet); // lost it to another crew
         bs2.LastHeldDay = 3; bs2.Day = 4;

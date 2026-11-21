@@ -46,8 +46,8 @@ Tested with Script Hook V v3889.0, Script Hook V .NET Enhanced 1.1.0.6,
 LemonUI 2.2 and iFruitAddon2 3.1.1. After a GTA V update, wait for Script Hook V
 to update before playing or reporting bugs.
 
-Playing on the older Legacy edition? Use the Script Hook V .NET nightly build
-instead (3.6.0-nightly.89 or later):
+Playing on the older Legacy edition? It should work but hasn't been tested there
+yet. Use the Script Hook V .NET nightly build instead (3.6.0-nightly.89 or later):
       https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases
 
 
@@ -127,7 +127,9 @@ WHAT'S IN 1.0
    pay more the longer you hold them and the more you own
  - Progression money can't skip: guns unlock with rank, bigger fronts need a
    bigger empire (3 and 8 fronts held) and new fronts get two quiet days
- - Crew hangouts, like Saints Row: groups of two or three of a crew's people hang out on the streets of their turf, sometimes round one of their cars; shoot them and their crew is a soldier short
+ - Crews on their streets, like Saints Row: a crew's people hang out, walk the block or cruise around their turf in their colours, and your own crew does the same around your fronts
+- Every crew member wears their crew colour on a major piece of clothing, and your guards wear yours in the style you pick: Street, Smart, Biker or Mixed
+- Fronts are taken on foot: a soldier you run over is replaced by another from inside
 - Staff at the front you're near: a cashier on the phone, a janitor sweeping,
    a chef on a smoke break
  - A big, mixed cast of ordinary Los Santos street people, women and men, with

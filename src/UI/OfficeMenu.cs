@@ -580,7 +580,7 @@ namespace FrontsAndRivals.UI
             blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
             AddListRow(blips, null, false);
 
-            var color = new NativeListItem<string>("Crew Colour", "The colour your crew wears, and your fronts and bodyguards show on the map. Change it any time. "
+            var color = new NativeListItem<string>("Crew Colour", "The colour your crew wears, and the colour of your fronts and bodyguards on the map. Change it any time. "
                 + "The Dead Kings wear forest green, Hellfire MC orange and the Vinewood Elite royal blue.", CrewColors.Names().ToArray());
             color.SelectedIndex = CrewColors.IndexOf(e.State.CrewColor ?? CrewColors.DefaultPlayer);
             color.ItemChanged += (s, a) =>
@@ -590,6 +590,12 @@ namespace FrontsAndRivals.UI
                 Changed(true);
             };
             AddListRow(color, null, false);
+
+            var style = new NativeListItem<string>("Crew Style", "How your crew dresses, always in your colour. Street: hoodies, jackets and joggers. Smart: open shirts and cardigans "
+                + "with suit trousers. Biker: vests, biker jackets and boots. Mixed: a bit of everything.", CrewColors.Styles);
+            style.SelectedIndex = Math.Max(0, Array.IndexOf(CrewColors.Styles, e.State.CrewStyle ?? CrewColors.DefaultStyle));
+            style.ItemChanged += (s, a) => { e.State.CrewStyle = CrewColors.Styles[style.SelectedIndex]; Changed(true); };
+            AddListRow(style, null, false);
 
             var diff = new NativeListItem<string>("Difficulty", "How hard the crews push. Higher: stronger attacks that come more often, better-defended rival "
                 + "fronts, and less time to get there. Relaxed x0.7 and half again the wait, Easy x0.85, Normal, Hard x1.2, Brutal x1.45 and attacks 30% sooner.",

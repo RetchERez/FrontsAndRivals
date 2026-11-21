@@ -97,7 +97,8 @@ namespace FrontsAndRivals.Spawn
             if (_pendingFor != next.Id)
             {
                 CancelPending();
-                _pending = new Model(next.Model);
+                Dressing nd = Wardrobe.ForGuard(next);
+                _pending = new Model(nd != null ? Wardrobe.ModelName(nd) : next.Model);
                 if (!_pending.IsValid || !_pending.IsPed)
                 {
                     Log.Write("Escorts: bad model " + next.Model + " for guard " + next.Id + ", retrying in a minute");
@@ -129,6 +130,7 @@ namespace FrontsAndRivals.Spawn
 
             Ped ped = GTA.World.CreatePed(_pending, at, me.Heading);
             if (ped == null) return;
+            Wardrobe.Apply(ped, Wardrobe.ForGuard(g)); // in your crew's colour
             ped.RelationshipGroup = Factions.Guards; // before Track
             _registry.Track(ped);
             _out.Add(new Entry { GuardId = g.Id, Ped = ped });

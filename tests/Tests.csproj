@@ -30,6 +30,7 @@
     <Compile Include="../src/World/Raids.cs" />
     <Compile Include="../src/World/Heat.cs" />
     <Compile Include="../src/Data/CrewColors.cs" />
+    <Compile Include="../src/Data/Outfits.cs" />
     <Compile Include="../src/World/Difficulty.cs" />
     <Compile Include="../src/World/Nemesis.cs" />
     <Compile Include="../src/World/Attacks.cs" />
