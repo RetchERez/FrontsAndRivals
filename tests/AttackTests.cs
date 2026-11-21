@@ -108,7 +108,7 @@ static class AttackTests
         T.Check("Even odds: guards hold 5 minutes", Attacks.HoldMinutes(5, 100, 100, false, "CK"), 5, 0);
         T.True("Outgunned about 3, strong up to 7", Attacks.HoldMinutes(5, 0, 100, false, "CK") == 3 && Attacks.HoldMinutes(5, 1000, 1, false, "CK") == 7);
         T.Check("Cameras add 2 minutes", Attacks.HoldMinutes(5, 100, 100, true, "CK"), 7, 0);
-        T.Check("the Syndicate takes a minute", Attacks.HoldMinutes(5, 100, 100, false, "VS"), 4, 0);
+        T.Check("The Vinewood Outfit takes a minute", Attacks.HoldMinutes(5, 100, 100, false, "VS"), 4, 0);
         T.True("Always 2 to 12 minutes", Attacks.HoldMinutes(2, 0, 500, false, "VS") == 2 && Attacks.HoldMinutes(12, 999, 1, true, "CK") == 12);
         var dug = new EmpireState { Day = 4 };
         var lostFront = new FrontState { Id = "x" };
