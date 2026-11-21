@@ -252,6 +252,8 @@ static class Sim
         {
             int cost = e.ArmFrontPrice(f.Id);
             if (cost > 0 && cash - cost > wagesReserve * 2) { cash -= cost; st.GunSpend += cost; e.ArmFront(f.Id); }
+            int vests = e.VestFrontPrice(f.Id);
+            if (vests > 0 && cash - vests > wagesReserve * 3) { cash -= vests; st.GunSpend += vests; e.VestFront(f.Id); }
         }
         foreach (FrontDef f in _content.Fronts.Where(f => e.PlayerOwns(f.Id)).OrderByDescending(f => f.Tier))
         {

@@ -64,6 +64,12 @@ namespace FrontsAndRivals.Rules
                     crew.Manpower = Math.Max(0, crew.Manpower - (move.Success ? 1 : 2));
                     if (defender != null) defender.Manpower = Math.Max(0, defender.Manpower - (move.Success ? 2 : 1));
                 }
+                if (move.FromCrew != null)
+                {
+                    crew.FeudWith = move.FromCrew;
+                    CrewState other = Nemesis.Crew(s, move.FromCrew);
+                    if (other != null) other.FeudWith = crew.Id;
+                }
                 if (move.Success)
                 {
                     target.Owner = crew.Id;

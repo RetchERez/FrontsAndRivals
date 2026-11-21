@@ -40,7 +40,7 @@ namespace FrontsAndRivals.Data
         public const int MaxConvoy = 6; // vehicles per attack, inside the 8-vehicle budget
 
         /// <summary>The convoy for a squad: the crew's two signature vehicles in turn until everyone has a seat.
-        /// Ironside MC rolls up on bikes, two to a bike. Pure, unit-tested.</summary>
+        /// Hellfire MC rolls up on bikes, two to a bike. Pure, unit-tested.</summary>
         public List<string> ConvoyPlan(int squad)
         {
             var plan = new List<string>();
@@ -68,6 +68,52 @@ namespace FrontsAndRivals.Data
             return seats;
         }
         [DataMember(Name = "weapons")] public List<string> Weapons;
+        /// <summary>Heavier guns the crew brings to bigger fronts and grudge fights.</summary>
+        [DataMember(Name = "heavyWeapons")] public List<string> HeavyWeapons;
+        /// <summary>The rare explosive a crew brings to a hit: grenades, Molotovs, pipe bombs, a launcher.</summary>
+        [DataMember(Name = "explosives")] public List<string> Explosives;
+
+        /// <summary>Share of a crew's soldiers carrying a heavy gun: 10% at a small front, 35% mid-size, 60% big,
+        /// plus up to 25% more at full grudge (never over 80%).</summary>
+        public static double HeavyShare(int tier, int grudge)
+        {
+            return Math.Min(0.8, 0.1 + 0.25 * Math.Max(0, Math.Min(2, tier)) + Math.Max(0, Math.Min(100, grudge)) / 400.0);
+        }
+
+        private static uint Mix(int pick) { return unchecked((uint)pick * 2654435761u); }
+
+        /// <summary>The gun for one soldier, from a stable number (the same soldier keeps the same gun every visit).
+        /// Everyday guns at small fronts; more heavy ones at big fronts and when the crew holds a grudge. Pure, tested.</summary>
+        public string WeaponFor(int pick, int tier, int grudge)
+        {
+            uint h = Mix(pick);
+            bool heavy = HeavyWeapons != null && HeavyWeapons.Count > 0 && (h % 1000) / 1000.0 < HeavyShare(tier, grudge);
+            List<string> from = heavy ? HeavyWeapons : Weapons;
+            if (from == null || from.Count == 0) return "pistol";
+            return from[(int)((h / 1000) % (uint)from.Count)];
+        }
+
+        public const double ExplosiveChance = 0.05;
+
+        /// <summary>About 1 attacker in 20 carries the crew's explosive (at most one per squad; the caller enforces that).
+        /// Returns the explosive's name, or null.</summary>
+        public string ExplosiveFor(int pick)
+        {
+            if (Explosives == null || Explosives.Count == 0) return null;
+            uint h = Mix(pick ^ 0x5bd1e995);
+            if ((h % 1000) / 1000.0 >= ExplosiveChance) return null;
+            return Explosives[(int)((h / 1000) % (uint)Explosives.Count)];
+        }
+
+        /// <summary>The leader carries the crew's best gun.</summary>
+        public string LeaderWeapon()
+        {
+            if (HeavyWeapons != null && HeavyWeapons.Count > 0) return HeavyWeapons[HeavyWeapons.Count - 1];
+            return Weapons != null && Weapons.Count > 0 ? Weapons[Weapons.Count - 1] : "pistol";
+        }
+
+        /// <summary>Armour on soldiers holding a front: none at a small one, 25 mid-size, 50 big.</summary>
+        public static int FrontArmor(int tier) { return tier >= 2 ? 50 : tier == 1 ? 25 : 0; }
     }
 
     [DataContract]
@@ -126,6 +172,8 @@ namespace FrontsAndRivals.Data
         /// <summary>After a collapse the crew goes quiet until this in-game day.</summary>
         [DataMember(Name = "quietUntilDay", Order = 4)] public int QuietUntilDay = -1;
         [DataMember(Name = "lastContactDay", Order = 5)] public int LastContactDay;
+ /// <summary>The crew this one is feuding with (its last turf fight, either way).</summary>
+        [DataMember(Name = "feudWith", Order = 20)] public string FeudWith;
         [DataMember(Name = "lastMove", Order = 6)] public string LastMove;
 
         public CrewMember Boss

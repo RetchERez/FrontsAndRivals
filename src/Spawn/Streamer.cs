@@ -236,6 +236,11 @@ namespace FrontsAndRivals.Spawn
                         _registry.Despawn(slot.Ped);
                         slot.Ped = null;
                     }
+                    else if (g != null && f.Def.Id != LiveFrontId && !slot.Ped.IsInCombat
+                             && (slot.Ped.Health < slot.Ped.MaxHealth || slot.Ped.Armor < (g.Vest ? DefenseRating.VestArmor : 0)))
+                    {
+                        Restore(slot.Ped, g); // calm again: back to full, vest topped up
+                    }
                     else if (g != null && slot.Weapon != g.Weapon)
                     {
                         // A new gun was bought in the Office: hand it over on the spot, no respawn.
@@ -259,7 +264,7 @@ namespace FrontsAndRivals.Spawn
             _registry.Track(ped);
             slot.Ped = ped;
             slot.GuardId = g.Id;
-            ped.Armor = 0;
+            ped.Armor = g.Vest ? DefenseRating.VestArmor : 0; // body armour bought in the Office
             ped.Weapons.Give(WeaponFor(g.Weapon), 250, fighting, true);
             slot.Weapon = g.Weapon;
             // Skills show in a fight: Shooting is their aim, Strength how much they can take.
@@ -339,7 +344,9 @@ namespace FrontsAndRivals.Spawn
                 }
                 if (slot.Killed) { killed++; continue; }
                 string model = crew.Models[Math.Abs(f.Def.Id.GetHashCode() + post * 7) % crew.Models.Count];
-                Load(slot, model, -1, 0, () => SpawnCrewGuard(slot, crew, f.Def.Posts[post], hour));
+                int pick = Markers.Hash(f.Def.Id) + post * 7;
+                int tier = f.Def.Tier, grudge = cs.Grudge;
+                Load(slot, model, -1, 0, () => SpawnCrewGuard(slot, crew, f.Def.Posts[post], hour, pick, tier, grudge));
             }
             if (alive > 0 || killed > 0) f.CrewSpawnedThisVisit = true;
             if (!f.Alerted && alive > 0 && ShouldAlert(f, count)) Alert(f, count);
@@ -390,7 +397,7 @@ namespace FrontsAndRivals.Spawn
             Log.Write("Streamer: crew at " + f.Def.Id + " alerted");
         }
 
-        private void SpawnCrewGuard(Slot slot, CrewDef crew, PostDef post, int hour)
+        private void SpawnCrewGuard(Slot slot, CrewDef crew, PostDef post, int hour, int pick, int tier, int grudge)
         {
             Ped ped = GTA.World.CreatePed(slot.PendingModel, new Vector3(post.X, post.Y, post.Z), post.H);
             if (ped == null) return;
@@ -398,8 +405,9 @@ namespace FrontsAndRivals.Spawn
             _registry.Track(ped);
             slot.Ped = ped;
             slot.GuardId = -1;
-            ped.Weapons.Give(CrewWeapon(crew, Math.Abs(post.GetHashCode())), 250, false, true);
+            ped.Weapons.Give(CrewWeapon(crew.WeaponFor(pick, tier, grudge)), 250, false, true);
             ped.Accuracy = 25;
+            ped.Armor = CrewDef.FrontArmor(tier); // a nightclub's crew is better kitted out than a liquor store's
             Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
             // Calm until alerted (see ShouldAlert): idle at the post, ignoring the world.
             ped.BlockPermanentEvents = true;
@@ -407,9 +415,8 @@ namespace FrontsAndRivals.Spawn
             Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, ped, scenario, post.X, post.Y, post.Z, post.H, -1, false, true);
         }
 
-        public static WeaponHash CrewWeapon(CrewDef crew, int pick)
+        public static WeaponHash CrewWeapon(string name)
         {
-            string name = crew.Weapons[pick % crew.Weapons.Count];
             WeaponHash w;
             return Enum.TryParse(name, true, out w) ? w : WeaponHash.Pistol;
         }
@@ -543,6 +550,15 @@ namespace FrontsAndRivals.Spawn
         }
 
         /// <summary>Re-tasks a front's idle guards for a fight (live defense start) or back to idle (fight over).</summary>
+        /// <summary>Full health, and a full vest for anyone who owns one. Vests never wear out: they're the guard's for good.</summary>
+        public static void Restore(Ped ped, GuardState g)
+        {
+            if (ped == null || !ped.Exists() || ped.IsDead) return;
+            ped.MaxHealth = Rules.Stats.Health(g.Strength); // same as when they spawned
+            ped.Health = ped.MaxHealth;
+            ped.Armor = g.Vest ? DefenseRating.VestArmor : 0;
+        }
+
         public void SetFighting(string frontId, bool fighting)
         {
             int hour = GTA.World.CurrentTimeOfDay.Hours;
@@ -563,6 +579,7 @@ namespace FrontsAndRivals.Spawn
                     {
                         GuardState g = _empire.Guard(s.GuardId);
                         PostDef post = f.Def.Posts[i];
+                        if (g != null) Restore(s.Ped, g); // the fight's over: patched up, vest back to full
                         s.Ped.BlockPermanentEvents = true;
                         string scenario = StreamRules.GuardScenario(post.Scenario, g != null ? (Trait)g.Trait : Trait.None, hour);
                         Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, s.Ped, scenario, post.X, post.Y, post.Z, post.H, -1, false, false);

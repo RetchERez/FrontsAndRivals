@@ -19,6 +19,7 @@ namespace FrontsAndRivals.Spawn
         {
             public int GuardId;
             public Ped Ped;
+            public int CalmSince;
         }
 
         private readonly Registry _registry;
@@ -63,6 +64,10 @@ namespace FrontsAndRivals.Spawn
                     continue;
                 }
                 if (!wanted) { Despawn(en.Ped); _out.RemoveAt(i); continue; }
+                // Ten seconds out of a fight: patched up and the vest topped up, like the player between missions.
+                if (en.Ped.IsInCombat) en.CalmSince = 0;
+                else if (en.CalmSince == 0) en.CalmSince = Game.GameTime;
+                else if (Game.GameTime - en.CalmSince > 10000 && g != null) Streamer.Restore(en.Ped, g);
                 // Left far behind (a fast car, a flight): they catch up instead of running across the map.
                 if (!me.IsInVehicle() && en.Ped.Position.DistanceTo(me.Position) > EscortRules.LeftBehindRange)
                 {
@@ -132,7 +137,7 @@ namespace FrontsAndRivals.Spawn
             ped.Accuracy = Stats.Accuracy(g.Shooting);
             ped.MaxHealth = Stats.Health(g.Strength);
             ped.Health = ped.MaxHealth;
-            ped.Armor = 0;
+            ped.Armor = g.Vest ? DefenseRating.VestArmor : 0; // body armour bought in the Office
             ped.BlockPermanentEvents = false;
             Function.Call(Hash.SET_PED_CAN_BE_TARGETTED_BY_PLAYER, ped, Game.Player, false);
 

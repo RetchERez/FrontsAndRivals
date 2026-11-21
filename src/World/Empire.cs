@@ -204,6 +204,22 @@ namespace FrontsAndRivals.Rules
             return total;
         }
 
+        /// <summary>Body armour for everyone posted here who doesn't have it yet: the total price.</summary>
+        public int VestFrontPrice(string frontId)
+        {
+            int n = 0;
+            foreach (GuardState g in AtFront(frontId)) if (!g.Vest) n++;
+            return n * Economy.VestPrice;
+        }
+
+        /// <summary>Puts everyone posted here in body armour. Returns how many got a vest.</summary>
+        public int VestFront(string frontId)
+        {
+            int n = 0;
+            foreach (GuardState g in AtFront(frontId)) if (!g.Vest) { g.Vest = true; n++; }
+            return n;
+        }
+
         /// <summary>Every guard posted here gets their next gun. Returns how many were upgraded.</summary>
         public int ArmFront(string frontId)
         {
@@ -444,6 +460,7 @@ namespace FrontsAndRivals.Rules
         {
             var r = new GuardRecord { Name = g.First, Rank = (Rank)g.Rank, Weapon = (Weapon)g.Weapon, Trait = (Trait)g.Trait, Injured = g.Status == GuardStatus.Injured };
             if (Stats.HasSkills(g)) { r.Shooting = g.Shooting; r.Strength = g.Strength; r.Stamina = g.Stamina; r.Stealth = g.Stealth; }
+            r.Vest = g.Vest;
             return r;
         }
 

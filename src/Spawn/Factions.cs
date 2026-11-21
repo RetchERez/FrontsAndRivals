@@ -52,6 +52,10 @@ namespace FrontsAndRivals.Spawn
             Both(Neutral, staff, player);
             foreach (string law in LawGroups) Both(Neutral, staff, Markers.Hash(law));
 
+            // The crews are at war with each other too: rival soldiers shoot on sight if their paths cross.
+            for (int i = 0; i < crews.Length; i++)
+                for (int j = i + 1; j < crews.Length; j++) Both(Hate, crews[i], crews[j]);
+
             foreach (int crew in crews)
             {
                 Both(Hate, crew, guards);

@@ -161,7 +161,7 @@ static class CoreTests
         T.True("FR_GUARDS is a mod group", Markers.IsModGroup(Markers.Hash("FR_GUARDS")));
         T.True("PLAYER is not a mod group", !Markers.IsModGroup(Markers.Hash("PLAYER")));
 
-        T.Equal("Pawn shop held by Crown Kings plate", Markers.MakePlate(3, Markers.OwnerCrownKings), "FR03CK");
+        T.Equal("Pawn shop held by Dead Kings plate", Markers.MakePlate(3, Markers.OwnerCrownKings), "FR03CK");
         T.Equal("Front 12 held by you", Markers.MakePlate(12, Markers.OwnerPlayer), "FR12YU");
         T.True("FR03CK is a mod plate", Markers.IsModPlate("FR03CK"));
         T.True("Padded plate ' FR03CK ' still matches", Markers.IsModPlate(" FR03CK "));

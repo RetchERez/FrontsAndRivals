@@ -2,7 +2,7 @@
   "crews": [
     {
       "id": "CK",
-      "name": "Crown Kings",
+      "name": "Dead Kings",
       "style": "Street car crew",
       "soldierPower": 12,
       "aggression": 2.0,
@@ -80,11 +80,19 @@
       "vehicleSeats": [
         4,
         4
+      ],
+      "heavyWeapons": [
+        "sawnoffshotgun",
+        "assaultrifle"
+      ],
+      "explosives": [
+        "grenade",
+        "molotov"
       ]
     },
     {
       "id": "IR",
-      "name": "Ironside MC",
+      "name": "Hellfire MC",
       "style": "Bikers",
       "soldierPower": 16,
       "aggression": 0.5,
@@ -153,17 +161,24 @@
       ],
       "weapons": [
         "pistol",
-        "sawnoffshotgun",
-        "smg"
+        "sawnoffshotgun"
       ],
       "vehicleSeats": [
         2,
         2
+      ],
+      "heavyWeapons": [
+        "pumpshotgun",
+        "assaultrifle"
+      ],
+      "explosives": [
+        "molotov",
+        "pipebomb"
       ]
     },
     {
       "id": "VS",
-      "name": "Velvet Syndicate",
+      "name": "Syndicate",
       "style": "Professionals",
       "soldierPower": 14,
       "aggression": 1.0,
@@ -238,13 +253,19 @@
         "washington"
       ],
       "weapons": [
-        "pistol",
-        "smg",
-        "carbinerifle"
+        "combatpistol",
+        "smg"
       ],
       "vehicleSeats": [
         4,
         4
+      ],
+      "heavyWeapons": [
+        "carbinerifle"
+      ],
+      "explosives": [
+        "grenadelauncher",
+        "rpg"
       ]
     }
   ]

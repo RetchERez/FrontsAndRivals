@@ -22,6 +22,7 @@ namespace FrontsAndRivals.Rules
         public bool Injured;
         // Skills (Rules.Stats). 50 is average, so a record without them counts as an average guard.
         public int Shooting = Stats.Average, Strength = Stats.Average, Stamina = Stats.Average, Stealth = Stats.Average;
+        public bool Vest;
     }
 
     public sealed class FrontUpgrades
@@ -50,6 +51,11 @@ namespace FrontsAndRivals.Rules
 
         /// <summary>Power by weapon. Each step is at least +23%: knife x0.6, pistol x1.0, pump shotgun x1.3,
         /// SMG x1.6, carbine rifle x2.0. (Balance pass: the micro SMG and assault rifle were cut, they were +4-8% steps.)</summary>
+        /// <summary>Body armour is about surviving: a guard in a vest is hurt (x0.75) and killed (x0.65) less, and stands
+        /// a touch longer (x1.03). In a live fight they wear a full 100-point vest, like the player's.</summary>
+        public const double VestPower = 1.03, VestInjury = 0.75, VestDeath = 0.65;
+        public const int VestArmor = 100;
+
         public static double WeaponPower(Weapon w)
         {
             switch (w)
@@ -89,7 +95,7 @@ namespace FrontsAndRivals.Rules
         {
             double night = (IsNight(hour) && !up.Floodlights && g.Trait != Trait.NightOwl) ? 0.75 : 1.0;
             return RankPower(g.Rank) * WeaponMultiplier(g.Weapon, up.Armory) * TraitMultiplier(g.Trait) * night
-                   * Stats.PowerFactor(g.Shooting, g.Strength);
+                   * Stats.PowerFactor(g.Shooting, g.Strength) * (g.Vest ? DefenseRating.VestPower : 1.0);
         }
 
         /// <summary>What a front holds off by itself, with nobody posted: staff, regulars, a locked door.
@@ -171,6 +177,7 @@ namespace FrontsAndRivals.Rules
                 if (medicPresent) injury *= 0.5;
                 if (g.Trait == Trait.Hothead) death *= 2.0;
                 injury *= Stats.InjuryFactor(g.Stamina);
+                if (g.Vest) { injury *= DefenseRating.VestInjury; death *= DefenseRating.VestDeath; }
                 death *= Stats.DeathFactor(g.Stealth);
                 var o = new GuardOutcome();
                 double roll = rng.NextDouble();

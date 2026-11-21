@@ -136,6 +136,9 @@ namespace FrontsAndRivals.Rules
 
         // ---- 2. guns unlock with rank ----
 
+        /// <summary>Body armour for one guard. Every rank can wear it; it's money, not experience.</summary>
+        public const int VestPrice = 750;
+
         /// <summary>The best gun a guard of this rank will carry: Recruits up to the pump shotgun, Soldiers the SMG,
         /// Veterans and Lieutenants the carbine rifle.</summary>
         public static Weapon MaxWeapon(Rank r)

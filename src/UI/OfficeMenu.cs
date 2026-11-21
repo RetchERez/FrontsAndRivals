@@ -30,7 +30,7 @@ namespace FrontsAndRivals.UI
 {
     public sealed class OfficeMenu
     {
-        private const int Rows = 12; // a whole front page (header, 4 posts, 2 quick actions, 4 upgrades, waypoint) fits without scrolling
+        private const int Rows = 13; // a whole front page (header, 3 quick actions, 4 posts, 4 upgrades, waypoint) fits without scrolling
         private const float SectionsWidth = 380f, ListWidth = 500f, DetailWidth = 500f, Gap = 12f;
         private const string Open = "  ›";
 
@@ -263,9 +263,9 @@ namespace FrontsAndRivals.UI
             {
                 case Owners.Player: return "Yours";
                 case Owners.ForSale: return "For Sale";
-                case Owners.CrownKings: return "Crown Kings";
-                case Owners.Ironside: return "Ironside MC";
-                case Owners.Velvet: return "Velvet Syndicate";
+                case Owners.CrownKings: return "Dead Kings";
+                case Owners.Ironside: return "Hellfire MC";
+                case Owners.Velvet: return "Syndicate";
                 default: return owner;
             }
         }
@@ -782,6 +782,23 @@ namespace FrontsAndRivals.UI
                 Changed(true);
             });
             _detail.Add(arm);
+
+            int vests = e.VestFrontPrice(def.Id);
+            NativeItem vest = Row("Vest This Front", vests > 0 ? "Body armour for everyone posted here who isn't wearing it: they last longer in a fight and die less. "
+                + Money(Economy.VestPrice) + " a guard." : "Everyone posted here already wears body armour (or nobody is posted).", vests > 0 ? Money(vests) : "");
+            vest.Enabled = vests > 0;
+            vest.Activated += (s, a) => Safe("vests", () =>
+            {
+                int total = e.VestFrontPrice(def.Id);
+                if (total <= 0) return;
+                if (Game.Player.Money < total) { GTA.UI.Notification.Show("You need " + Money(total) + " to vest the " + def.ShortName + "."); return; }
+                Game.Player.Money -= total;
+                int n = e.VestFront(def.Id);
+                Sounds.Play(Cue.Purchase);
+                GTA.UI.Notification.Show("Put " + n + (n == 1 ? " guard" : " guards") + " at the " + def.ShortName + " in body armour.");
+                Changed(true);
+            });
+            _detail.Add(vest);
         }
 
         private void AddUpgrades(Empire e, FrontDef def)
@@ -920,6 +937,20 @@ namespace FrontsAndRivals.UI
             weapon.Enabled = price > 0 && !Empire.WeaponLocked(g);
             _detail.Add(weapon);
 
+            NativeItem armour = g.Vest ? Info("Body Armour", "Wears a vest: lasts longer in a live fight, and is hurt and killed less when a fight is decided without you.", "Worn")
+                : Row("Buy Body Armour", "A vest: lasts longer in a live fight, and is hurt and killed less when a fight is decided without you.", Money(Economy.VestPrice));
+            if (!g.Vest)
+                armour.Activated += (s, a) => Safe("vest", () =>
+                {
+                    if (Game.Player.Money < Economy.VestPrice) { GTA.UI.Notification.Show("You need " + Money(Economy.VestPrice) + " for body armour."); return; }
+                    Game.Player.Money -= Economy.VestPrice;
+                    g.Vest = true;
+                    Sounds.Play(Cue.Purchase);
+                    Changed(true);
+                });
+            else armour.Enabled = false;
+            _detail.Add(armour);
+
             NativeItem letGo = Row(_letGoArmed == g.Id ? "Fire " + g.First + "? Select Again to Confirm" : "Fire Guard",
                 "Off the payroll for good: no wage from tonight, no severance, and their skills walk out with them.", "");
             letGo.Activated += (s, a) => Safe("fire", () =>
@@ -961,6 +992,15 @@ namespace FrontsAndRivals.UI
             NativeItem header = Info("Last Move", string.IsNullOrEmpty(c.LastMove) ? "Nothing yet. They're watching." : c.LastMove + ".", "Grudge " + c.Grudge);
             header.Panel = new NativeStatsPanel(new NativeStatsInfo("Grudge", c.Grudge), new NativeStatsInfo("Manpower", Bar(c.Manpower, Nemesis.MaxManpower)));
             _detail.Add(header);
+
+            if (!string.IsNullOrEmpty(c.FeudWith))
+            {
+                CrewDef enemy = _content.Crew(c.FeudWith);
+                NativeItem feud = Info("At War With", "Their latest turf fight was with the " + (enemy != null ? enemy.Name : c.FeudWith) + ". Crews at war bleed each other: a chance for you.",
+                    enemy != null ? enemy.Name : c.FeudWith);
+                feud.Enabled = false;
+                _detail.Add(feud);
+            }
 
             CrewMember boss = c.Boss;
             if (boss != null) _detail.Add(MemberRow(boss, "Boss"));

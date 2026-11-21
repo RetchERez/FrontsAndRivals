@@ -83,6 +83,7 @@ namespace FrontsAndRivals.Rules
                 double injury = (o.Won ? 0.5 : 0.8) * r * Stats.InjuryFactor(g.Stamina);
                 double death = (o.Won ? 0.12 : 0.3) * r * Stats.DeathFactor(g.Stealth);
                 if (g.Trait == (int)Trait.Hothead) death *= 2.0;
+                if (g.Vest) { injury *= DefenseRating.VestInjury; death *= DefenseRating.VestDeath; }
                 double roll = rng.NextDouble();
                 if (roll < death)
                 {

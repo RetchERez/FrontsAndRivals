@@ -43,9 +43,22 @@ static class AttackTests
         int onSale = ms.Fronts.Count(f => f.Owner == Owners.ForSale);
         T.True("The market refills when it runs dry, up to two (" + onSale + " on sale)", sold > 0 && onSale <= Turf.MarketTarget);
         CrewDef ir = mcontent.Crew("IR"), ck = mcontent.Crew("CK");
-        T.True("Ironside MC rides bikes, two up: 9 attackers on 5 bikes", ir.ConvoyPlan(9).Count == 5 && ir.ConvoyPlan(9).TrueForAll(v => v == "daemon" || v == "hexer"));
-        T.True("Crown Kings: 9 in 3 cars, alternating their two rides", ck.ConvoyPlan(9).Count == 3 && ck.ConvoyPlan(9)[0] != ck.ConvoyPlan(9)[1]);
+        T.True("Hellfire MC rides bikes, two up: 9 attackers on 5 bikes", ir.ConvoyPlan(9).Count == 5 && ir.ConvoyPlan(9).TrueForAll(v => v == "daemon" || v == "hexer"));
+        T.True("Dead Kings: 9 in 3 cars, alternating their two rides", ck.ConvoyPlan(9).Count == 3 && ck.ConvoyPlan(9)[0] != ck.ConvoyPlan(9)[1]);
         T.True("A convoy always seats the whole squad", ir.ConvoySeats(9) >= 9 && ck.ConvoySeats(5) >= 5 && ir.ConvoyPlan(1).Count == 1);
+        T.True("Heavy guns: 10% at a small front, 60% at a big one, more with grudge", Math.Abs(CrewDef.HeavyShare(0, 0) - 0.1) < 1e-9 && Math.Abs(CrewDef.HeavyShare(2, 0) - 0.6) < 1e-9 && CrewDef.HeavyShare(2, 100) <= 0.8);
+        int heavySmall = 0, heavyBig = 0, booms = 0;
+        for (int i = 0; i < 2000; i++)
+        {
+            if (ck.HeavyWeapons.Contains(ck.WeaponFor(i, 0, 0))) heavySmall++;
+            if (ck.HeavyWeapons.Contains(ck.WeaponFor(i, 2, 0))) heavyBig++;
+            if (ck.ExplosiveFor(i) != null) booms++;
+        }
+        T.True("A big front's crew carries far more heavy guns (" + heavyBig + " vs " + heavySmall + " per 2,000)", heavyBig > heavySmall * 3);
+        T.True("About 1 attacker in 20 brings an explosive (" + booms + " per 2,000)", booms > 60 && booms < 140);
+        T.True("Same soldier, same gun every visit", ck.WeaponFor(42, 1, 30) == ck.WeaponFor(42, 1, 30));
+        T.True("Each crew fights with its own kit", mcontent.Crew("VS").LeaderWeapon() == "carbinerifle" && ir.Explosives.Contains("molotov") && CrewDef.FrontArmor(2) == 50);
+        T.True("New names", ck.Name == "Dead Kings" && ir.Name == "Hellfire MC" && mcontent.Crew("VS").Name == "Syndicate");
         T.True("Labels: Unknown at 0, Marked at 20", Attacks.PressureLabel(0) == "Unknown" && Attacks.PressureLabel(20) == "Marked");
     }
 
@@ -62,7 +75,7 @@ static class AttackTests
         T.Section("Crews (content and setup)");
         var content = Content();
         T.Check("3 crews in crews.json", content.Crews.Count, 3, 0);
-        T.True("Crown Kings boss is Darnell \"King D\" Hayes", content.Crew("CK").Boss.First == "Darnell" && content.Crew("CK").Boss.Nick == "King D");
+        T.True("Dead Kings boss is Darnell \"King D\" Hayes", content.Crew("CK").Boss.First == "Darnell" && content.Crew("CK").Boss.Nick == "King D");
         T.True("Every crew has 3 lieutenants", content.Crews.TrueForAll(c => c.Lieutenants.Count == 3));
         T.True("lines.json loaded", content.Lines.Count >= 10);
 
@@ -95,7 +108,7 @@ static class AttackTests
         T.Check("Even odds: guards hold 5 minutes", Attacks.HoldMinutes(5, 100, 100, false, "CK"), 5, 0);
         T.True("Outgunned about 3, strong up to 7", Attacks.HoldMinutes(5, 0, 100, false, "CK") == 3 && Attacks.HoldMinutes(5, 1000, 1, false, "CK") == 7);
         T.Check("Cameras add 2 minutes", Attacks.HoldMinutes(5, 100, 100, true, "CK"), 7, 0);
-        T.Check("The Velvet Syndicate takes a minute", Attacks.HoldMinutes(5, 100, 100, false, "VS"), 4, 0);
+        T.Check("the Syndicate takes a minute", Attacks.HoldMinutes(5, 100, 100, false, "VS"), 4, 0);
         T.True("Always 2 to 12 minutes", Attacks.HoldMinutes(2, 0, 500, false, "VS") == 2 && Attacks.HoldMinutes(12, 999, 1, true, "CK") == 12);
         var dug = new EmpireState { Day = 4 };
         var lostFront = new FrontState { Id = "x" };
@@ -115,7 +128,7 @@ static class AttackTests
             if (c.Id == "CK") ckPicks++; else if (c.Id == "IR") irPicks++; else vsPicks++;
         }
         T.Check("Quiet crews sit out", vsPicks, 0, 0);
-        T.Check("Crown Kings (2.0) picked ~80% vs Ironside (0.5)", ckPicks / 3000.0, 0.8, 0.04);
+        T.Check("Dead Kings (2.0) picked ~80% vs Ironside (0.5)", ckPicks / 3000.0, 0.8, 0.04);
         Nemesis.Crew(s, "VS").QuietUntilDay = -1;
 
         AttackState plan = Attacks.Plan(s, content, e, rng, 5, 12, now);
@@ -266,7 +279,7 @@ static class AttackTests
         T.True("...about 20 weeks to pay back, like Smoke on the Water's 22 (" + weeksBack.ToString("0") + ")", weeksBack >= 18 && weeksBack <= 22);
 
         T.Section("Text lines");
-        var tokens = new Dictionary<string, string> { { "crew", "Crown Kings" }, { "front", "Car Wash" } };
+        var tokens = new Dictionary<string, string> { { "crew", "Dead Kings" }, { "front", "Car Wash" } };
         string w = content.Lines.Pick(rng, "warning", tokens);
         T.True("Warning lines fill {crew} and {front}", w.Contains("Car Wash") && !w.Contains("{"));
         T.Equal("Fill replaces every token", LineBook.Fill("{a} and {a}", new Dictionary<string, string> { { "a", "x" } }), "x and x");

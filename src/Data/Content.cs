@@ -246,13 +246,13 @@ namespace FrontsAndRivals.Data
         {
             return new List<CrewDef>
             {
-                NewCrew("CK", "Crown Kings", 12, 2.0, 120, -1700, 51, 38, P("Darnell", "King D", "Hayes", "Ruthless"),
+                NewCrew("CK", "Dead Kings", 12, 2.0, 120, -1700, 51, 38, P("Darnell", "King D", "Hayes", "Ruthless"),
                     new[] { P("Dre", "Ledger", "Collins", "Showboat"), P("Tasha", "Switch", "Monroe", "Tactician"), P("Luis", "Ghost", "Arenas", "Cautious") },
                     new[] { "a_m_y_stbla_01", "a_m_y_soucent_01", "a_m_y_eastsa_01" }, new[] { "sultan", "buffalo" }),
-                NewCrew("IR", "Ironside MC", 16, 0.5, 1150, -1500, 76, 40, P("Walt", "Anvil", "Kessler", "Ruthless"),
+                NewCrew("IR", "Hellfire MC", 16, 0.5, 1150, -1500, 76, 40, P("Walt", "Anvil", "Kessler", "Ruthless"),
                     new[] { P("Ray", "Gravel", "Dunn", "Cautious"), P("Mickey", "Torch", "Boyle", "Showboat"), P("Hank", "Deacon", "Pruitt", "Ruthless") },
                     new[] { "a_m_m_hillbilly_01", "a_m_m_salton_01", "a_m_y_motox_01" }, new[] { "daemon", "gburrito" }),
-                NewCrew("VS", "Velvet Syndicate", 14, 1.0, -800, -500, 53, 54, P("Celeste", "", "Marchand", "Tactician"),
+                NewCrew("VS", "Syndicate", 14, 1.0, -800, -500, 53, 54, P("Celeste", "", "Marchand", "Tactician"),
                     new[] { P("Victor", "", "Sato", "Cautious"), P("Ines", "", "Kovac", "Tactician"), P("Julian", "", "Pryce", "Showboat") },
                     new[] { "a_m_y_business_01", "a_m_m_business_01", "a_f_y_business_01" }, new[] { "schafter2", "tailgater" })
             };

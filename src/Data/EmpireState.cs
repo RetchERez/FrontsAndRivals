@@ -121,6 +121,8 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "stealth", Order = 19)] public int Stealth;
         /// <summary>Following you as a bodyguard. They keep their post and go back to it when sent back.</summary>
         [DataMember(Name = "escort", Order = 20)] public bool Escort;
+        /// <summary>Wears body armour: lasts longer in a live fight, hurt and killed less when it's decided without you.</summary>
+        [DataMember(Name = "vest", Order = 21)] public bool Vest;
 
         /// <summary>Mateo "Smoke" Alvarez</summary>
         public string FullName { get { return string.IsNullOrEmpty(Nick) ? First + " " + Last : First + " \"" + Nick + "\" " + Last; } }

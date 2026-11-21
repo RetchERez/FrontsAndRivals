@@ -53,6 +53,21 @@ static class RulesTests
         T.True("A skilled guard out-guns an average one", DefenseRating.GuardPower(raw, new FrontUpgrades(), 12) > DefenseRating.GuardPower(G(Rank.Soldier, Weapon.Smg), new FrontUpgrades(), 12));
     }
 
+    static void VestTests()
+    {
+        T.Section("Body armour");
+        var plain = G(Rank.Soldier, Weapon.Smg); var vested = G(Rank.Soldier, Weapon.Smg); vested.Vest = true;
+        T.True("A vest makes a guard a little stronger", DefenseRating.GuardPower(vested, new FrontUpgrades(), 12) > DefenseRating.GuardPower(plain, new FrontUpgrades(), 12));
+        var rng = new Random(11);
+        int deadPlain = 0, deadVest = 0;
+        for (int i = 0; i < 4000; i++)
+        {
+            if (Resolver.Resolve(rng, new List<GuardRecord> { plain }, 30, 80, 5, false).Guards[0].Dead) deadPlain++;
+            if (Resolver.Resolve(rng, new List<GuardRecord> { vested }, 30, 80, 5, false).Guards[0].Dead) deadVest++;
+        }
+        T.True("Vested guards die less (" + deadVest + " vs " + deadPlain + " in 4,000 fights)", deadVest < deadPlain * 0.8);
+    }
+
     /// <summary>Raids should be a gamble early, a good bet mid-game, and strong but never certain late.</summary>
     static void RaidBalance()
     {
@@ -65,7 +80,7 @@ static class RulesTests
         T.True("Late raid (4 carbine veterans vs a big front): strong, 65-85% (" + (int)(late * 100) + "%)", late >= 0.65 && late <= 0.85);
     }
 
-    /// <summary>The balance pass's target fights (Crown Kings, soldier power 12). Preparation should win, neglect should lose.</summary>
+    /// <summary>The balance pass's target fights (Dead Kings, soldier power 12). Preparation should win, neglect should lose.</summary>
     static void BalanceTests()
     {
         T.Section("Balance: a prepared front wins, a neglected one loses");
@@ -98,6 +113,7 @@ static class RulesTests
     {
         BalanceTests();
         RaidBalance();
+        VestTests();
         StatsTests();
         T.Section("Rules (design doc numbers)");
         var none = new FrontUpgrades();

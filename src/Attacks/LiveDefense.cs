@@ -66,6 +66,10 @@ namespace FrontsAndRivals.Attacks
         private readonly Dictionary<Vehicle, int> _stuckSince = new Dictionary<Vehicle, int>();
         private readonly List<Blip> _pedBlips = new List<Blip>();
         private List<string> _convoy = new List<string>();
+        private int _grudge;
+        private bool _explosiveGiven;
+        /// <summary>How much a crew hates you right now (Main sets it): angrier crews bring heavier guns.</summary>
+        public Func<string, int> Grudge;
         private readonly List<Vehicle> _cars = new List<Vehicle>();
         private readonly List<Ped> _attackers = new List<Ped>();
         private readonly HashSet<Ped> _counted = new HashSet<Ped>();
@@ -93,6 +97,8 @@ namespace FrontsAndRivals.Attacks
         public bool Start(AttackState attack, FrontDef front, CrewDef crew, CrewMember leader, bool police)
         {
             _attack = attack;
+            _grudge = Grudge != null ? Grudge(crew.Id) : 0;
+            _explosiveGiven = false;
             _front = front;
             _crew = crew;
             _leaderMember = leader;
@@ -242,9 +248,23 @@ namespace FrontsAndRivals.Attacks
                     ped.RelationshipGroup = Factions.CrewGroup(_crew.Id);
                     _registry.Track(ped);
                     ped.SetIntoVehicle(v, seat == 0 ? VehicleSeat.Driver : (VehicleSeat)(seat - 1));
-                    ped.Weapons.Give(Streamer.CrewWeapon(_crew, placed), 300, true, true);
+                    // Bigger fronts and angrier crews bring heavier guns; the leader carries the best and a full vest;
+                    // now and then one of them brings the crew's explosive (one per squad at most).
+                    string gun = placed == 0 ? _crew.LeaderWeapon() : _crew.WeaponFor(_front.Number * 31 + placed, _front.Tier, _grudge);
+                    ped.Weapons.Give(Streamer.CrewWeapon(gun), 300, true, true);
+                    if (placed > 0 && !_explosiveGiven)
+                    {
+                        string boom = _crew.ExplosiveFor(_front.Number * 131 + placed + _attack.Squad);
+                        if (boom != null)
+                        {
+                            _explosiveGiven = true;
+                            bool launcher = boom == "rpg" || boom == "grenadelauncher";
+                            ped.Weapons.Give(Streamer.CrewWeapon(boom), launcher ? 3 : 2, false, true);
+                            Log.Write("LiveDefense: one of the " + _crew.Name + " brought a " + boom);
+                        }
+                    }
                     ped.Accuracy = 20 + (int)(_crew.SoldierPower);
-                    ped.Armor = (int)(_crew.SoldierPower * 2);
+                    ped.Armor = placed == 0 ? 100 : (int)(_crew.SoldierPower * 2);
                     ped.BlockPermanentEvents = false;
                     Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 0, true);   // CA_USE_COVER
                     Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true);  // CA_ALWAYS_FIGHT
