@@ -7,7 +7,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 ## What's in 1.0
 
 - 29 real businesses as fronts across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
-- Three crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side, the Syndicate out west; five fronts start for sale
+- Three crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side, the Vinewood Outfit out west; five fronts start for sale
 - A city that moves without you: crews grab fronts that are for sale and take each other's at night
 - The Office on your phone: three side-by-side panels for fronts, guards, hiring, rivals and settings
 - Guards with traits, ranks, experience and permanent death; a memorial for the fallen
@@ -37,7 +37,7 @@ Run real Los Santos businesses as fronts, post guards with names, faces, traits 
 - Crews never die out: they recruit off the street every night and come back for what you took
 - A weapon ladder: every guard starts with a knife and is armed one gun at a time, each a big step up:
   pistol $350 (x1.0), pump shotgun $550 (x1.3), SMG $1,300 (x1.6), carbine rifle $2,100 (x2.0), Ammu-Nation's own prices; the knife is x0.6
-- Three original crews (Dead Kings, Hellfire MC, the Syndicate), each with a named boss and three lieutenants
+- Three original crews (Dead Kings, Hellfire MC, the Vinewood Outfit), each with a named boss and three lieutenants
 - Attacks are already underway when you hear about them; within 300 m they become a live defense with convoys, timer bars and a door to hold
 - Take rival fronts by clearing their guards and claiming the door
 - A nemesis loop: leaders who escape come back with scars and text you about it; dead lieutenants are replaced by promoted survivors

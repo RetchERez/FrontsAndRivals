@@ -164,7 +164,7 @@ namespace FrontsAndRivals.Rules
 
         /// <summary>No warning: the attack is already on when you hear about it, and your guards hold the line this many
         /// real minutes before it's decided without you. Stronger fronts hold longer: x0.6 badly outgunned, x1.0 at even
-        /// odds, up to x1.4 (5 by default: about 3 to 7). Cameras add 2 minutes; the Syndicate (fast and quiet)
+        /// odds, up to x1.4 (5 by default: about 3 to 7). Cameras add 2 minutes; the Vinewood Outfit (fast and quiet)
         /// takes 1. Always 2-12 minutes. Sometimes you make it, sometimes your guards settle it first.</summary>
         public static int HoldMinutes(int baseMinutes, double defense, double attack, bool cameras, string crewId)
         {

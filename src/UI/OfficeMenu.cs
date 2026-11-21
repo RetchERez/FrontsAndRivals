@@ -265,7 +265,7 @@ namespace FrontsAndRivals.UI
                 case Owners.ForSale: return "For Sale";
                 case Owners.CrownKings: return "Dead Kings";
                 case Owners.Ironside: return "Hellfire MC";
-                case Owners.Velvet: return "Syndicate";
+                case Owners.Velvet: return "Vinewood Outfit";
                 default: return owner;
             }
         }

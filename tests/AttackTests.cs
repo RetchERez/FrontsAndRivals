@@ -58,7 +58,7 @@ static class AttackTests
         T.True("About 1 attacker in 20 brings an explosive (" + booms + " per 2,000)", booms > 60 && booms < 140);
         T.True("Same soldier, same gun every visit", ck.WeaponFor(42, 1, 30) == ck.WeaponFor(42, 1, 30));
         T.True("Each crew fights with its own kit", mcontent.Crew("VS").LeaderWeapon() == "carbinerifle" && ir.Explosives.Contains("molotov") && CrewDef.FrontArmor(2) == 50);
-        T.True("New names", ck.Name == "Dead Kings" && ir.Name == "Hellfire MC" && mcontent.Crew("VS").Name == "Syndicate");
+        T.True("New names", ck.Name == "Dead Kings" && ir.Name == "Hellfire MC" && mcontent.Crew("VS").Name == "Vinewood Outfit");
         T.True("Labels: Unknown at 0, Marked at 20", Attacks.PressureLabel(0) == "Unknown" && Attacks.PressureLabel(20) == "Marked");
     }
 

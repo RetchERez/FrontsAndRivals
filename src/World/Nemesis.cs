@@ -188,7 +188,7 @@ namespace FrontsAndRivals.Rules
                 m.First = firsts[rng.Next(firsts.Length)];
                 m.Last = lasts[rng.Next(lasts.Length)];
             } while (NameTaken(s, m.First, m.Last) && ++tries < 12);
-            // Half go by a street name. the Syndicate never do.
+            // Half go by a street name. the Vinewood Outfit never do.
             m.Nick = def.Id == "VS" || rng.NextDouble() >= CrewNickChance ? "" : CrewNicks[rng.Next(CrewNicks.Length)];
             m.AddLog("Walked away from the " + frontName + " and got promoted.");
             crew.Members.Add(m);
