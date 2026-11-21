@@ -12,21 +12,21 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
-- The crews are renamed: the Dead Kings (South LS street gang), the Hellfire MC (east-side bikers) and the Vinewood Outfit
+- The crews are renamed: the Dead Kings (South LS street gang), the Hellfire MC (east-side bikers) and the Vinewood Elite
   (west-side mob). Saves are unaffected
 - Warring factions: the crews hate each other in the world as well as at night (rival soldiers shoot on sight if their
   paths cross), and Office > Rivals shows who each crew is at war with
 - Crew arsenals: everyday and heavy guns per crew (Dead Kings: pistols, micro SMGs / sawn-offs, assault rifles; Hellfire:
-  pistols, sawn-offs / pump shotguns, assault rifles; the Vinewood Outfit: combat pistols, SMGs / carbines). Heavy guns are 10%
+  pistols, sawn-offs / pump shotguns, assault rifles; the Vinewood Elite: combat pistols, SMGs / carbines). Heavy guns are 10%
   of soldiers at small fronts, 35% mid-size, 60% big, more with grudge; front soldiers wear 0 / 25 / 50 armour; attack
   leaders carry the best gun and a full vest; about 1 attacker in 20 brings the crew's explosive (Dead Kings grenades and
-  Molotovs, Hellfire Molotovs and pipe bombs, the Vinewood Outfit a grenade launcher or an RPG), one per squad at most
+  Molotovs, Hellfire Molotovs and pipe bombs, the Vinewood Elite a grenade launcher or an RPG), one per squad at most
 - Body armour: $750 a guard (guard page, or Vest This Front for everyone at once). In a live fight they wear a full
   100-point vest; when a fight is decided without you they're hurt x0.75 and killed x0.65 as often (and x1.03 stronger).
   Bodyguards wear theirs too. A vest is the guard's for good, and after every fight guards heal back to full with the
   vest topped up (bodyguards ten seconds after they stop fighting)
 - Crew rides: each crew has two signature vehicles and convoys seat the whole squad (Hellfire MC on Daemon and Hexer
-  bikes two-up, the Dead Kings in Dominators and Mananas, the Vinewood Outfit in Schafters and Washingtons)
+  bikes two-up, the Dead Kings in Dominators and Mananas, the Vinewood Elite in Schafters and Washingtons)
 - Variance pass (200 games per setting, 60 days, p10/p50/p90 and tails): every front holds a little by itself (6 / 10 / 14
   by size) so empty fronts aren't free wins, and the roster holds 70. Normal: staffed fronts hold ~68%, worst losing
   streaks down from 10 to 6, nobody wiped out, holding all 29 is a late-story goal (~day 45-60)
@@ -105,7 +105,7 @@ First full release.
   (lieutenant +10, boss +30), wages are $300-$1,200, fronts cost five days of income, reinforced doors give +20 for $20,000,
   the Broker sends 4 recruits a day, the roster holds 60, and empire pressure never brings attacks closer than 20 minutes
 - Fronts: buying the starter car wash, four upgrades (cameras, reinforced doors, floodlights, armory), defense and income bars
-- Rival crews: Dead Kings, Hellfire MC and the Vinewood Outfit, each with a named boss and three lieutenants
+- Rival crews: Dead Kings, Hellfire MC and the Vinewood Elite, each with a named boss and three lieutenants
 - Attacks: cooldown by frequency, the attack alert and taunts, the hold timer, auto-resolve, live defenses with convoys, timer bars,
   door integrity, a fleeing leader, police response, red blips on attackers on foot, a 6-minute cap, and a hand-off to auto-resolve
   if you die, leave or a mission starts (the whole squad is resolved if the convoy never arrived)

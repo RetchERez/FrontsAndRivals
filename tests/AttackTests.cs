@@ -58,7 +58,7 @@ static class AttackTests
         T.True("About 1 attacker in 20 brings an explosive (" + booms + " per 2,000)", booms > 60 && booms < 140);
         T.True("Same soldier, same gun every visit", ck.WeaponFor(42, 1, 30) == ck.WeaponFor(42, 1, 30));
         T.True("Each crew fights with its own kit", mcontent.Crew("VS").LeaderWeapon() == "carbinerifle" && ir.Explosives.Contains("molotov") && CrewDef.FrontArmor(2) == 50);
-        T.True("New names", ck.Name == "Dead Kings" && ir.Name == "Hellfire MC" && mcontent.Crew("VS").Name == "Vinewood Outfit");
+        T.True("New names", ck.Name == "Dead Kings" && ir.Name == "Hellfire MC" && mcontent.Crew("VS").Name == "Vinewood Elite");
         T.True("Labels: Unknown at 0, Marked at 20", Attacks.PressureLabel(0) == "Unknown" && Attacks.PressureLabel(20) == "Marked");
     }
 
@@ -108,7 +108,7 @@ static class AttackTests
         T.Check("Even odds: guards hold 5 minutes", Attacks.HoldMinutes(5, 100, 100, false, "CK"), 5, 0);
         T.True("Outgunned about 3, strong up to 7", Attacks.HoldMinutes(5, 0, 100, false, "CK") == 3 && Attacks.HoldMinutes(5, 1000, 1, false, "CK") == 7);
         T.Check("Cameras add 2 minutes", Attacks.HoldMinutes(5, 100, 100, true, "CK"), 7, 0);
-        T.Check("The Vinewood Outfit takes a minute", Attacks.HoldMinutes(5, 100, 100, false, "VS"), 4, 0);
+        T.Check("The Vinewood Elite takes a minute", Attacks.HoldMinutes(5, 100, 100, false, "VS"), 4, 0);
         T.True("Always 2 to 12 minutes", Attacks.HoldMinutes(2, 0, 500, false, "VS") == 2 && Attacks.HoldMinutes(12, 999, 1, true, "CK") == 12);
         var dug = new EmpireState { Day = 4 };
         var lostFront = new FrontState { Id = "x" };

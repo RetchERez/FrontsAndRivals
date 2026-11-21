@@ -252,7 +252,7 @@ namespace FrontsAndRivals.Data
                 NewCrew("IR", "Hellfire MC", 16, 0.5, 1150, -1500, 76, 40, P("Walt", "Anvil", "Kessler", "Ruthless"),
                     new[] { P("Ray", "Gravel", "Dunn", "Cautious"), P("Mickey", "Torch", "Boyle", "Showboat"), P("Hank", "Deacon", "Pruitt", "Ruthless") },
                     new[] { "a_m_m_hillbilly_01", "a_m_m_salton_01", "a_m_y_motox_01" }, new[] { "daemon", "gburrito" }),
-                NewCrew("VS", "Vinewood Outfit", 14, 1.0, -800, -500, 53, 54, P("Celeste", "", "Marchand", "Tactician"),
+                NewCrew("VS", "Vinewood Elite", 14, 1.0, -800, -500, 53, 54, P("Celeste", "", "Marchand", "Tactician"),
                     new[] { P("Victor", "", "Sato", "Cautious"), P("Ines", "", "Kovac", "Tactician"), P("Julian", "", "Pryce", "Showboat") },
                     new[] { "a_m_y_business_01", "a_m_m_business_01", "a_f_y_business_01" }, new[] { "schafter2", "tailgater" })
             };
