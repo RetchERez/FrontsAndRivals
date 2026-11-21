@@ -115,6 +115,13 @@ namespace FrontsAndRivals.Core
                 else Log.Write("Config: OfficeHotkey '" + _config.OfficeHotkey + "' is not a key name, no hotkey");
             }
             KeyDown += OnKeyDown;
+            // Always a way in: with no phone contact (iFruitAddon2 missing), no hotkey and the controller hold switched off,
+            // the Office would be unreachable, so the hold comes back on.
+            if (_phone == null && _officeKey == Keys.None && !_config.OfficeButton)
+            {
+                _config.OfficeButton = true;
+                Log.Write("No phone contact and no OfficeHotkey: OfficeButton switched on so the Office can still be opened (hold Back/View or M)");
+            }
 
             if (_config.DevTools)
             {
@@ -533,6 +540,11 @@ namespace FrontsAndRivals.Core
                     _notifier.Send(NoteKind.StreetWord, "Street word", where.Area, _content.Lines.Pick(_rng, move.FromCrew != null ? "turfWar" : "turfGrab", t));
                     told = true;
                 }
+                if (_empire.BrokerRescue())
+                {
+                    Log.Write("Broker rescue: the car wash is for sale again");
+                    _notifier.Send(NoteKind.Broker, "The Broker", "Back in business", "Rough few days. I've bought the Hands On Car Wash back off whoever had it. It's yours if you want it, same price as before.");
+                }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
                 foreach (GuardState up in _empire.DayOnDuty())
                 {
@@ -546,7 +558,8 @@ namespace FrontsAndRivals.Core
                     _notifier.Send(NoteKind.Staff, q.ShortName, "Unpaid", "No money, no me. I'm out.");
                 }
                 if (pay.Income == 0 && pay.Wages == 0) continue;
-                Game.Player.Money += pay.Net;
+                // Never below zero: only Loyal guards are left waiting for their money if it doesn't cover them.
+                Game.Player.Money = (int)Math.Max(0L, (long)Game.Player.Money + pay.Net);
                 _state.LastNet = pay.Net;
                 Log.Write("Midnight day " + _state.Day + ": income " + pay.Income + ", wages " + pay.Wages + ", net " + pay.Net);
                 if (pay.Net > 0) Sounds.Play(Cue.MidnightTake);

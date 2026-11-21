@@ -146,6 +146,16 @@ static class FrontTests
         T.True("For sale uses the for-sale icons", WorkerRules.MapIcon("cafe_noodleexchange", true) == 375 && WorkerRules.MapIcon("factory_bagco", true) == 474);
 
         T.Section("Early-game safeguards");
+        var bs2 = SaveService.NewEmpire();
+        var be2 = new Empire(bs2, content);
+        be2.SetOwner("carwash_handson", Owners.CrownKings); // lost it
+        bs2.LastHeldDay = 3; bs2.Day = 4;
+        T.True("Broker rescue waits two days", !be2.BrokerRescue());
+        bs2.Day = 5;
+        T.True("...then puts the car wash back on sale", be2.BrokerRescue() && be2.OwnerOf("carwash_handson") == Owners.ForSale);
+        T.True("...once", !be2.BrokerRescue());
+        be2.SetOwner("carwash_handson", Owners.Player);
+        T.True("Holding a front resets the clock", !be2.BrokerRescue() && bs2.LastHeldDay == bs2.Day);
         var ss = SaveService.NewEmpire();
         var se = new Empire(ss, content);
         se.SetOwner("carwash_handson", Owners.Player);

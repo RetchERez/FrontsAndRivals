@@ -12,6 +12,9 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
+- Safety nets: midnight wages never take your cash below $0; with no phone contact and no hotkey the controller hold is
+  switched back on so the Office is always reachable; after two in-game days with no fronts the Broker buys the car wash
+  back and offers it again (with its starter crew if you have nobody left)
 - Playing alongside the story: the Broker's car wash comes with two of the old owner's people already posted, so a
   broke early Franklin can hold it; simulated from early-story ($10,000), mid ($50,000) and post-heist ($5M) starts:
   early players grow slower, rich ones still have to fight for 24 of the 29 fronts

@@ -269,6 +269,26 @@ namespace FrontsAndRivals.Rules
             return n;
         }
 
+        public const int RescueAfterDays = 2;
+
+        /// <summary>Safety net for a player who lost everything: after two in-game days with no fronts, the Broker buys
+        /// the car wash back from whoever took it and offers it again (with its starter crew if you have no guards).
+        /// Call once a midnight. Returns true when the Broker stepped in.</summary>
+        public bool BrokerRescue()
+        {
+            if (OwnedCount() > 0) { _s.LastHeldDay = _s.Day; return false; }
+            if (_s.Day - _s.LastHeldDay < RescueAfterDays) return false;
+            foreach (FrontDef def in _content.Fronts)
+            {
+                if (!def.Starter) continue;
+                if (OwnerOf(def.Id) == Owners.ForSale) return false; // already on offer
+                SetOwner(def.Id, Owners.ForSale);
+                _s.LastHeldDay = _s.Day; // don't repeat every night
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>Calls the crew back before word comes in: nobody fights, everyone goes home.</summary>
         public void CancelRaid() { _s.Raid = null; }
 
