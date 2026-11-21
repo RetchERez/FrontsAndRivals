@@ -24,22 +24,29 @@ namespace FrontsAndRivals.UI
         /// <summary>Drops everything still waiting to be sent (a new empire starting).</summary>
         public void Clear() { _queue.Clear(); }
 
-        /// <summary>A message kept for the Office's Messages page: GTA's own feed isn't archived, so the Office is.</summary>
-        public sealed class Logged { public string Sender, Subject, Message, When; }
-
         public const int LogSize = 25;
-        private readonly System.Collections.Generic.List<Logged> _log = new System.Collections.Generic.List<Logged>();
+        private readonly System.Collections.Generic.List<FrontsAndRivals.Data.MessageEntry> _fallback = new System.Collections.Generic.List<FrontsAndRivals.Data.MessageEntry>();
 
-        /// <summary>Newest first.</summary>
-        public System.Collections.Generic.IList<Logged> Log { get { return _log; } }
+        /// <summary>Where the Office's Messages page lives: the empire's save (Main supplies it), so it survives a reload.</summary>
+        public Func<System.Collections.Generic.List<FrontsAndRivals.Data.MessageEntry>> Store;
+
+        /// <summary>The in-game day stamped on each message (Main supplies it).</summary>
+        public Func<int> Day = () => 0;
+
+        /// <summary>Newest first. GTA's own feed isn't archived, so the Office is.</summary>
+        public System.Collections.Generic.List<FrontsAndRivals.Data.MessageEntry> Log
+        {
+            get { var s = Store != null ? Store() : null; return s ?? _fallback; }
+        }
 
         /// <summary>Keeps a message for the Office without showing it again.</summary>
         public void Remember(string sender, string subject, string message)
         {
             string when = "";
             try { var t = GTA.World.CurrentTimeOfDay; when = t.Hours.ToString("00") + ":" + t.Minutes.ToString("00"); } catch { }
-            _log.Insert(0, new Logged { Sender = sender, Subject = subject, Message = message, When = when });
-            if (_log.Count > LogSize) _log.RemoveAt(_log.Count - 1);
+            var log = Log;
+            log.Insert(0, new FrontsAndRivals.Data.MessageEntry { Sender = sender, Subject = subject, Message = message, When = when, Day = Day() });
+            while (log.Count > LogSize) log.RemoveAt(log.Count - 1);
         }
         private Func<NoteSettings> _settings = () => new NoteSettings();
 

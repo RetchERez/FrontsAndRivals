@@ -40,15 +40,16 @@ namespace FrontsAndRivals.Spawn
         /// <summary>Every guard keeps watch: at night they shine a torch, by day the post's own idle.</summary>
         /// <summary>Who walks a patrol: every second person at a front (the first always holds the door), so with two or
         /// more there's always someone on the move around the building and someone at the entrance.</summary>
-        /// <summary>Run over or rammed by a car: that doesn't clear a front. Another soldier comes out to take their place
-        /// (up to four a visit), so a front has to be taken on foot.</summary>
+        /// <summary>Run over or rammed by a car. It counts like any kill, but the first one at a front makes them call for
+        /// backup: a crew car with more soldiers turns up shortly after, so a front can't be cleared from the driver's seat.</summary>
         public static bool VehicleKill(int causeHash, bool killerIsVehicle)
         {
             return killerIsVehicle || causeHash == RunOverHash || causeHash == RammedHash;
         }
 
         public static readonly int RunOverHash = Markers.Hash("WEAPON_RUN_OVER_BY_CAR"), RammedHash = Markers.Hash("WEAPON_RAMMED_BY_CAR");
-        public const int MaxReinforcements = 4;
+        public const int BackupDelayMs = 20000;    // the backup car arrives about this long after the call
+        public const int BackupSize = 2;
 
         public static bool Patrols(int index, int count) { return count >= 2 && index % 2 == 1; }
 

@@ -132,8 +132,8 @@ WHAT'S IN 1.0
    the same around your fronts
  - Every crew member wears their crew colour on a major piece of clothing, and
    your guards wear yours in the style you pick: Street, Smart, Biker or Mixed
- - Fronts are taken on foot: a soldier you run over is replaced by another from
-   inside
+ - Running soldiers over counts, but the whole front opens fire on your car and
+   calls for backup, a crew car with two more soldiers
  - A rougher city: now and then crew members mug people, carjack drivers, get
    chased by the police or bundle someone into a car, rival crews shoot it out
    on turf borders, and the cops sometimes turn up

@@ -74,7 +74,7 @@ DESCRIPTION (Nexus uses BBCode, paste everything between the lines):
 [*]Race back and fight beside them for a bonus, or trust your guards
 [*]Everyone in a fight has twice the usual health, so firefights last
 [*]Take out every soldier at a front and it's yours on the spot, with a shot of the building and the mission passed banner
-[*]Fronts are taken on foot, since a soldier you run over is replaced by another from inside
+[*]Running soldiers over counts, but the whole front opens fire on your car and calls in a crew car of backup
 [*]Street heat rises with every front you take and cools each night, and the hotter it gets the harder the crews push back
 [/list]
 

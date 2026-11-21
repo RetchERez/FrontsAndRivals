@@ -179,13 +179,20 @@ static class FrontTests
         T.True("Crews on their streets: hanging out, walking, cruising", Enumerable.Range(0, 100).Select(i => HangoutRules.Kind(i)).Distinct().Count() == 3);
         T.True("Two groups on cool streets, three once it's warm; quicker when hot", HangoutRules.MaxGroups(0) == 2 && HangoutRules.MaxGroups(50) == 3 && HangoutRules.RespawnMs(100) < HangoutRules.RespawnMs(0));
         T.True("Walkers alone or in pairs, cruisers 2-4", Enumerable.Range(0, 100).All(i => HangoutRules.GroupSize(HangoutKind.Walk, i) <= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) >= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) <= 4));
-        T.True("Running a soldier over doesn't count", StreamRules.VehicleKill(StreamRules.RunOverHash, false) && StreamRules.VehicleKill(0, true) && !StreamRules.VehicleKill(Markers.Hash("WEAPON_PISTOL"), false));
+        T.True("A car kill is spotted (and calls for backup)", StreamRules.VehicleKill(StreamRules.RunOverHash, false) && StreamRules.VehicleKill(0, true) && !StreamRules.VehicleKill(Markers.Hash("WEAPON_PISTOL"), false) && StreamRules.BackupSize == 2 && StreamRules.BackupDelayMs == 20000);
 
         T.True("Street fights on turf borders, now and then", Enumerable.Range(0, 100).Count(i => HangoutRules.Clash(i)) == HangoutRules.ClashChancePct);
 
         T.True("Street crime is occasional: most groups do nothing", Enumerable.Range(0, 100).Count(i => HangoutRules.CrimeFor(HangoutKind.Walk, i) == StreetCrime.None) == 68
             && Enumerable.Range(0, 100).Count(i => HangoutRules.CrimeFor(HangoutKind.Cruise, i) == StreetCrime.None) == 74 && HangoutRules.CrimeFor(HangoutKind.HangOut, 1) == StreetCrime.None);
         T.True("...one at a time, three minutes apart, and cops come to 40% of street fights", HangoutRules.CrimeCooldownMs == 180000 && Enumerable.Range(0, 100).Count(i => HangoutRules.PoliceCome(i)) == 40);
+
+        var ms2 = SaveService.NewEmpire();
+        ms2.Messages = new List<MessageEntry> { new MessageEntry { Sender = "The Office", Subject = "Car Wash is yours", Message = "Arm them.", When = "14:05", Day = 2 } };
+        var ser = new System.Runtime.Serialization.Json.DataContractJsonSerializer(typeof(EmpireState));
+        var mem = new System.IO.MemoryStream(); ser.WriteObject(mem, ms2); mem.Position = 0;
+        var back = (EmpireState)ser.ReadObject(mem);
+        T.True("The Messages page is saved with the empire", back.Messages != null && back.Messages.Count == 1 && back.Messages[0].Subject == "Car Wash is yours" && back.Messages[0].Day == 2);
 
         T.Section("Crew outfits");
         var od = OutfitData.Load(System.IO.Path.Combine(content.ContentDir, "outfits.json"));

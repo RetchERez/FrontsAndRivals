@@ -259,15 +259,15 @@ namespace FrontsAndRivals.UI
         }
 
         /// <summary>Set by Main: the message log (newest first).</summary>
-        public Func<IList<Notifier.Logged>> Messages;
+        public Func<List<MessageEntry>> Messages;
 
         private void ListMessages()
         {
             SetTitles(_list, "Messages", "NEWEST FIRST");
-            IList<Notifier.Logged> log = Messages != null ? Messages() : null;
+            List<MessageEntry> log = Messages != null ? Messages() : null;
             if (log == null || log.Count == 0) { AddListRow(Row("Nothing Yet", "Texts and alerts show up here once things get going.", ""), null, false); return; }
-            foreach (Notifier.Logged m in log)
-                AddListRow(Info(m.Subject, m.Sender + ": " + m.Message, m.When), null, false);
+            foreach (MessageEntry m in log)
+                AddListRow(Info(m.Subject, m.Sender + ": " + m.Message, "Day " + (m.Day + 1) + " " + m.When), null, false);
         }
 
         // ---------- helpers ----------

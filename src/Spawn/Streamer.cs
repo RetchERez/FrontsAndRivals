@@ -42,7 +42,6 @@ namespace FrontsAndRivals.Spawn
             public int PatrolAt = -1;    // patrol point this person is heading to or standing at
             public bool PatrolWalking;
             public int PatrolSince, PatrolNext; // game time
-            public int ReinforceAt;      // game time a replacement for a run-over soldier comes out
             public string Colour;        // the crew colour this guard was dressed in
         }
 
@@ -60,7 +59,13 @@ namespace FrontsAndRivals.Spawn
             public int CrewCount = -1;    // soldiers this visit, fixed when the front streams in
             public List<Vector3> Patrol;  // walkable points around the building, found once per visit
             public bool PatrolTried;
-            public int Reinforcements;    // run-over soldiers replaced this visit
+            public bool BackupCalled;     // a car kill this visit: backup is on its way
+            public int BackupAt;          // game time the backup car is sent (0 = not pending)
+            public readonly List<Ped> Backup = new List<Ped>();
+            public readonly HashSet<int> BackupCounted = new HashSet<int>();
+            public Vehicle BackupCar;
+            public Model BackupCarModel;
+            public bool BackupOut;        // they've got out and joined the fight
 
             public StreamedFront(FrontDef def, string owner)
             {
@@ -196,7 +201,12 @@ namespace FrontsAndRivals.Spawn
                     f.CrewCount = -1;
                     f.Patrol = null;
                     f.PatrolTried = false;
-                    f.Reinforcements = 0;
+                    f.BackupCalled = false;
+                    f.BackupAt = 0;
+                    f.BackupOut = false;
+                    f.Backup.Clear();
+                    f.BackupCounted.Clear();
+                    f.BackupCar = null;
                     for (int i = 0; i < f.Slots.Length; i++) f.Slots[i].PatrolAt = -1;
                     StreamIns++;
                 }
@@ -450,24 +460,21 @@ namespace FrontsAndRivals.Spawn
                         slot.Body = body;
                         slot.Ped = null;
                         if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, slot.Body, false);
-                        if (byCar && f.Reinforcements < StreamRules.MaxReinforcements)
-                        {
-                            // Run over: it doesn't count. Another one comes out of the building, and they're all on you now.
-                            f.Reinforcements++;
-                            slot.ReinforceAt = Game.GameTime + 3000;
-                            if (!f.Alerted) Alert(f, count);
-                            continue;
-                        }
                         slot.Killed = true;
+                        if (byCar)
+                        {
+                            // A car kill counts, but the whole front opens up on you and calls for backup (once a visit).
+                            if (!f.Alerted) Alert(f, count);
+                            if (!f.BackupCalled) CallBackup(f, crew, cs);
+                        }
                         continue;
                     }
                     alive++;
                     continue;
                 }
                 if (slot.Killed) { killed++; continue; }
-                if (Game.GameTime < slot.ReinforceAt) continue;
                 int pick = Markers.Hash(f.Def.Id) + post * 7;
-                Dressing dress = Wardrobe.ForCrew(f.Owner, pick + f.Reinforcements * 101); // in the crew's colour
+                Dressing dress = Wardrobe.ForCrew(f.Owner, pick); // in the crew's colour
                 string model = dress != null ? Wardrobe.ModelName(dress) : crew.Models[Math.Abs(f.Def.Id.GetHashCode() + post * 7) % crew.Models.Count];
                 int tier = f.Def.Tier, grudge = cs.Grudge + Heat.ExtraGrudge(_empire.State.Heat); // on alert: heavier guns
                 int index = post;
@@ -482,7 +489,8 @@ namespace FrontsAndRivals.Spawn
             }
             if (alive > 0 || killed > 0) f.CrewSpawnedThisVisit = true;
             if (!f.Alerted && alive > 0 && ShouldAlert(f, count)) Alert(f, count);
-            if (f.CrewSpawnedThisVisit && alive == 0 && killed > 0 && !f.ClearedReported)
+            try { UpdateBackup(f, crew, cs); } catch (Exception ex) { Log.Error("Backup " + f.Def.Id, ex); f.BackupAt = 0; }
+            if (f.CrewSpawnedThisVisit && alive == 0 && killed > 0 && !f.ClearedReported && BackupDone(f))
             {
                 bool anyPending = false;
                 for (int post = 0; post < count; post++) if (f.Slots[post].Pending) anyPending = true;
@@ -492,6 +500,100 @@ namespace FrontsAndRivals.Spawn
                     if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true);
                 }
             }
+        }
+
+        // ---------------- backup: a crew car answering the call after a car kill ----------------
+
+        private void CallBackup(StreamedFront f, CrewDef crew, CrewState cs)
+        {
+            f.BackupCalled = true;
+            if (crew == null || cs == null || cs.Manpower < StreamRules.BackupSize) return; // nobody left to send
+            List<string> rides = crew.RidesFor(CrewDef.TierFor(cs.Grudge, _empire.State.Heat));
+            if (rides == null || rides.Count == 0) return;
+            f.BackupCarModel = new Model(rides[0]);
+            f.BackupCarModel.Request();
+            f.BackupAt = Game.GameTime + StreamRules.BackupDelayMs;
+            GTA.UI.Screen.ShowSubtitle("They've called for backup.", 4000);
+            Log.Write("Streamer: " + f.Def.Id + " called for backup after a car kill");
+        }
+
+        private void UpdateBackup(StreamedFront f, CrewDef crew, CrewState cs)
+        {
+            var door = new Vector3(f.Def.Door.X, f.Def.Door.Y, f.Def.Door.Z);
+            if (f.BackupAt > 0 && Game.GameTime >= f.BackupAt)
+            {
+                if (!f.BackupCarModel.IsLoaded)
+                {
+                    if (Game.GameTime - f.BackupAt > 15000) f.BackupAt = 0; // never loaded: give up quietly
+                    return;
+                }
+                if (!_registry.CanSpawnVehicle || _registry.PedCount + StreamRules.BackupSize > Registry.MaxPeds) return;
+                f.BackupAt = 0;
+                double a = Markers.Hash(f.Def.Id) % 360 * Math.PI / 180.0;
+                Vector3 from = GTA.World.GetNextPositionOnStreet(door + new Vector3((float)Math.Cos(a) * 90f, (float)Math.Sin(a) * 90f, 0f), true);
+                if (from == Vector3.Zero) return;
+                Vehicle car = GTA.World.CreateVehicle(f.BackupCarModel, from, 0f);
+                if (car == null) return;
+                _registry.Track(car, Markers.MakePlate(f.Def.Number, crew.Id));
+                CrewColor paint = CrewColors.Get(CrewColors.ForCrew(crew.Id));
+                car.Mods.CustomPrimaryColor = System.Drawing.Color.FromArgb(paint.R, paint.G, paint.B);
+                car.Mods.CustomSecondaryColor = System.Drawing.Color.FromArgb(paint.R / 3, paint.G / 3, paint.B / 3);
+                car.MaxHealth = 2000; car.Health = 2000; car.BodyHealth = 2000f; car.EngineHealth = 2000f; car.PetrolTankHealth = 2000f;
+                car.PlaceOnGround();
+                f.BackupCar = car;
+                int seats = Math.Min(StreamRules.BackupSize, car.PassengerCapacity + 1);
+                for (int i = 0; i < seats; i++)
+                {
+                    int pick = Markers.Hash(f.Def.Id) + 500 + i * 7;
+                    Dressing dress = Wardrobe.ForCrew(crew.Id, pick);
+                    Model m = dress != null ? Wardrobe.ModelOf(dress) : new Model(crew.Models[i % crew.Models.Count]);
+                    if (!m.IsLoaded) { m.Request(); continue; } // the two character models are kept loaded, so this is rare
+                    Ped ped = GTA.World.CreatePed(m, from + new Vector3(0f, 0f, 2f), 0f);
+                    if (ped == null) continue;
+                    ped.RelationshipGroup = Factions.CrewGroup(crew.Id);
+                    _registry.Track(ped);
+                    Wardrobe.Apply(ped, dress);
+                    ped.SetIntoVehicle(car, i == 0 ? VehicleSeat.Driver : VehicleSeat.Passenger);
+                    ped.Weapons.Give(CrewWeapon(crew.WeaponFor(pick, f.Def.Tier, cs != null ? cs.Grudge : 0)), 250, true, true);
+                    ped.Accuracy = CrewDef.FrontAccuracy(f.Def.Tier) + Heat.CrewAccuracy(_empire.State.Heat) - 25;
+                    ped.Armor = Math.Min(100, CrewDef.FrontArmor(f.Def.Tier) + Heat.ExtraArmor(_empire.State.Heat));
+                    ped.MaxHealth = Rules.Stats.CrewHealth;
+                    ped.Health = ped.MaxHealth;
+                    ped.BlockPermanentEvents = true; // drive in first, then fight
+                    if (i == 0) ped.Task.DriveTo(car, door, 15f, 25f, DrivingStyle.Rushed);
+                    f.Backup.Add(ped);
+                }
+                Log.Write("Streamer: backup for " + f.Def.Id + " on its way (" + f.Backup.Count + ")");
+            }
+            // Pulled up (or stuck, or under fire): everybody out and into the fight.
+            if (!f.BackupOut && f.Backup.Count > 0)
+            {
+                bool arrived = f.BackupCar == null || !f.BackupCar.Exists() || f.BackupCar.Position.DistanceTo(door) < 25f || f.BackupCar.IsDead;
+                bool hit = false;
+                foreach (Ped p in f.Backup) if (p != null && p.Exists() && (p.IsDead || p.Health < p.MaxHealth)) hit = true;
+                if (arrived || hit)
+                {
+                    f.BackupOut = true;
+                    foreach (Ped p in f.Backup)
+                    {
+                        if (p == null || !p.Exists() || p.IsDead) continue;
+                        p.BlockPermanentEvents = false;
+                        p.Task.ClearAll();
+                        p.Task.FightAgainstHatedTargets(80f);
+                    }
+                }
+            }
+            // Backup soldiers who die cost the crew a soldier, like the front's own.
+            foreach (Ped p in f.Backup)
+                if (p != null && p.Exists() && p.IsDead && f.BackupCounted.Add(p.Handle) && OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, p, false);
+        }
+
+        /// <summary>The front only counts as cleared once any backup that was called is down too.</summary>
+        private static bool BackupDone(StreamedFront f)
+        {
+            if (f.BackupAt > 0) return false;
+            foreach (Ped p in f.Backup) if (p != null && p.Exists() && !p.IsDead) return false;
+            return true;
         }
 
         /// <summary>Where crew soldier number i stands: the scouted posts first, then extra soldiers a step to the side of a
@@ -650,6 +752,14 @@ namespace FrontsAndRivals.Spawn
                 Slot s = f.Slots[i];
                 CancelPending(s);
                 s.Killed = false;
+                if (i == 0)
+                {
+                    foreach (Ped p in f.Backup) if (p != null && p.Exists()) _registry.Despawn(p);
+                    f.Backup.Clear();
+                    if (f.BackupCar != null && f.BackupCar.Exists()) _registry.Despawn(f.BackupCar);
+                    f.BackupCar = null;
+                    f.BackupAt = 0;
+                }
                 if (s.Body != null) { _registry.Despawn(s.Body); s.Body = null; }
                 if (s.Ped == null) continue;
                 if (layLow && s.Ped.Exists() && !s.Ped.IsDead && s.Ped.IsOnScreen)

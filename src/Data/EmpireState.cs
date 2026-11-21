@@ -62,7 +62,9 @@ namespace FrontsAndRivals.Data
         /// <summary>Your crew's colour (Data.CrewColors key): your guards wear it, your fronts show it on the map.</summary>
         [DataMember(Name = "crewColor", Order = 40)] public string CrewColor;
         /// <summary>Your crew's look (CrewColors.Styles): Street, Smart, Biker or Mixed.</summary>
-        [DataMember(Name = "crewStyle", Order = 41)] public string CrewStyle;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "crewStyle", Order = 41)] public string CrewStyle;
+        /// <summary>The Office's Messages page, newest first, kept with the save so it survives a reload.</summary>
+        [DataMember(Name = "messages", Order = 42)] public List<MessageEntry> Messages;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]
@@ -93,6 +95,16 @@ namespace FrontsAndRivals.Data
         public const string Active = "active";
         public const string Injured = "injured";
         public const string Dead = "dead";
+    }
+
+    [DataContract]
+    public sealed class MessageEntry
+    {
+        [DataMember(Name = "from", Order = 0)] public string Sender;
+        [DataMember(Name = "subject", Order = 1)] public string Subject;
+        [DataMember(Name = "text", Order = 2)] public string Message;
+        [DataMember(Name = "when", Order = 3)] public string When;
+        [DataMember(Name = "day", Order = 4)] public int Day;
     }
 
     [DataContract]

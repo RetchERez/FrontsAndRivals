@@ -102,6 +102,8 @@ namespace FrontsAndRivals.Core
             _office = new OfficeMenu(_content, _config, () => _empire, () => _rng, EmpireChanged, SaveNow);
             _office.StartOver = StartOver;
             _office.Messages = () => _notifier.Log;
+            _notifier.Store = () => { if (_state == null) return null; if (_state.Messages == null) _state.Messages = new System.Collections.Generic.List<MessageEntry>(); return _state.Messages; };
+            _notifier.Day = () => _state != null ? _state.Day : 0;
             _office.ResetCity = () =>
             {
                 if (_empire == null) return;
