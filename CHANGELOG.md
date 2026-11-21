@@ -10,11 +10,16 @@ First full release.
   25 armour, more rifles) and the biggest 7 (aim 34, 50 armour, the most heavy guns), standing in twos at their posts
 - Street heat (Office > Overview, with a meter): +25 for every front you take, -15 every midnight. Cool streets mean
   calmer crews (attacks x1.25 further apart); blazing ones (70+) bring attacks sooner (down to x0.65), one more
-  attacker, and crew fronts with up to +50 armour, heavier guns, +20 aim and x1.8 defense against raids (not the car wash)
+  attacker, and crew fronts with up to +35 armour, heavier guns, +12 aim and x1.6 defense against raids (not the car wash)
 - Taking a front plays like finishing a job in Story Mode: the gold mission-passed shard, the property chime and the
   establishing shot of the building
 - The Broker's first text arrives when Franklin's first mission ends (or after ten minutes of free roam in a game
   that's already past it). If you lose every front, after two days the car wash is left with one soldier
+- Balance (200 games per player type, 60 days, Normal): a steady player holds ~8 fronts by day 14 (about 11 hours),
+  ~15 by day 33 and ~22 by day 52 (~40 hours, about the story's length); someone playing only the mod and hitting a
+  front every few hours reaches 22 around day 14 (~11 hours) and wins about half their takeovers; staffed fronts hold
+  ~70%; nobody is wiped out. Money stays below the story's: a mod-only player has ~$19k after 6 hours and ~$60k after
+  12, next to the Jewel Store Job's ~$290k
 - Quiet until you're in: before your first front the crews make no turf moves, no attacks and no texts, and their
   soldiers only fight if you hurt one
 - Fixed: the takeover shot's hook was set before the Director existed, which stopped the mod loading

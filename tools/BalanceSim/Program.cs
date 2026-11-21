@@ -291,8 +291,8 @@ static class Sim
     {
         CrewState crew = Nemesis.Crew(s, e.OwnerOf(t.Id));
         int soldiers = Raids.Soldiers(t, e.Find(t.Id), crew, s.Day);
-        double p = pol.AssaultWin - 0.06 * Math.Max(0, soldiers - 2) - 0.03 * t.Tier;
-        if (!t.Starter) p *= 1.0 - 0.6 * s.Heat / 100.0; // on alert: more armour, heavier guns, sharper aim (not the car wash kids)
+        double p = pol.AssaultWin - 0.05 * Math.Max(0, soldiers - 2) - 0.03 * t.Tier;
+        if (!t.Starter) p *= 1.0 - 0.45 * s.Heat / 100.0; // on alert: more armour, heavier guns, sharper aim (not the car wash kids)
         else p = Math.Min(0.97, p + 0.08); // pistols and bats
         p *= Difficulty.Strength(0) / Difficulty.Strength(s.Difficulty);
         return Math.Max(0.05, Math.Min(0.97, p));

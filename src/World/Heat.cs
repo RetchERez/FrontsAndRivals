@@ -32,14 +32,14 @@ namespace FrontsAndRivals.Rules
             return h <= Neutral ? 1.0 + 0.25 * (Neutral - h) / Neutral : 1.0 - 0.35 * (h - Neutral) / (double)(Max - Neutral);
         }
 
-        /// <summary>Crew fronts on alert: up to x1.8 harder to raid at full heat.</summary>
-        public static double CrewDefenseFactor(int heat) { return 1.0 + 0.8 * Share(heat); }
+        /// <summary>Crew fronts on alert: up to x1.6 harder to raid at full heat.</summary>
+        public static double CrewDefenseFactor(int heat) { return 1.0 + 0.6 * Share(heat); }
 
         /// <summary>Extra armour on a crew front's soldiers in a live fight (on top of the front's own).</summary>
-        public static int ExtraArmor(int heat) { return (int)Math.Round(50 * Share(heat)); }
+        public static int ExtraArmor(int heat) { return (int)Math.Round(35 * Share(heat)); }
 
-        /// <summary>Accuracy for a crew front's soldiers in a live fight: 25 on cool streets, up to 45 at full heat.</summary>
-        public static int CrewAccuracy(int heat) { return 25 + (int)Math.Round(20 * Share(heat)); }
+        /// <summary>Accuracy for a crew front's soldiers in a live fight: 25 on cool streets, up to 37 at full heat.</summary>
+        public static int CrewAccuracy(int heat) { return 25 + (int)Math.Round(12 * Share(heat)); }
 
         /// <summary>Counts like grudge for how many heavy guns a crew front's soldiers carry.</summary>
         public static int ExtraGrudge(int heat) { return (int)Math.Round(60 * Share(heat)); }

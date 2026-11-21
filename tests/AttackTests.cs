@@ -63,7 +63,7 @@ static class AttackTests
         Nemesis.Daily(hs, 1);
         T.Check("Every midnight cools it", hs.Heat, 100 - Heat.NightlyCool, 0);
         T.True("Hot streets: attacks come sooner, cool ones later", Heat.CooldownFactor(100) < 0.7 && Heat.CooldownFactor(0) > 1.2);
-        T.True("Hot streets: crew fronts fight harder", Heat.CrewDefenseFactor(100) > Heat.CrewDefenseFactor(0) && Heat.ExtraArmor(100) == 50 && Heat.ExtraArmor(0) == 0);
+        T.True("Hot streets: crew fronts fight harder", Heat.CrewDefenseFactor(100) > Heat.CrewDefenseFactor(0) && Heat.ExtraArmor(100) == 35 && Heat.ExtraArmor(0) == 0);
         T.True("Labels Cool / Warm / Hot / Blazing", Heat.Label(0) == "Cool" && Heat.Label(20) == "Warm" && Heat.Label(50) == "Hot" && Heat.Label(90) == "Blazing");
         long hnow = 1000L * 60000L;
         hs.LastAttackMs = hnow - 62 * 60000L; hs.LastLossMs = -999999999; hs.Attack = null;
