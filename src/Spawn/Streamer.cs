@@ -39,6 +39,9 @@ namespace FrontsAndRivals.Spawn
             public bool Leaving;
             public long LeaveStart;
             public bool Killed;          // crew soldier killed this visit: stays dead until the front streams out
+            public int PatrolAt = -1;    // patrol point this person is heading to or standing at
+            public bool PatrolWalking;
+            public int PatrolSince, PatrolNext; // game time
         }
 
         private sealed class StreamedFront
@@ -53,6 +56,8 @@ namespace FrontsAndRivals.Spawn
             public bool ClearedReported;
             public bool Alerted;          // crew soldiers have noticed you and are fighting
             public int CrewCount = -1;    // soldiers this visit, fixed when the front streams in
+            public List<Vector3> Patrol;  // walkable points around the building, found once per visit
+            public bool PatrolTried;
 
             public StreamedFront(FrontDef def, string owner)
             {
@@ -186,6 +191,9 @@ namespace FrontsAndRivals.Spawn
                     f.ClearedReported = false;
                     f.Alerted = false;
                     f.CrewCount = -1;
+                    f.Patrol = null;
+                    f.PatrolTried = false;
+                    for (int i = 0; i < f.Slots.Length; i++) f.Slots[i].PatrolAt = -1;
                     StreamIns++;
                 }
                 else if (!want && f.Streamed)
@@ -197,9 +205,99 @@ namespace FrontsAndRivals.Spawn
                 {
                     if (f.IsCrew) UpdateCrewSlots(f, hour);
                     else UpdateSlots(f, now, hour);
+                    try { PatrolTick(f); } catch (Exception ex) { Log.Error("Patrol " + f.Def.Id, ex); }
                 }
                 UpdateLeaving(f, now);
             }
+        }
+
+        // ---------------- patrols ----------------
+
+        /// <summary>Every second person at a front walks a loop around the building (sides and back where there's
+        /// ground to walk), stopping at each point to stand guard, smoke or take a call, while the rest hold the door.
+        /// Stops the moment there's a fight; the usual calm-down puts everyone back afterwards.</summary>
+        private void PatrolTick(StreamedFront f)
+        {
+            if (f.Def.Id == LiveFrontId || (f.IsCrew && f.Alerted) || f.Distance > StreamRules.SpawnRange) return;
+            if (f.Patrol == null)
+            {
+                if (f.PatrolTried) return;
+                f.PatrolTried = true;
+                f.Patrol = PatrolPoints(f.Def);
+                Log.Write("Patrol: " + f.Def.Id + " has " + f.Patrol.Count + " points");
+            }
+            if (f.Patrol.Count < 2) return;
+            int count = 0;
+            for (int i = 0; i < f.Slots.Length; i++) if (f.Slots[i].Ped != null) count = i + 1;
+            int gt = Game.GameTime;
+            for (int i = 0; i < count; i++)
+            {
+                Slot s = f.Slots[i];
+                Ped p = s.Ped;
+                if (!StreamRules.Patrols(i, count) || p == null || !p.Exists() || p.IsDead || p.IsInCombat || p.IsInVehicle()) continue;
+                int pick = Markers.Hash(f.Def.Id) + i * 31;
+                if (s.PatrolAt < 0)
+                {
+                    s.PatrolAt = (i * 3) % f.Patrol.Count;
+                    WalkTo(s, p, f.Patrol[s.PatrolAt], gt);
+                    continue;
+                }
+                Vector3 target = f.Patrol[s.PatrolAt];
+                if (s.PatrolWalking)
+                {
+                    if (p.Position.DistanceTo(target) < 1.8f || gt - s.PatrolSince > 45000)
+                    {
+                        s.PatrolWalking = false;
+                        float heading = (float)(Math.Atan2(-(f.Def.Door.X - target.X), f.Def.Door.Y - target.Y) * 180.0 / Math.PI); // face back towards the front
+                        p.Task.StartScenario(StreamRules.PatrolScenario(pick + s.PatrolAt), p.Position, heading);
+                        s.PatrolNext = gt + StreamRules.PatrolDwellMs(pick + s.PatrolAt);
+                    }
+                }
+                else if (gt >= s.PatrolNext)
+                {
+                    s.PatrolAt = (s.PatrolAt + 1) % f.Patrol.Count;
+                    WalkTo(s, p, f.Patrol[s.PatrolAt], gt);
+                }
+            }
+        }
+
+        private static void WalkTo(Slot s, Ped p, Vector3 point, int gt)
+        {
+            p.Task.ClearAll();
+            p.Task.GoTo(point, -1); // a walk, along the navmesh
+            s.PatrolWalking = true;
+            s.PatrolSince = gt;
+        }
+
+        /// <summary>Walkable points 10-28 m from the door all the way round (the sides and back of the building where the
+        /// navmesh reaches), off the road, at about the door's height, at least 6 m apart, sorted into a loop.</summary>
+        private static List<Vector3> PatrolPoints(FrontDef def)
+        {
+            var door = new Vector3(def.Door.X, def.Door.Y, def.Door.Z);
+            var found = new List<Vector3>();
+            for (int ring = 0; ring < 2; ring++)
+            {
+                float r = ring == 0 ? 12f : 22f;
+                for (int k = 0; k < 8; k++)
+                {
+                    double a = k * Math.PI / 4.0 + ring * Math.PI / 8.0;
+                    var want = door + new Vector3((float)Math.Cos(a) * r, (float)Math.Sin(a) * r, 0f);
+                    Vector3 c = GTA.World.GetSafeCoordForPed(want, false, 0);
+                    if (c == Vector3.Zero) continue;
+                    float d = c.DistanceTo(door);
+                    if (c.DistanceTo(want) > 8f || Math.Abs(c.Z - door.Z) > 4f || d < 6f || d > 30f) continue;
+                    if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, c.X, c.Y, c.Z, 0)) continue; // never patrol the street
+                    bool close = false;
+                    foreach (Vector3 q in found) if (q.DistanceTo(c) < 6f) { close = true; break; }
+                    if (!close) found.Add(c);
+                }
+            }
+            var xs = new float[found.Count];
+            var ys = new float[found.Count];
+            for (int i = 0; i < found.Count; i++) { xs[i] = found[i].X - door.X; ys[i] = found[i].Y - door.Y; }
+            var loop = new List<Vector3>();
+            foreach (int i in StreamRules.LoopOrder(xs, ys)) loop.Add(found[i]);
+            return loop;
         }
 
         // ---------------- your fronts ----------------

@@ -165,6 +165,10 @@ static class FrontTests
         be2.EnsureFronts();
         T.True("No rescue for someone who never held a front", !be2.BrokerRescue());
         T.True("Before your first front you're not in the game yet", !be2.InTheGame());
+        T.True("Patrols: the first person holds the door, every second one walks", !StreamRules.Patrols(0, 3) && StreamRules.Patrols(1, 3) && !StreamRules.Patrols(2, 3) && !StreamRules.Patrols(1, 1));
+        int[] loop = StreamRules.LoopOrder(new[] { 0f, -10f, 10f, 0f }, new[] { 10f, 0f, 0f, -10f });
+        T.True("Patrol points walk a loop around the door", loop[0] == 3 && loop[1] == 2 && loop[2] == 0 && loop[3] == 1);
+        T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));
         be2.SetOwner("carwash_handson", Owners.Velvet); // lost it to another crew
         bs2.LastHeldDay = 3; bs2.Day = 4;
         T.True("Broker rescue waits two days", !be2.BrokerRescue());

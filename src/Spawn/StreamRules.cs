@@ -1,3 +1,4 @@
+using System;
 // Fronts & Rivals: the pure rules behind streaming fronts in and out. No game calls, unit-tested.
 using FrontsAndRivals.Rules;
 
@@ -37,6 +38,28 @@ namespace FrontsAndRivals.Spawn
         };
 
         /// <summary>Every guard keeps watch: at night they shine a torch, by day the post's own idle.</summary>
+        /// <summary>Who walks a patrol: every second person at a front (the first always holds the door), so with two or
+        /// more there's always someone on the move around the building and someone at the entrance.</summary>
+        public static bool Patrols(int index, int count) { return count >= 2 && index % 2 == 1; }
+
+        /// <summary>What a patroller does at each stop, and for how long: 12-25 seconds of standing guard, a smoke, a
+        /// phone call or a lean, picked from a stable number so it doesn't flicker.</summary>
+        public static readonly string[] PatrolStops = { GuardStand, "WORLD_HUMAN_SMOKING", "WORLD_HUMAN_STAND_MOBILE", GuardStand, "WORLD_HUMAN_LEANING" };
+
+        public static string PatrolScenario(int pick) { return PatrolStops[(int)((uint)(pick * 2654435761u) % (uint)PatrolStops.Length)]; }
+
+        public static int PatrolDwellMs(int pick) { return 12000 + (int)((uint)(pick * 40503u) % 13000u); }
+
+        /// <summary>Patrol points sorted into a loop around the door (by angle), so a patroller walks the building's
+        /// sides and back in order instead of zig-zagging. xs/ys are offsets from the door.</summary>
+        public static int[] LoopOrder(float[] xs, float[] ys)
+        {
+            var idx = new int[xs.Length];
+            for (int i = 0; i < idx.Length; i++) idx[i] = i;
+            Array.Sort(idx, (a, b) => Math.Atan2(ys[a], xs[a]).CompareTo(Math.Atan2(ys[b], xs[b])));
+            return idx;
+        }
+
         public static string GuardScenario(string postScenario, Trait trait, int hour)
         {
             if (DefenseRating.IsNight(hour)) return Torch;
