@@ -246,7 +246,9 @@ static class AttackTests
         for (int i = 0; i < 50; i++) if (Turf.Nightly(weak, content, rng).Count > 0) none = false;
         T.True("Crews with fewer than 8 soldiers stay home", none);
         T.Check("Starter price is $10,000", Economy.FrontPrice(content.Front("carwash_handson")), 10000, 0);
-        T.Check("Other fronts cost three days of design income", Economy.FrontPrice(content.Front("motel_alta")), 4500 * 3, 0);
+        T.Check("Other fronts are priced like Story Mode property (35 design days)", Economy.FrontPrice(content.Front("motel_alta")), 4500 * 35, 0);
+        double weeksBack = Economy.FrontPrice(content.Front("motel_alta")) / (Economy.BaseIncome(content.Front("motel_alta")) * 7.0);
+        T.True("...about 20 weeks to pay back, like Smoke on the Water's 22 (" + weeksBack.ToString("0") + ")", weeksBack >= 18 && weeksBack <= 22);
 
         T.Section("Text lines");
         var tokens = new Dictionary<string, string> { { "crew", "Crown Kings" }, { "front", "Car Wash" } };

@@ -44,7 +44,7 @@ static class EconomyTests
         T.Check("Carbine rifle can't be upgraded", Economy.UpgradePrice(Weapon.CarbineRifle), -1, 0);
         T.True("Articles read right", Economy.WithArticle(Weapon.Smg) == "an SMG" && Economy.WithArticle(Weapon.Shotgun) == "a pump shotgun" && Economy.WithArticle(Weapon.CarbineRifle) == "a carbine rifle");
         T.Check("Knife to carbine: $4,300 a guard", Economy.FullLadderPrice(), 4300, 0);
-        T.True("Four guards up to SMGs cost under a small front", 4 * (350 + 550 + 1300) < Economy.FrontPrice(new FrontDef { Income = 4500 }, 3));
+        T.True("Four guards up to SMGs cost a few nights of a small front", 4 * (350 + 550 + 1300) < Economy.BaseIncome(new FrontDef { Income = 4500 }) * 10);
         T.True("Guns unlock with rank", Economy.MaxWeapon(Rank.Recruit) == Weapon.Shotgun && Economy.MaxWeapon(Rank.Soldier) == Weapon.Smg && Economy.MaxWeapon(Rank.Veteran) == Weapon.CarbineRifle);
         T.True("Broker trust: small 0, mid 3, big 8", Economy.TrustNeeded(0) == 0 && Economy.TrustNeeded(1) == 3 && Economy.TrustNeeded(2) == 8);
         bool bigSteps = true;

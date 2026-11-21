@@ -12,6 +12,8 @@ First full release.
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power
   (pistol $350, pump shotgun $550, SMG $1,300, carbine rifle $2,100); older saves keep each guard's gun
+- Story Mode return rate: fronts for sale are priced like Story Mode property (about 20 weeks to pay back, ~5% a week;
+  Smoke on the Water is ~4.6%). Buying is a late-story investment; early on you grow by taking fronts by force
 - Safety nets: midnight wages never take your cash below $0; with no phone contact and no hotkey the controller hold is
   switched back on so the Office is always reachable; after two in-game days with no fronts the Broker buys the car wash
   back and offers it again (with its starter crew if you have nobody left)

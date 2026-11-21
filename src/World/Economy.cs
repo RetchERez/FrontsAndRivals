@@ -26,7 +26,12 @@ namespace FrontsAndRivals.Rules
         }
 
         /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise five days of its income.</summary>
-        public static int FrontPrice(FrontDef def) { return FrontPrice(def, 3); }
+        /// <summary>Priced like Story Mode property: 35 days of the design income is about 20 in-game weeks of what the front
+        /// actually pays at Story Mode scale (~5% back a week; Smoke on the Water is ~4.6%). The car wash is the Broker's
+        /// $10,000 starter deal. Fronts taken by force cost nothing, so fighting is how you grow early in the story.</summary>
+        public static int FrontPrice(FrontDef def) { return FrontPrice(def, PriceDays); }
+
+        public const int PriceDays = 35;
 
         public static int FrontPrice(FrontDef def, int days) { return def.Starter ? StarterFrontPrice : def.Income * Math.Max(1, days); }
         public const int RecruitsPerDay = 4;

@@ -93,7 +93,7 @@ namespace FrontsAndRivals.Core
         public double IncomeMultiplier = 1.0;
         public double WageMultiplier = 1.0;
         /// <summary>A front for sale costs this many days of its income (the starter car wash is always $10,000).</summary>
-        public int FrontPriceDays = 3;
+        public int FrontPriceDays = 35; // = Economy.PriceDays: Story Mode property return, about 20 weeks to pay back
         // [Guards]
         public bool PermanentDeath = true;
         /// <summary>Fronts can't be lost: a failed defense damages the front (no income at the next midnight) and deaths become injuries.</summary>
@@ -144,7 +144,7 @@ namespace FrontsAndRivals.Core
             c.RivalAlertRange = Int(ini, "Rivals", "AlertRange", c.RivalAlertRange, 5, 150, warn);
             c.ShowForSaleFronts = Bool(ini, "Map", "ShowForSaleFronts", c.ShowForSaleFronts, warn);
             c.FrontStaff = Bool(ini, "Map", "FrontStaff", c.FrontStaff, warn);
-            c.FrontPriceDays = Int(ini, "Economy", "FrontPriceDays", c.FrontPriceDays, 1, 60, warn);
+            c.FrontPriceDays = Int(ini, "Economy", "FrontPriceDays", c.FrontPriceDays, 1, 100, warn);
             c.ArrivalCamera = Bool(ini, "Attacks", "ArrivalCamera", c.ArrivalCamera, warn);
             c.IncomeMultiplier = Double(ini, "Economy", "IncomeMultiplier", c.IncomeMultiplier, 0, 100, warn);
             c.WageMultiplier = Double(ini, "Economy", "WageMultiplier", c.WageMultiplier, 0, 100, warn);

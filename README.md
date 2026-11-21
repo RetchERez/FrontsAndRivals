@@ -73,7 +73,7 @@ Windows may need to allow mods to create files in the GTA V folder. iFruitAddon2
 - When a front is hit, you can race there and fight beside your guards before they break, or leave it to them
 - Rival fronts show on the map in their crew's colour; their soldiers ignore you while you drive past, but walk up on foot, shoot nearby or hurt one of them and the whole front fights
 - Clear a rival front's soldiers, stand at the door and press **E** to claim it
-- Fronts that are for sale are bought in person at their door, like GTA's own properties, for a few weeks of their takings (the car wash is the Broker's $10,000 starter)
+- Fronts that are for sale are bought in person at their door, like GTA's own properties, priced like Story Mode property, about 20 weeks of their takings (the car wash is the Broker's $10,000 starter)
 
 ## Settings
 

@@ -626,7 +626,10 @@ namespace FrontsAndRivals.UI
             if (owner == Owners.ForSale)
             {
                 int need = Economy.TrustNeeded(def.Tier);
-                NativeItem price = Info("For Sale", (def.Starter ? "The Broker's starter price. " : _config.FrontPriceDays + " days of its takings. ")
+                int salePrice = Economy.FrontPrice(def, _config.FrontPriceDays);
+                int weeks = (int)Math.Round(salePrice / Math.Max(1.0, Economy.BaseIncome(def) * 7.0));
+                NativeItem price = Info("For Sale", (def.Starter ? "The Broker's starter deal: pays for itself in about " + Math.Max(1, (int)Math.Round(salePrice / Math.Max(1.0, (double)Economy.BaseIncome(def)))) + " nights. "
+                    : "Like Story Mode property, it pays its price back in about " + weeks + " weeks. ")
                     + (e.Trusted(def) ? "Go to the door and buy it in person. Use Set Waypoint below."
                                       : "The Broker only sells this one to someone holding " + need + " fronts. You hold " + e.OwnedCount() + "."),
                     e.Trusted(def) ? Money(Economy.FrontPrice(def, _config.FrontPriceDays)) : "Hold " + need);
