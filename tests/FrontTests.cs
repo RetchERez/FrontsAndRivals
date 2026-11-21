@@ -75,6 +75,13 @@ static class FrontTests
         be.GuardDown(b1, "your side", false, 0, 1000);
         T.True("Hurt: no longer a bodyguard", !b1.Escort && be.EscortCount() == 1);
         T.True("Send back", be.SetEscort(b2, false) && be.EscortCount() == 0);
+        be.RefreshOffers(rng, bs.Day);
+        GuardState offerNow = bs.Offers[0];
+        int calm = be.OfferPrice(offerNow);
+        be.KilledByBoss(b2);
+        T.True("Kill one of your own: recruits want danger money", be.OfferPrice(offerNow) > calm);
+        bs.Day += 2;
+        T.True("...and it passes after a day", be.OfferPrice(offerNow) == calm);
         var plain = new GuardState { First = "Ana", Nick = "", Last = "Diaz" };
         T.True("No empty quotes for a guard without a nickname", plain.ShortName == "Ana Diaz" && plain.FullName == "Ana Diaz");
     }

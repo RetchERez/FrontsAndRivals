@@ -50,6 +50,7 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "guardsRecover", Order = 29)] public bool GuardsRecover; // Office: deaths become injuries
         [DataMember(Name = "routeOff", Order = 30)] public bool RouteOff;           // Office: no GPS route to attacks
         [DataMember(Name = "ruledAll", Order = 31)] public bool RuledAll;           // held every front at least once
+        [DataMember(Name = "fearUntilDay", Order = 32)] public int FearUntilDay = -1; // you killed one of your own: recruits want danger money
     }
 
     [DataContract]

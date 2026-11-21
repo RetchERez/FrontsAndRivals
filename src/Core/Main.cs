@@ -277,9 +277,36 @@ namespace FrontsAndRivals.Core
             if (back > 0) { Log.Write(back + " injured guard(s) back on duty"); SaveNow(); }
         }
 
+        /// <summary>Did you do it? Shot, blown up or run over by a car you were driving.</summary>
+        private static bool KilledByPlayer(Ped body)
+        {
+            if (body == null || !body.Exists()) return false;
+            Ped me = Game.Player.Character;
+            Entity k = body.Killer;
+            if (k == null) return false;
+            if (k.Handle == me.Handle) return true;
+            var v = k as Vehicle;
+            return v != null && v.Exists() && v.Driver != null && v.Driver.Handle == me.Handle;
+        }
+
+        /// <summary>You killed one of your own. Same death or injury rules; the texts say who did it, and recruits
+        /// ask for danger money until tomorrow.</summary>
+        private void OnKilledByBoss(GuardState g, Ped body, string where)
+        {
+            bool permanent = _empire.PermanentDeath(_config.PermanentDeath);
+            _empire.GuardDown(g, where, permanent, ActiveNow(), InjuryRecoveryMs);
+            _empire.KilledByBoss(g);
+            Log.Write("Guard " + g.Id + " " + g.FullName + (permanent ? " killed" : " hurt") + " by the player at " + where);
+            _notifier.PostWithMugshot(body, "The Office", permanent ? "Your own" : "Friendly fire",
+                permanent ? "You killed " + g.ShortName + ". The rest of your people saw it. Recruits will want danger money tomorrow."
+                          : "You put " + g.ShortName + " in hospital. Back in two days, and they won't forget it.");
+            SaveNow();
+        }
+
         /// <summary>A bodyguard died at your side. Same rules as at a post.</summary>
         private void OnBodyguardDown(GuardState g, Ped body)
         {
+            if (KilledByPlayer(body)) { OnKilledByBoss(g, body, "your side"); return; }
             bool permanent = _empire.PermanentDeath(_config.PermanentDeath);
             _empire.GuardDown(g, "your side", permanent, ActiveNow(), InjuryRecoveryMs);
             Log.Write("Bodyguard " + g.Id + " " + g.FullName + (permanent ? " died" : " was injured"));
@@ -291,6 +318,7 @@ namespace FrontsAndRivals.Core
         /// <summary>A streamed guard died in the world. Permanent death unless PermanentDeath=false.</summary>
         private void OnGuardDown(GuardState g, Ped body, FrontDef front)
         {
+            if (KilledByPlayer(body)) { OnKilledByBoss(g, body, "the " + front.Name); return; }
             bool permanent = _empire.PermanentDeath(_config.PermanentDeath);
             _empire.GuardDown(g, "the " + front.Name, permanent, ActiveNow(), InjuryRecoveryMs);
             Log.Write("Guard " + g.Id + " " + g.FullName + (permanent ? " died" : " was injured") + " at " + front.Id);

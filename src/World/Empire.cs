@@ -110,7 +110,20 @@ namespace FrontsAndRivals.Rules
             _s.OffersDay = day;
         }
 
-        public int OfferPrice(GuardState offer) { return Economy.HirePrice((Trait)offer.Trait, Stats.Overall(offer)); }
+        public int OfferPrice(GuardState offer)
+        {
+            int price = Economy.HirePrice((Trait)offer.Trait, Stats.Overall(offer));
+            return _s.Day <= _s.FearUntilDay ? (int)(Math.Round(price * DangerMoney / 50.0) * 50) : price;
+        }
+
+        /// <summary>Recruits ask this much more for a day after you kill one of your own guards.</summary>
+        public const double DangerMoney = 1.25;
+
+        /// <summary>You killed one of your own guards (or a bodyguard). Word gets around: hiring costs more until tomorrow.</summary>
+        public void KilledByBoss(GuardState g)
+        {
+            _s.FearUntilDay = _s.Day + 1;
+        }
 
         /// <summary>Hires one of today's offers. The caller takes the returned price from the player's cash.</summary>
         public HireResult Hire(GuardState offer, long cash, out int price)
