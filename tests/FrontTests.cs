@@ -181,6 +181,8 @@ static class FrontTests
         T.True("Walkers alone or in pairs, cruisers 2-4", Enumerable.Range(0, 100).All(i => HangoutRules.GroupSize(HangoutKind.Walk, i) <= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) >= 2 && HangoutRules.GroupSize(HangoutKind.Cruise, i) <= 4));
         T.True("Running a soldier over doesn't count", StreamRules.VehicleKill(StreamRules.RunOverHash, false) && StreamRules.VehicleKill(0, true) && !StreamRules.VehicleKill(Markers.Hash("WEAPON_PISTOL"), false));
 
+        T.True("Street fights on turf borders, now and then", Enumerable.Range(0, 100).Count(i => HangoutRules.Clash(i)) == HangoutRules.ClashChancePct);
+
         T.Section("Crew outfits");
         var od = OutfitData.Load(System.IO.Path.Combine(content.ContentDir, "outfits.json"));
         T.True("Outfit data loads", od != null && od.Styles != null && od.Styles.Count >= 7);

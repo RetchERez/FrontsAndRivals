@@ -20,6 +20,10 @@ First full release.
   or cruise in a car together, two groups out at once on cool streets and three on warm ones. Around your fronts it's
   your own crew, friendly, in your colour. Rivals are calm until provoked; each kill costs their crew a soldier
   (INI Map Hangouts)
+- Street fights: where two crews' turfs meet, now and then a group from each runs into the other and they shoot it out
+  (about 1 in 7 border groups); it costs both crews soldiers, never claims a front
+- Your crew's street groups stay calm until you fight near them, and a front is only claimed if you're within 100 m
+  when its last soldier drops
 - Running soldiers over doesn't take a front: a soldier killed by a car is replaced by another from inside (up to four a
   visit) and the rest turn on you, so fronts are taken on foot
 - Crew rides in three tiers, by revenge intensity (grudge plus half the street heat): Dead Kings Manana/Emperor, then

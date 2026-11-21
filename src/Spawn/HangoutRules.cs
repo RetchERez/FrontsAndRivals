@@ -15,6 +15,10 @@ namespace FrontsAndRivals.Spawn
         public const float DespawnRange = 280f;    // gone once you're well away
         public const float AlertOnFoot = 25f, AlertShots = 70f;
         public const int CarChancePct = 35;        // a group hanging out round one of their cars
+        public const int ClashChancePct = 15;      // on a border between two crews' turf: they run into each other and fight
+        public const float ClashGap = 18f;         // how far apart the two sides start
+
+        public static bool Clash(int roll) { return Math.Abs(roll) % 100 < ClashChancePct; }
 
         public static readonly string[] Scenarios =
         {

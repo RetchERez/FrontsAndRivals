@@ -32,6 +32,7 @@ namespace FrontsAndRivals.Spawn
             public Vehicle Car;
             public bool Spawned, Alerted;
             public int RequestedAt;
+            public Group Rival;            // a street fight: the other crew's group across the road
             public bool Mine { get { return Crew == Owners.Player; } }
 
             public Vector3 Where()
@@ -78,7 +79,8 @@ namespace FrontsAndRivals.Spawn
                     continue;
                 }
                 if (g.Where().DistanceTo(p) > HangoutRules.DespawnRange) { Remove(g); _groups.RemoveAt(i); continue; }
-                if (!g.Mine) Tend(g, e, me);
+                if (g.Rival != null && !g.Alerted && g.Spawned && g.Rival.Spawned) StartClash(g, e);
+                if (g.Mine) TendMine(g, me); else Tend(g, e, me);
             }
 
             int heat = e.State.Heat;
@@ -106,6 +108,7 @@ namespace FrontsAndRivals.Spawn
 
                 string owner = TurfOwner(e, spot);
                 if (owner == null) return; // nobody's turf out here
+                if (NearOtherSide(e, spot, owner)) continue; // never right on top of the other side's front
                 bool mine = owner == Owners.Player;
                 CrewDef crew = mine ? null : _content.Crew(owner);
                 if (!mine)
@@ -129,8 +132,72 @@ namespace FrontsAndRivals.Spawn
                 if (g.CarModel != null) g.Models.Add(new Model(g.CarModel));
                 foreach (Model m in g.Models) if (m.IsValid) m.Request();
                 _groups.Add(g);
+                if (!mine && kind == HangoutKind.HangOut) TryClash(e, g, spot);
                 return;
             }
+        }
+
+        // Where two crews' turfs meet, now and then a group of the neighbours turns up across the road and it kicks off.
+        private void TryClash(Empire e, Group a, Vector3 spot)
+        {
+            if (!HangoutRules.Clash(_rng.Next())) return;
+            string other = null;
+            float best = HangoutRules.TurfRange;
+            foreach (FrontDef def in _content.Fronts)
+            {
+                if (!def.Door.IsSet) continue;
+                string o = e.OwnerOf(def.Id);
+                if (!Owners.IsCrew(o) || o == a.Crew) continue;
+                float d = def.Door.DistanceTo(spot.X, spot.Y, spot.Z);
+                if (d < best) { best = d; other = o; }
+            }
+            if (other == null) return;
+            CrewState ocs = Nemesis.Crew(e.State, other);
+            if (ocs == null || ocs.Manpower < 3) return;
+            int size = HangoutRules.GroupSize(HangoutKind.HangOut, _rng.Next());
+            if (!HangoutRules.Fits(_registry.PedCount, a.Size + size, Registry.MaxPeds)) return;
+            double ang = _rng.NextDouble() * Math.PI * 2.0;
+            Vector3 there = GTA.World.GetNextPositionOnSidewalk(spot + new Vector3((float)Math.Cos(ang) * HangoutRules.ClashGap, (float)Math.Sin(ang) * HangoutRules.ClashGap, 0f));
+            if (there == Vector3.Zero || there.DistanceTo(spot) > 40f) return;
+            var b = new Group { Crew = other, Kind = HangoutKind.HangOut, Spot = there, Heading = (float)(_rng.NextDouble() * 360.0), Size = size, Seed = _rng.Next(), RequestedAt = Game.GameTime };
+            for (int k = 0; k < size; k++)
+            {
+                Dressing d = Wardrobe.ForCrew(other, b.Seed + k * 131);
+                b.Dress.Add(d);
+                CrewDef oc = _content.Crew(other);
+                b.Models.Add(new Model(d != null ? Wardrobe.ModelName(d) : (oc != null && oc.Models.Count > 0 ? oc.Models[0] : "a_m_y_genstreet_01")));
+            }
+            foreach (Model m in b.Models) if (m.IsValid) m.Request();
+            a.Rival = b; b.Rival = a;
+            _groups.Add(b);
+        }
+
+        private void StartClash(Group g, Empire e)
+        {
+            foreach (Group side in new[] { g, g.Rival })
+            {
+                side.Alerted = true;
+                CrewDef crew = _content.Crew(side.Crew);
+                foreach (Ped ped in side.Peds)
+                {
+                    if (ped == null || !ped.Exists() || ped.IsDead) continue;
+                    ped.BlockPermanentEvents = false;
+                    ped.Task.ClearAll();
+                    ped.Task.FightAgainstHatedTargets(60f);
+                    try
+                    {
+                        if (ped.AttachedBlip == null || !ped.AttachedBlip.Exists())
+                        {
+                            Blip b = ped.AddBlip();
+                            b.Color = crew != null ? (BlipColor)crew.BlipColor : BlipColor.Red;
+                            b.Scale = 0.6f;
+                            b.Name = crew != null ? crew.Name : "Crew";
+                        }
+                    }
+                    catch (Exception ex) { Log.Error("Clash blip", ex); }
+                }
+            }
+            Log.Write("Hangouts: street fight, " + g.Crew + " vs " + g.Rival.Crew);
         }
 
         private string TurfOwner(Empire e, Vector3 spot)
@@ -146,6 +213,39 @@ namespace FrontsAndRivals.Spawn
                 if (d < best) { best = d; owner = o; }
             }
             return owner;
+        }
+
+        public const float OtherSideGap = 80f;
+
+        /// <summary>A front of the other side this close: rivals don't loiter at your door, your people don't loiter at theirs.</summary>
+        private bool NearOtherSide(Empire e, Vector3 spot, string owner)
+        {
+            foreach (FrontDef def in _content.Fronts)
+            {
+                if (!def.Door.IsSet) continue;
+                string o = e.OwnerOf(def.Id);
+                bool other = owner == Owners.Player ? Owners.IsCrew(o) : o == Owners.Player;
+                if (other && def.Door.DistanceTo(spot.X, spot.Y, spot.Z) < OtherSideGap) return true;
+            }
+            return false;
+        }
+
+        /// <summary>Your people stay calm, and back you up when you're fighting near them or one of them is hurt.</summary>
+        private void TendMine(Group g, Ped me)
+        {
+            if (g.Alerted) return;
+            bool hurt = false;
+            foreach (Ped ped in g.Peds) if (ped != null && ped.Exists() && (ped.IsDead || ped.Health < ped.MaxHealth)) hurt = true;
+            float dist = g.Where().DistanceTo(me.Position);
+            if (!hurt && !((me.IsShooting || me.IsInCombat) && dist < HangoutRules.AlertShots)) return;
+            g.Alerted = true;
+            foreach (Ped ped in g.Peds)
+            {
+                if (ped == null || !ped.Exists() || ped.IsDead) continue;
+                ped.BlockPermanentEvents = false;
+                ped.Task.ClearAll();
+                ped.Task.FightAgainstHatedTargets(80f);
+            }
         }
 
         private string PickCar(Empire e, string owner)
@@ -221,16 +321,16 @@ namespace FrontsAndRivals.Spawn
                 {
                     ped.SetIntoVehicle(g.Car, k == 0 ? VehicleSeat.Driver : (VehicleSeat)(k - 1));
                     if (k == 0) ped.Task.CruiseWithVehicle(g.Car, 12f, DrivingStyle.Normal);
-                    ped.BlockPermanentEvents = !g.Mine;
+                    ped.BlockPermanentEvents = true;
                 }
                 else if (g.Kind == HangoutKind.Walk)
                 {
-                    ped.BlockPermanentEvents = !g.Mine;
+                    ped.BlockPermanentEvents = true;
                     ped.Task.WanderAround(g.Spot, 60f);
                 }
                 else
                 {
-                    ped.BlockPermanentEvents = !g.Mine; // rivals calm until provoked; your own people react like any ally
+                    ped.BlockPermanentEvents = true; // everyone calm until there's a fight (your people join yours)
                     ped.Task.StartScenario(HangoutRules.Scenario(k + g.Seed), at, face);
                 }
                 g.Peds.Add(ped);
@@ -252,7 +352,7 @@ namespace FrontsAndRivals.Spawn
                     {
                         // A soldier down: their crew is one short, and they won't forget who did it.
                         CrewState cs = Nemesis.Crew(e.State, g.Crew);
-                        if (cs != null && ped.Killer == me) { cs.Manpower = Math.Max(0, cs.Manpower - 1); cs.LastContactDay = e.State.Day; }
+                        if (cs != null && (ped.Killer == me || g.Rival != null)) { cs.Manpower = Math.Max(0, cs.Manpower - 1); if (ped.Killer == me) cs.LastContactDay = e.State.Day; }
                     }
                 }
                 else if (ped.Health < ped.MaxHealth) hurt = true;

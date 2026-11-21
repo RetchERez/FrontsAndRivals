@@ -417,8 +417,11 @@ namespace FrontsAndRivals.Attacks
                 if (cs != null) { cs.Manpower = Math.Max(0, cs.Manpower - 1); cs.LastContactDay = e.State.Day; }
                 return;
             }
-            // Every soldier is down: the front is yours on the spot, unless it can't be taken yet.
+            // Every soldier is down: the front is yours on the spot, unless it can't be taken yet. Only if you were there:
+            // a front cleared by anyone else (your people on the street, another crew) just restocks on your next visit.
             if (e.OwnerOf(front.Id) != crewId) return;
+            Vector3 me = Game.Player.Character.Position;
+            if (front.Door.DistanceTo(me.X, me.Y, me.Z) > ClaimNear) { Log.Write("Director: " + front.Id + " cleared without you, not claimed"); return; }
             if (Rules.Attacks.DugIn(e.State, e.Find(front.Id)))
             {
                 GTA.UI.Screen.ShowHelpText("The " + front.ShortName + " is clear, but the " + CrewName(crewId) + " only just took it and their people will be back. Take it after midnight.", 8000, true, false);
@@ -431,6 +434,8 @@ namespace FrontsAndRivals.Attacks
             }
             Claim(e, front, crewId);
         }
+
+        private const float ClaimNear = 100f;
 
         private string CrewName(string id) { CrewDef c = _content.Crew(id); return c != null ? c.Name : "crew"; }
 
