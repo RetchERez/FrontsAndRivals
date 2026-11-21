@@ -331,9 +331,7 @@ namespace FrontsAndRivals.UI
         private static void SetTitles(NativeMenu m, string title, string subtitle)
         {
             m.BannerText.Text = title;
-            // GTA's banner font is big: shrink a long title so it always fits inside its panel.
-            float fit = title.Length > 0 ? m.Width / (title.Length * 25f) : 1f;
-            m.BannerText.Scale = Math.Max(0.5f, Math.Min(0.85f, 0.85f * fit));
+            MenuStyle.FitTitle(m); // measured, so it always fits
             m.Name = subtitle;
         }
 
