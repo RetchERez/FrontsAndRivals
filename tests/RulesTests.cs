@@ -22,10 +22,13 @@ static class RulesTests
         for (int i = 0; i < 200; i++)
         {
             int[] v = Stats.Seed(Trait.None, rng);
-            foreach (int x in v) if (x < 25 || x > 50) inRange = false;
-            if (Stats.Seed(Trait.Sharpshooter, rng)[0] < 45) sharpAim = false;
+            foreach (int x in v) if (x < 20 || x > 80) inRange = false;
+            if (Stats.Seed(Trait.Sharpshooter, rng)[0] < 40) sharpAim = false;
         }
-        T.True("Fresh recruits start 25-50", inRange);
+        T.True("Fresh recruits start 20-60 in each skill (a standout up to 80)", inRange);
+        var seen = new HashSet<string>();
+        for (int i = 0; i < 60; i++) seen.Add(string.Join(",", Stats.Seed(Trait.None, rng)));
+        T.True("Recruits vary: 60 rolls, " + seen.Count + " different", seen.Count >= 55);
         T.True("Sharpshooters start with good aim", sharpAim);
 
         var g = new FrontsAndRivals.Data.GuardState();

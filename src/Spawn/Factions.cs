@@ -18,6 +18,8 @@ namespace FrontsAndRivals.Spawn
         public static RelationshipGroup CrownKings = Markers.Hash(Markers.CrownKingsGroup);
         public static RelationshipGroup Ironside = Markers.Hash(Markers.IronsideGroup);
         public static RelationshipGroup Velvet = Markers.Hash(Markers.VelvetGroup);
+        /// <summary>Cops the mod sends to street crime: they go for the crews and treat you and the real police like the police would.</summary>
+        public static RelationshipGroup Police = Markers.Hash(Markers.PoliceGroup);
 
         private static readonly string[] LawGroups = { "COP", "ARMY", "SECURITY_GUARD", "PRIVATE_SECURITY" };
         private static readonly string[] AmbientGangs =
@@ -56,8 +58,16 @@ namespace FrontsAndRivals.Spawn
             for (int i = 0; i < crews.Length; i++)
                 for (int j = i + 1; j < crews.Length; j++) Both(Hate, crews[i], crews[j]);
 
+            // Street-crime cops: on the law's side, against the crews, neutral to you (your wanted level is the game's business).
+            int police = Police.Hash;
+            foreach (string law in LawGroups) Both(Like, police, Markers.Hash(law));
+            Both(Neutral, police, player);
+            Both(Neutral, police, guards);
+            Both(Neutral, police, staff);
+
             foreach (int crew in crews)
             {
+                Both(Hate, crew, police);
                 Both(Hate, crew, guards);
                 Both(Hate, crew, player);
                 Both(Neutral, crew, staff);

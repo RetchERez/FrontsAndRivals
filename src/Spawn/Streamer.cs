@@ -512,6 +512,7 @@ namespace FrontsAndRivals.Spawn
             if (rides == null || rides.Count == 0) return;
             f.BackupCarModel = new Model(rides[0]);
             f.BackupCarModel.Request();
+            if (crew.Models != null) foreach (string m in crew.Models) new Model(m).Request(); // fallback looks, if outfits are missing
             f.BackupAt = Game.GameTime + StreamRules.BackupDelayMs;
             GTA.UI.Screen.ShowSubtitle("They've called for backup.", 4000);
             Log.Write("Streamer: " + f.Def.Id + " called for backup after a car kill");
@@ -522,18 +523,19 @@ namespace FrontsAndRivals.Spawn
             var door = new Vector3(f.Def.Door.X, f.Def.Door.Y, f.Def.Door.Z);
             if (f.BackupAt > 0 && Game.GameTime >= f.BackupAt)
             {
-                if (!f.BackupCarModel.IsLoaded)
+                // Keep trying for up to 20 s (a model loading, the ped budget full, no road spot yet); only then give up.
+                bool late = Game.GameTime - f.BackupAt > 20000;
+                if (!f.BackupCarModel.IsLoaded || !_registry.CanSpawnVehicle || _registry.PedCount + StreamRules.BackupSize > Registry.MaxPeds)
                 {
-                    if (Game.GameTime - f.BackupAt > 15000) f.BackupAt = 0; // never loaded: give up quietly
+                    if (late) f.BackupAt = 0;
                     return;
                 }
-                if (!_registry.CanSpawnVehicle || _registry.PedCount + StreamRules.BackupSize > Registry.MaxPeds) return;
-                f.BackupAt = 0;
-                double a = Markers.Hash(f.Def.Id) % 360 * Math.PI / 180.0;
+                double a = (Markers.Hash(f.Def.Id) + Game.GameTime / 1000) % 360 * Math.PI / 180.0; // a different side each try
                 Vector3 from = GTA.World.GetNextPositionOnStreet(door + new Vector3((float)Math.Cos(a) * 90f, (float)Math.Sin(a) * 90f, 0f), true);
-                if (from == Vector3.Zero) return;
+                if (from == Vector3.Zero) { if (late) f.BackupAt = 0; return; }
                 Vehicle car = GTA.World.CreateVehicle(f.BackupCarModel, from, 0f);
-                if (car == null) return;
+                if (car == null) { if (late) f.BackupAt = 0; return; }
+                f.BackupAt = 0;
                 _registry.Track(car, Markers.MakePlate(f.Def.Number, crew.Id));
                 CrewColor paint = CrewColors.Get(CrewColors.ForCrew(crew.Id));
                 car.Mods.CustomPrimaryColor = System.Drawing.Color.FromArgb(paint.R, paint.G, paint.B);
@@ -563,7 +565,8 @@ namespace FrontsAndRivals.Spawn
                     if (i == 0) ped.Task.DriveTo(car, door, 15f, 25f, DrivingStyle.Rushed);
                     f.Backup.Add(ped);
                 }
-                Log.Write("Streamer: backup for " + f.Def.Id + " on its way (" + f.Backup.Count + ")");
+                if (f.Backup.Count == 0) { _registry.Despawn(car); f.BackupCar = null; Log.Write("Streamer: backup for " + f.Def.Id + " couldn't load its people"); }
+                else Log.Write("Streamer: backup for " + f.Def.Id + " on its way (" + f.Backup.Count + ")");
             }
             // Pulled up (or stuck, or under fire): everybody out and into the fight.
             if (!f.BackupOut && f.Backup.Count > 0)

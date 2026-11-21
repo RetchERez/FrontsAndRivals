@@ -96,8 +96,8 @@ namespace FrontsAndRivals.Data
             if (data == null || data.Styles == null) return null;
             List<OutfitLook> looks;
             if (!data.Styles.TryGetValue(style, out looks) || looks == null || looks.Count == 0) return null;
-            double fc = 0.3;
-            if (data.FemaleChance != null) data.FemaleChance.TryGetValue(style, out fc);
+            double fc = 0.3, given;
+            if (data.FemaleChance != null && data.FemaleChance.TryGetValue(style, out given)) fc = given;
             bool female = female0.HasValue ? female0.Value : (Mix(seed * 7 + 3) % 1000) / 1000.0 < fc;
             string g = female ? "f" : "m";
             var fits = new List<OutfitLook>();

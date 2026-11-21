@@ -72,7 +72,6 @@ namespace FrontsAndRivals.UI
 
         /// <summary>Gives the city back to the crews but keeps your people (Main does the world side).</summary>
         public Action ResetCity;
-        private bool _resetCityArmed;
 
         /// <summary>Starts a raid on a rival front (Main supplies the clock). Returns false if it couldn't start.</summary>
         public Func<FrontDef, bool> StartRaid;
@@ -80,7 +79,6 @@ namespace FrontsAndRivals.UI
         /// <summary>The map waypoint landed on this front: the next time the Office opens, it opens on its page.</summary>
         private string _openOn;
         public void OpenOn(string frontId) { _openOn = frontId; }
-        private bool _startOverArmed;
 
         public OfficeMenu(ContentDb content, Config config, Func<Empire> empire, Func<Random> rng, Action changed, Action save)
         {
@@ -165,8 +163,6 @@ namespace FrontsAndRivals.UI
         private void CloseAll()
         {
             _open = false;
-            _startOverArmed = false;
-            _resetCityArmed = false;
             _closingAll = true;
             foreach (NativeMenu m in _panels) m.Visible = false;
             _closingAll = false;
@@ -189,8 +185,6 @@ namespace FrontsAndRivals.UI
             try { for (int i = 0; i < _panels.Length; i++) { _panels[i].Visible = _open && i == panel; _panels[i].AcceptsInput = i == panel; } }
             finally { _hidingDetail = false; }
             _letGoArmed = 0;
-            _startOverArmed = false;
-            _resetCityArmed = false;
             // Bottom-right control hints say exactly what each key does in this panel.
             NativeMenu m = _panels[panel];
             m.Buttons.Clear();
@@ -256,6 +250,29 @@ namespace FrontsAndRivals.UI
         {
             string label = Rules.Heat.Label(heat);
             return (heat < 15 ? "~b~" : heat < 40 ? "~y~" : heat < 70 ? "~o~" : "~r~") + label + "~s~";
+        }
+
+        private const string ConfirmResetFronts = "confirm:resetfronts", ConfirmStartOver = "confirm:startover";
+
+        /// <summary>A confirmation page, like the game's own "are you sure" screens: No is highlighted first.</summary>
+        private void DetailConfirm(Empire e, bool fronts)
+        {
+            SetTitles(_detail, fronts ? "Reset Fronts" : "New Empire", "ARE YOU SURE");
+            string what = fronts
+                ? "All " + e.OwnedCount() + " of your fronts go back to the crews, along with their upgrades. Your guards stay on the payroll, in the reserve, with their ranks, skills and guns. Resets so far: " + e.State.CityResets + "."
+                : "Everything goes back to day one: fronts, guards, rivals and heat. Your current empire is saved as empire.old.json in the FrontsAndRivals folder.";
+            NativeItem no = Row(fronts ? "No, Keep My Fronts" : "No, Keep My Empire", what, "");
+            no.Activated += (s, a) => Focus(1);
+            NativeItem yes = Row(fronts ? "~r~Yes, Reset All Fronts~s~" : "~r~Yes, Start Over~s~", what + " This can't be undone.", "");
+            yes.Activated += (s, a) => Safe("confirm", () =>
+            {
+                CloseAll();
+                if (fronts) { if (ResetCity != null) ResetCity(); GTA.UI.Notification.Show("Every front is back with the crews. Time to take the city again."); }
+                else if (StartOver != null) StartOver();
+            });
+            _detail.Add(no);
+            _detail.Add(yes);
+            _detail.SelectedIndex = 0;
         }
 
         /// <summary>Set by Main: the message log (newest first).</summary>
@@ -562,20 +579,20 @@ namespace FrontsAndRivals.UI
             var notes = new NativeListItem<string>("Notifications", "All: everything. Important: no taunts or street gossip. Minimal: attacks and fronts changing hands only.", levels);
             int la = Array.IndexOf(levels, e.State.NotifyLevel ?? _config.NotifyLevel.ToString());
             notes.SelectedIndex = la < 0 ? 0 : la;
-            notes.ItemChanged += (s, a) => { e.State.NotifyLevel = notes.SelectedItem; Changed(false); };
+            notes.ItemChanged += (s, a) => Safe("setting", () => { e.State.NotifyLevel = notes.SelectedItem; Changed(false); });
             AddListRow(notes, null, false);
 
             var sfx = new NativeCheckboxItem("Sound Effects", "The game's own alert and cash sounds for attacks, purchases and the midnight take.", _config.SoundEffects && !e.State.SoundOff);
             sfx.Enabled = _config.SoundEffects;
-            sfx.CheckboxChanged += (s, a) => { e.State.SoundOff = !sfx.Checked; Changed(false); if (sfx.Checked) Sounds.Play(Cue.Purchase); };
+            sfx.CheckboxChanged += (s, a) => Safe("setting", () => { e.State.SoundOff = !sfx.Checked; Changed(false); if (sfx.Checked) Sounds.Play(Cue.Purchase); });
             AddListRow(sfx, null, false);
 
             var route = new NativeCheckboxItem("Route to Attacks", "When one of your fronts is hit, your GPS shows the way there.", !e.State.RouteOff);
-            route.CheckboxChanged += (s, a) => { e.State.RouteOff = !route.Checked; Changed(true); };
+            route.CheckboxChanged += (s, a) => Safe("setting", () => { e.State.RouteOff = !route.Checked; Changed(true); });
             AddListRow(route, null, false);
 
             var blips = new NativeCheckboxItem("Map Blips", "Show fronts on the map and minimap.", !e.State.HideBlips);
-            blips.CheckboxChanged += (s, a) => { e.State.HideBlips = !blips.Checked; Changed(true); };
+            blips.CheckboxChanged += (s, a) => Safe("setting", () => { e.State.HideBlips = !blips.Checked; Changed(true); });
             AddListRow(blips, null, false);
 
             var color = new NativeListItem<string>("Crew Colour", "The colour your crew wears, and the colour of your fronts and bodyguards on the map. Change it any time. "
@@ -592,38 +609,38 @@ namespace FrontsAndRivals.UI
             var style = new NativeListItem<string>("Crew Style", "How your crew dresses, always in your colour. Street: hoodies, jackets and joggers. Smart: open shirts and cardigans "
                 + "with suit trousers. Biker: vests, biker jackets and boots. Mixed: a bit of everything.", CrewColors.Styles);
             style.SelectedIndex = Math.Max(0, Array.IndexOf(CrewColors.Styles, e.State.CrewStyle ?? CrewColors.DefaultStyle));
-            style.ItemChanged += (s, a) => { e.State.CrewStyle = CrewColors.Styles[style.SelectedIndex]; Changed(true); };
+            style.ItemChanged += (s, a) => Safe("setting", () => { e.State.CrewStyle = CrewColors.Styles[style.SelectedIndex]; Changed(true); });
             AddListRow(style, null, false);
 
             var diff = new NativeListItem<string>("Difficulty", "How hard the crews push. Higher: stronger attacks that come more often, better-defended rival "
                 + "fronts, and less time to get there. Relaxed x0.7 and half again the wait, Easy x0.85, Normal, Hard x1.2, Brutal x1.45 and attacks 30% sooner.",
                 Difficulty.Names);
             diff.SelectedIndex = Difficulty.Clamp(e.State.Difficulty) + 2;
-            diff.ItemChanged += (s, a) => { e.State.Difficulty = diff.SelectedIndex - 2; Changed(false); };
+            diff.ItemChanged += (s, a) => Safe("setting", () => { e.State.Difficulty = diff.SelectedIndex - 2; Changed(false); });
             AddListRow(diff, null, false);
 
             var f = new NativeListItem<string>("Attack Frequency", "How often crews come for your fronts, in free-roam time: Low about every 90 minutes, Normal 60, High 35. Off stops attacks.", freq);
             int at = Array.IndexOf(freq, e.State.Frequency ?? "Normal");
             f.SelectedIndex = at < 0 ? 2 : at;
-            f.ItemChanged += (s, a) => { e.State.Frequency = f.SelectedItem; Changed(false); };
+            f.ItemChanged += (s, a) => Safe("setting", () => { e.State.Frequency = f.SelectedItem; Changed(false); });
             AddListRow(f, null, false);
 
             string turfAt = e.State.TurfFrequency ?? _config.TurfFrequency.ToString();
             var turf = new NativeListItem<string>("Rival Turf Moves", "How often crews grab fronts for sale and fight each other at night. Off freezes the map.", freq);
             int ta = Array.IndexOf(freq, turfAt);
             turf.SelectedIndex = ta < 0 ? 2 : ta;
-            turf.ItemChanged += (s, a) => { e.State.TurfFrequency = turf.SelectedItem; Changed(false); };
+            turf.ItemChanged += (s, a) => Safe("setting", () => { e.State.TurfFrequency = turf.SelectedItem; Changed(false); });
             AddListRow(turf, null, false);
 
             var live = new NativeCheckboxItem("Live Defenses", "On: attacks become fights when you're within 300 m. Off: they always resolve on their own.", _config.LiveDefense && !e.State.LiveDefenseOff);
             live.Enabled = _config.LiveDefense;
-            live.CheckboxChanged += (s, a) => { e.State.LiveDefenseOff = !live.Checked; Changed(false); };
+            live.CheckboxChanged += (s, a) => Safe("setting", () => { e.State.LiveDefenseOff = !live.Checked; Changed(false); });
             AddListRow(live, null, false);
 
             var death = new NativeCheckboxItem("Permanent Death", "On: a guard killed at their post is gone for good. Off: they're hurt and back in two days.",
                 e.PermanentDeath(_config.PermanentDeath));
             death.Enabled = _config.PermanentDeath && !_config.ProtectedMode;
-            death.CheckboxChanged += (s, a) => { e.State.GuardsRecover = !death.Checked; Changed(false); };
+            death.CheckboxChanged += (s, a) => Safe("setting", () => { e.State.GuardsRecover = !death.Checked; Changed(false); });
             AddListRow(death, null, false);
 
 
@@ -639,33 +656,12 @@ namespace FrontsAndRivals.UI
             AddListRow(tips, null, false);
 
             if (ResetCity != null)
-            {
-                NativeItem again = Row(_resetCityArmed ? "Reset the City? Select Again to Confirm" : "Reset the City",
-                    "Go again: every front returns to where it started and the crews come back at full strength. You keep your guards, "
-                    + "their ranks, skills and guns (all back in the reserve). Front upgrades are lost. Runs so far: " + e.State.CityResets + ".", "");
-                again.Activated += (s, a) =>
-                {
-                    if (!_resetCityArmed) { _resetCityArmed = true; _rebuild = true; return; }
-                    _resetCityArmed = false;
-                    CloseAll();
-                    ResetCity();
-                };
-                AddListRow(again, null, false);
-            }
+                AddListRow(Row("Reset All Fronts", "Every front goes back to the crew that held it at the start and the crews return at full strength. "
+                    + "You keep your guards, their ranks, skills and guns. Asks you to confirm first.", ""), ConfirmResetFronts, true);
 
             if (StartOver != null)
-            {
-                NativeItem fresh = Row(_startOverArmed ? "Start a New Empire? Select Again to Confirm" : "Start a New Empire",
-                    "For a new story game, or to start over: every front, guard and rival goes back to day one. Your current empire is kept as empire.old.json.", "");
-                fresh.Activated += (s, a) =>
-                {
-                    if (!_startOverArmed) { _startOverArmed = true; _rebuild = true; return; }
-                    _startOverArmed = false;
-                    CloseAll();
-                    StartOver();
-                };
-                AddListRow(fresh, null, false);
-            }
+                AddListRow(Row("Start a New Empire", "For a new story game or a fresh start: every front, guard and rival goes back to day one. "
+                    + "Asks you to confirm first.", ""), ConfirmStartOver, true);
 
             NativeItem version = Row("Version", "Fronts & Rivals, a free single-player mod for Grand Theft Auto V.", Main.ModVersion);
             version.Enabled = false;
@@ -682,6 +678,8 @@ namespace FrontsAndRivals.UI
             bool show = e != null && key != null;
             if (!show) { if (_focus == 2) Focus(1); return; }
 
+            if (key is string && (string)key == ConfirmResetFronts) { DetailConfirm(e, true); return; }
+            if (key is string && (string)key == ConfirmStartOver) { DetailConfirm(e, false); return; }
             if (key is FrontDef) DetailFront(e, (FrontDef)key);
             else if (key is CrewState) DetailCrew(e, (CrewState)key);
             else if (key is GuardState && _section == Section.Hire) DetailRecruit(e, (GuardState)key);

@@ -34,9 +34,10 @@ static class EconomyTests
         foreach (Trait t in Empire.RecruitTraits)
         {
             int p = Economy.HirePrice(t);
-            if (t == Trait.Nervous ? p != 1250 : (p < 2500 || p > 5000)) inRange = false;
+            if (t == Trait.Nervous ? p != 150 : (p < 200 || p > 300)) inRange = false;
         }
-        T.True("Hire prices $2,500-$5,000, Nervous half price", inRange);
+        T.True("Base hire prices $200-$300, Nervous $150", inRange);
+        T.True("Hiring is hundreds, not thousands: $150 floor, about $700 for the best", Economy.HirePrice(Trait.Nervous, 0) == 150 && Economy.HirePrice(Trait.Sharpshooter, 75) <= 700 && Economy.HirePrice(Trait.None, 35) >= 250);
         T.Check("Knife -> pistol $350 (Ammu-Nation)", Economy.UpgradePrice(Weapon.Knife), 350, 0);
         T.Check("Pistol -> pump shotgun $550", Economy.UpgradePrice(Weapon.Pistol), 550, 0);
         T.Check("Shotgun -> SMG $1,300", Economy.UpgradePrice(Weapon.Shotgun), 1300, 0);
@@ -104,7 +105,7 @@ static class EconomyTests
         T.True("Hired guard gets a real id and waits in the reserve", offer.Id > 0 && !offer.IsPosted && s2.Guards.Contains(offer));
         T.Check("Price matches the trait and skills", price, Economy.HirePrice((Trait)offer.Trait, Stats.Overall(offer)), 0);
         T.True("Better skills cost more", Economy.HirePrice(Trait.Tough, 60) > Economy.HirePrice(Trait.Tough, 38) && Economy.HirePrice(Trait.Tough, 38) > Economy.HirePrice(Trait.Tough, 20));
-        T.Check("An average recruit costs the trait price (Story Mode scale)", Economy.HirePrice(Trait.Tough, 38), 1000, 0);
+        T.Check("An average Tough recruit (skills 38) costs $375", Economy.HirePrice(Trait.Tough, 38), 375, 0);
         T.True("Offers come with skills", Stats.HasSkills(offer));
         T.True("Can't hire the same offer twice", e2.Hire(offer, 10000, out price) == Empire.HireResult.Gone);
         e2.RefreshOffers(rng, 1);

@@ -20,6 +20,8 @@ namespace FrontsAndRivals.Spawn
             public int GuardId;
             public Ped Ped;
             public int CalmSince;
+            public string Look;          // colour/style they're dressed in
+            public int Weapon = -1;      // the gun they carry
         }
 
         private readonly Registry _registry;
@@ -68,6 +70,20 @@ namespace FrontsAndRivals.Spawn
                 if (en.Ped.IsInCombat) en.CalmSince = 0;
                 else if (en.CalmSince == 0) en.CalmSince = Game.GameTime;
                 else if (Game.GameTime - en.CalmSince > 10000 && g != null) Streamer.Restore(en.Ped, g);
+                // New crew colour or style, or a gun bought in the Office: changes on the spot, like posted guards.
+                string look = Wardrobe.PlayerColour() + "/" + Wardrobe.PlayerStyle();
+                if (g != null && en.Look != look && Wardrobe.Enabled)
+                {
+                    Wardrobe.Apply(en.Ped, Wardrobe.ForGuard(g));
+                    en.Look = look;
+                    if (en.Ped.AttachedBlip != null && en.Ped.AttachedBlip.Exists()) en.Ped.AttachedBlip.Color = (BlipColor)CrewColors.Get(Wardrobe.PlayerColour()).Blip;
+                }
+                if (g != null && en.Weapon != g.Weapon)
+                {
+                    en.Ped.Weapons.RemoveAll();
+                    en.Ped.Weapons.Give(Streamer.WeaponFor(g.Weapon), 500, true, true);
+                    en.Weapon = g.Weapon;
+                }
                 // Left far behind (a fast car, a flight): they catch up instead of running across the map.
                 if (!me.IsInVehicle() && en.Ped.Position.DistanceTo(me.Position) > EscortRules.LeftBehindRange)
                 {
@@ -133,7 +149,7 @@ namespace FrontsAndRivals.Spawn
             Wardrobe.Apply(ped, Wardrobe.ForGuard(g)); // in your crew's colour
             ped.RelationshipGroup = Factions.Guards; // before Track
             _registry.Track(ped);
-            _out.Add(new Entry { GuardId = g.Id, Ped = ped });
+            _out.Add(new Entry { GuardId = g.Id, Ped = ped, Look = Wardrobe.PlayerColour() + "/" + Wardrobe.PlayerStyle(), Weapon = g.Weapon });
 
             ped.Weapons.Give(Streamer.WeaponFor(g.Weapon), 500, true, true);
             ped.Accuracy = Stats.Accuracy(g.Shooting);

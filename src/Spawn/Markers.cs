@@ -12,12 +12,13 @@ namespace FrontsAndRivals.Spawn
         public const string CrownKingsGroup = "FR_CREW_CK";
         public const string IronsideGroup = "FR_CREW_IR";
         public const string VelvetGroup = "FR_CREW_VS";
+        public const string PoliceGroup = "FR_POLICE";
 
-        public static readonly string[] AllGroups = { GuardsGroup, StaffGroup, CrownKingsGroup, IronsideGroup, VelvetGroup };
+        public static readonly string[] AllGroups = { GuardsGroup, StaffGroup, CrownKingsGroup, IronsideGroup, VelvetGroup, PoliceGroup };
 
         private static readonly int[] AllGroupHashes =
         {
-            Hash(GuardsGroup), Hash(StaffGroup), Hash(CrownKingsGroup), Hash(IronsideGroup), Hash(VelvetGroup)
+            Hash(GuardsGroup), Hash(StaffGroup), Hash(CrownKingsGroup), Hash(IronsideGroup), Hash(VelvetGroup), Hash(PoliceGroup)
         };
 
         public static bool IsModGroup(int hash)

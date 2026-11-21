@@ -83,10 +83,13 @@ namespace FrontsAndRivals.Spawn
             for (int i = _groups.Count - 1; i >= 0; i--)
             {
                 Group g = _groups[i];
+                try
+                {
                 if (!g.Spawned)
                 {
                     TrySpawn(g, e);
                     if (!g.Spawned && Game.GameTime - g.RequestedAt > 15000) { Release(g); _groups.RemoveAt(i); }
+                    else if (g.Spawned && g.Peds.Count == 0) { Remove(g); _groups.RemoveAt(i); } // nobody made it out: free the slot
                     continue;
                 }
                 if (g.Where().DistanceTo(p) > HangoutRules.DespawnRange) { Remove(g); _groups.RemoveAt(i); continue; }
@@ -100,6 +103,14 @@ namespace FrontsAndRivals.Spawn
                 }
                 catch (Exception ex) { Log.Error("Street crime", ex); g.Crime = StreetCrime.None; g.PoliceAt = 0; }
                 if (g.Mine) TendMine(g, me); else Tend(g, e, me);
+                }
+                catch (Exception ex)
+                {
+                    // One bad group never takes the whole system down: it's cleared and the rest carry on.
+                    Log.Error("Hangout group", ex);
+                    try { Remove(g); } catch { }
+                    if (i < _groups.Count) _groups.RemoveAt(i);
+                }
             }
 
             int heat = e.State.Heat;
@@ -137,6 +148,10 @@ namespace FrontsAndRivals.Spawn
                 }
 
                 int size = HangoutRules.GroupSize(kind, _rng.Next());
+                bool car = kind == HangoutKind.Cruise || (kind == HangoutKind.HangOut && HangoutRules.WithCar(_rng.Next()));
+                string carModel = car && _registry.CanSpawnVehicle ? PickCar(e, owner) : null;
+                if (kind == HangoutKind.Cruise && carModel == null) kind = HangoutKind.Walk; // no car to cruise in: walk instead
+                // The crime is picked once the group's car is settled, so a chase never loses its car.
                 StreetCrime crime = StreetCrime.None;
                 if (!mine && e.InTheGame() && Game.GameTime >= _nextCrime && !AnyCrime())
                 {
@@ -149,9 +164,7 @@ namespace FrontsAndRivals.Spawn
                 if (!HangoutRules.Fits(_registry.PedCount, size, Registry.MaxPeds)) return;
                 var g = new Group { Crew = owner, Kind = kind, Spot = spot, Heading = (float)(_rng.NextDouble() * 360.0), Size = size, Seed = _rng.Next(), RequestedAt = Game.GameTime, Crime = crime };
                 if (crime == StreetCrime.Chase) { CopModel.Request(); CopCarModel.Request(); }
-                bool car = kind == HangoutKind.Cruise || (kind == HangoutKind.HangOut && HangoutRules.WithCar(_rng.Next()));
-                if (car && _registry.CanSpawnVehicle) g.CarModel = PickCar(e, owner);
-                if (kind == HangoutKind.Cruise && g.CarModel == null) g.Kind = HangoutKind.Walk;
+                g.CarModel = carModel;
                 for (int k = 0; k < size; k++)
                 {
                     Dressing d = mine ? PlayerDressing(g.Seed + k * 131) : Wardrobe.ForCrew(owner, g.Seed + k * 131);
@@ -336,7 +349,8 @@ namespace FrontsAndRivals.Spawn
             for (int k = 0; k < g.Size; k++)
             {
                 if (!_registry.CanSpawnPed) break;
-                if (g.Kind == HangoutKind.Cruise && (g.Car == null || k >= seats)) break;
+                if (g.Kind == HangoutKind.Cruise && g.Car == null) { g.Kind = HangoutKind.Walk; g.Crime = StreetCrime.None; } // the car didn't spawn: walk instead
+                if (g.Kind == HangoutKind.Cruise && k >= seats) break;
                 double a = (k / (double)g.Size) * Math.PI * 2.0;
                 Vector3 at = g.Spot + new Vector3((float)Math.Cos(a) * 1.3f, (float)Math.Sin(a) * 1.3f, 0f);
                 float face = (float)(Math.Atan2(-(g.Spot.X - at.X), g.Spot.Y - at.Y) * 180.0 / Math.PI); // face each other
@@ -387,7 +401,8 @@ namespace FrontsAndRivals.Spawn
                     {
                         // A soldier down: their crew is one short, and they won't forget who did it.
                         CrewState cs = Nemesis.Crew(e.State, g.Crew);
-                        if (cs != null && (ped.Killer == me || g.Rival != null)) { cs.Manpower = Math.Max(0, cs.Manpower - 1); if (ped.Killer == me) cs.LastContactDay = e.State.Day; }
+                        bool byYou = ped.Killer == me || (ped.Killer != null && (ped.Killer == me.CurrentVehicle || ped.Killer == me.LastVehicle)); // on foot or with your car
+                        if (cs != null && (byYou || g.Rival != null)) { cs.Manpower = Math.Max(0, cs.Manpower - 1); if (byYou) cs.LastContactDay = e.State.Day; }
                     }
                 }
                 else if (ped.Health < ped.MaxHealth) hurt = true;
@@ -595,6 +610,7 @@ namespace FrontsAndRivals.Spawn
             {
                 Ped cop = GTA.World.CreatePed(CopModel, at + new Vector3(0f, 0f, 2f), heading);
                 if (cop == null) continue;
+                cop.RelationshipGroup = Factions.Police; // before Track: their own FR_ group, against the crews
                 _registry.Track(cop);
                 cop.SetIntoVehicle(v, i == 0 ? VehicleSeat.Driver : VehicleSeat.Passenger);
                 cop.Weapons.Give(WeaponHash.Pistol, 200, true, true);

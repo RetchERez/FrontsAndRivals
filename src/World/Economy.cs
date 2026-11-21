@@ -43,25 +43,30 @@ namespace FrontsAndRivals.Rules
 
         /// <summary>Hiring price for a recruit: the trait's price, then more for better skills and less for weaker ones
         /// (x0.86 at overall 20, x1.0 at 38, x1.18 at 60), rounded to $50.</summary>
+        public const int MinHire = 150;
+
+        /// <summary>What a recruit asks: their trait's price scaled by their skills, from about x0.9 for a weak one (skills
+        /// around 20) to x2 for a standout (65), never under $150. A typical recruit costs $250-$450, the best about $700.</summary>
         public static int HirePrice(Trait t, int overallSkill)
         {
-            double f = 0.7 + 0.008 * Math.Max(0, Math.Min(100, overallSkill));
-            return (int)(Math.Round(HirePrice(t) * StoryScale * f / 25.0) * 25);
+            double f = 0.4 + Math.Max(0, Math.Min(100, overallSkill)) / 40.0;
+            return Math.Max(MinHire, (int)(Math.Round(HirePrice(t) * f / 25.0) * 25));
         }
 
-        /// <summary>Hiring price, $2,500-$5,000 by trait; Nervous costs half.</summary>
+        /// <summary>A trait's base hiring price, $150-$300 (skills then scale it).</summary>
         public static int HirePrice(Trait t)
         {
             switch (t)
             {
-                case Trait.Sharpshooter: return 4500;
-                case Trait.Tough: return 4000;
-                case Trait.Medic: return 4000;
-                case Trait.Hothead: return 3500;
-                case Trait.NightOwl: return 3000;
-                case Trait.Loyal: return 3000;
-                case Trait.Nervous: return 1250;
-                default: return 2500;
+                // Before skills: about what a Story Mode character pays someone to watch their back for a while.
+                case Trait.Sharpshooter: return 300;
+                case Trait.Tough: return 275;
+                case Trait.Medic: return 275;
+                case Trait.Hothead: return 250;
+                case Trait.NightOwl: return 225;
+                case Trait.Loyal: return 225;
+                case Trait.Nervous: return 150;
+                default: return 200;
             }
         }
 

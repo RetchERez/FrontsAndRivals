@@ -55,7 +55,10 @@ namespace FrontsAndRivals.Rules
         public static int[] Seed(Trait trait, Random rng)
         {
             var v = new int[4];
-            for (int i = 0; i < 4; i++) v[i] = 20 + rng.Next(26);
+            // Every recruit is rolled fresh, so no two games have the same people: 15-55 in each skill, and now and then
+            // (1 in 8) a standout with one skill 20 higher, then the trait. Saved with the empire, so a run keeps its people.
+            for (int i = 0; i < 4; i++) v[i] = 15 + rng.Next(41);
+            if (rng.Next(8) == 0) v[rng.Next(4)] += 20;
             switch (trait)
             {
                 case Trait.Sharpshooter: v[0] += 25; break;
