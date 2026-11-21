@@ -159,7 +159,7 @@ namespace FrontsAndRivals.Attacks
         private void Plan(Empire e, int hour, long now, bool force)
         {
             EmpireState s = e.State;
-            int bonus = _config.EmpirePressure ? Rules.Attacks.PressureSquadBonus(Rules.Attacks.HeldCount(s)) : 0;
+            int bonus = (_config.EmpirePressure ? Rules.Attacks.PressureSquadBonus(Rules.Attacks.HeldCount(s)) : 0) + Rules.Heat.SquadBonus(s.Heat);
             AttackState a = Rules.Attacks.Plan(s, _content, e, _rng(), _config.HoldMinutes, hour, now, bonus);
             if (a == null) { if (force) DevNotice("No crew can attack right now (do you own a front?)."); return; }
             s.Attack = a;
@@ -445,7 +445,7 @@ namespace FrontsAndRivals.Attacks
             if (o.Won)
             {
                 Sounds.Play(Cue.FrontTaken);
-                if (!CheckRuledAll(e)) _banners.Show("FRONT TAKEN", "Your crew took the " + front.Name + " from the " + crew.Name + ".");
+                if (!CheckRuledAll(e)) _banners.Show("front taken", "Your crew took the " + front.Name + " from the " + crew.Name + ".", true);
                 _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is ours", "The raid worked: the " + crew.Name + " are out of the " + front.ShortName + "." + cost + " Post some guards there.");
             }
             else
@@ -459,8 +459,8 @@ namespace FrontsAndRivals.Attacks
             _changed();
         }
 
-        /// <summary>Called when you buy a front at its door (Main plays the establishing shot).</summary>
-        public Action<FrontDef> OnPurchased;
+        /// <summary>Called when you take a front in person (Main plays the establishing shot).</summary>
+        public Action<FrontDef> OnTaken;
 
         /// <summary>A new empire (Office > Settings > Start a new empire): forget everything tied to the old one's clock.</summary>
         public void Reset()
@@ -476,7 +476,6 @@ namespace FrontsAndRivals.Attacks
         /// <summary>Every tick while the gate is open: the claim prompt at a cleared rival front's door.</summary>
         public void UpdateFrame()
         {
-            BuyPrompt();
             if (_claimFront == null) return;
             Empire e = _empire();
             if (e == null || _now() > _claimUntil || e.OwnerOf(_claimFront) != _claimCrew) { _claimFront = null; return; }
@@ -500,63 +499,20 @@ namespace FrontsAndRivals.Attacks
             CrewDef crew = _content.Crew(_claimCrew);
             Rules.Attacks.TakeFront(e.State, e, fs, _claimCrew);
             Rules.Attacks.GracePeriod(e.State, front.Id, _now());
+            int joined = e.StarterCrew(front, _rng());
             _claimFront = null;
-            if (!CheckRuledAll(e)) _banners.Show("FRONT TAKEN", "The " + front.Name + " is yours.");
+            // Like finishing a job in Story Mode: the gold shard and the property chime over a shot of the building.
+            if (!CheckRuledAll(e)) _banners.Show("front taken", front.Name, true);
             Sounds.Play(Cue.FrontTaken);
-            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
+            if (OnTaken != null) OnTaken(front);
+            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, joined > 0
+                ? "The car wash is yours, and two of the guys who work there want in. They've only got knives: arm them before the " + crew.Name + " come back."
+                : _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
             Log.Write("Director: player took " + front.Id + " from " + crew.Name);
             _changed();
         }
 
-        // ---------------------------------------------------------------- buying at the door
-
-        private const float BuyRange = 3f;
-
-        /// <summary>Fronts for sale are bought in person, like GTA's own properties: walk up to the door on foot.</summary>
-        private void BuyPrompt()
-        {
-            Empire e = _empire();
-            if (e == null) return;
-            Ped me = Game.Player.Character;
-            if (me.IsInVehicle() || me.IsDead) return;
-            Vector3 p = me.Position;
-            FrontDef front = null;
-            foreach (FrontDef def in _content.Fronts)
-            {
-                if (!def.Door.IsSet || !e.CanBuy(def.Id)) continue;
-                float d = def.Door.DistanceTo(p.X, p.Y, p.Z);
-                if (d < 30f) Tips.Show(Tip.BuyAtDoor);
-                if (d <= BuyRange) { front = def; break; }
-            }
-            if (front == null) return;
-            if (!e.Trusted(front))
-            {
-                GTA.UI.Screen.ShowHelpTextThisFrame("The Broker won't sell you the " + front.Name + " until you hold " + Economy.TrustNeeded(front.Tier) + " fronts.");
-                return;
-            }
-            int price = Economy.FrontPrice(front, _config.FrontPriceDays);
-            GTA.UI.Screen.ShowHelpTextThisFrame("Press ~INPUT_CONTEXT~ to buy the " + front.Name + " for $" + price.ToString("N0") + ".");
-            if (!Game.IsControlJustPressed(Control.Context)) return;
-            if (Game.Player.Money < price)
-            {
-                GTA.UI.Notification.Show("The Broker wants $" + price.ToString("N0") + " for the " + front.Name + ".");
-                return;
-            }
-            Game.Player.Money -= price;
-            e.SetOwner(front.Id, Owners.Player);
-            Rules.Attacks.GracePeriod(e.State, front.Id, _now());
-            int stayed = e.StarterCrew(front, _rng());
-            Sounds.Play(Cue.FrontTaken);
-            if (!CheckRuledAll(e)) _banners.Show("FRONT PURCHASED", "The " + front.Name + " is yours. " + (stayed > 0 ? "Two of the old crew stayed on." : "Post some guards from the Office."));
-            _notifierPost(NoteKind.FrontChange, "The Broker", front.ShortName, stayed > 0
-                ? "It's yours, and two of the old owner's people are staying on. They've only got knives: arm them before somebody gets ideas."
-                : "It's yours. Put some people on it before somebody else gets ideas.");
-            Log.Write("Director: player bought " + front.Id + " at the door for " + price);
-            if (OnPurchased != null) OnPurchased(front);
-            _changed();
-        }
-
-        /// <summary>The endgame moment, the first time every front in the city is yours (bought or taken). Shows its banner
+        /// <summary>The endgame moment, the first time every front in the city is yours. Shows its banner
         /// and returns true then. The crews still recruit off the street and will try to take fronts back.</summary>
         private bool CheckRuledAll(Empire e)
         {
@@ -564,7 +520,7 @@ namespace FrontsAndRivals.Attacks
             foreach (FrontDef def in _content.Fronts)
                 if (def.Door.IsSet && !e.PlayerOwns(def.Id)) return false;
             e.State.RuledAll = true;
-            _banners.Show("LOS SANTOS IS YOURS", "Every front in the city answers to you. The crews won't stay gone.");
+            _banners.Show("los santos is yours", "Every front in the city answers to you. The crews won't stay gone.", true);
             Log.Write("Director: player holds every front");
             return true;
         }

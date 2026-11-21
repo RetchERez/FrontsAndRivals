@@ -91,6 +91,7 @@ namespace FrontsAndRivals.Rules
             if (cooldown >= 0 && cooldownMinutes > 0) cooldown = cooldownMinutes * Minute;
             else if (cooldown > 0 && pressure)
                 cooldown = Math.Min(cooldown, Math.Max(PressureFloorMs, (long)(cooldown * PressureCooldownFactor(HeldCount(s)))));
+            if (cooldown > 0 && !(cooldownMinutes > 0)) cooldown = (long)(cooldown * Heat.CooldownFactor(s.Heat)); // hot streets, sooner hits
             if (cooldown > 0) cooldown = (long)(cooldown * Difficulty.Cooldown(s.Difficulty));
             if (cooldown < 0 || s.Attack != null) return false;
             if (sinceLoadMs < firstDelayMinutes * Minute) return false;
@@ -352,6 +353,7 @@ namespace FrontsAndRivals.Rules
         public static void TakeFront(EmpireState s, Empire empire, FrontState front, string fromCrew)
         {
             empire.SetOwner(front.Id, Owners.Player);
+            Heat.Add(s, Heat.PerTake);
             front.TakenFrom = fromCrew;
             front.WeakUntilDay = -1;
             CrewState crew = Nemesis.Crew(s, fromCrew);

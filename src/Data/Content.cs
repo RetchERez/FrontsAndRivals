@@ -66,6 +66,13 @@ namespace FrontsAndRivals.Data
         /// <summary>Guard posts by size: a small shop needs 2, a mid-size place 3, the biggest 4.</summary>
         public static int PostsForTier(int tier) { return tier >= 2 ? 4 : tier == 1 ? 3 : 2; }
 
+        /// <summary>The most soldiers a crew keeps on one front.</summary>
+        public const int MaxCrew = 7;
+
+        /// <summary>Soldiers a crew keeps on this front at full strength: the car wash is the easy way in with 2; other small
+        /// fronts 3, mid-size 5, the biggest 7. Bigger fronts pay more and are that much harder to take.</summary>
+        public static int CrewSoldiers(FrontDef def) { return def == null ? 0 : def.Starter ? 2 : def.Tier >= 2 ? 7 : def.Tier == 1 ? 5 : 3; }
+
         /// <summary>Guards this front takes, by size. Known from the start, so a front taken by raid can be staffed at once,
         /// even before its posts are placed on your first visit.</summary>
         public int Capacity { get { return PostsForTier(Tier); } }
@@ -279,7 +286,7 @@ namespace FrontsAndRivals.Data
             // Real GTA V buildings; doors from published coordinates (see docs/locations_found.md).
             return new List<FrontDef>
             {
-                Def("carwash_handson", "Hands On Car Wash", "Strawberry", 1, 0, 4000, Owners.ForSale, 25.20f, -1391.98f, 28.91f, 0f),
+                Def("carwash_handson", "Hands On Car Wash", "Strawberry", 1, 0, 4000, Owners.CrownKings, 25.20f, -1391.98f, 28.91f, 0f),
                 Def("liquor_brewersdrop", "Brewer's Drop Liquor", "Strawberry", 2, 0, 5000, Owners.Velvet, 98.90f, -1309.50f, 29.30f, 122f),
                 Def("jewelry_discountjewels", "Discount Jewels", "Davis", 3, 1, 6000, Owners.CrownKings, 130.90f, -1771.80f, 29.70f, 320f),
                 Def("bar_mirrorpark", "Mirror Park Tavern", "Mirror Park", 4, 1, 7000, Owners.Velvet, 1217.94f, -416.80f, 67.78f, 78f),

@@ -19,11 +19,15 @@ namespace FrontsAndRivals.UI
             _pool.Add(_message);
         }
 
-        public void Show(string title, string message)
+        public void Show(string title, string message) { Show(title, message, false); }
+
+        /// <param name="passed">true: Story Mode's own "mission passed" shard (gold title, message under it), for the
+        /// moments that feel like finishing a job yourself, like taking a front.</param>
+        public void Show(string title, string message, bool passed)
         {
             _message.Title = title;
             _message.Message = message;
-            _message.Type = MessageType.Customizable;
+            _message.Type = passed ? MessageType.MissionPassedOldGen : MessageType.Customizable;
             _message.Visible = true;
             _hideAt = Game.GameTime + ShowMs;
         }

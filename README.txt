@@ -4,7 +4,7 @@ FRONTS & RIVALS 1.0
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
 Not affiliated with or endorsed by Rockstar Games.
 
-Buy real Los Santos businesses as fronts, post guards with names, faces, skills
+Take real Los Santos businesses from rival crews, post guards with names, faces, skills
 and ranks, and hold them against three rival crews who already own most of the
 city and fight each other for the rest. Attacks play out on their own while
 you're away and turn into real fights when you're close. Michael, Franklin and
@@ -56,8 +56,8 @@ INSTALL
 1. Install everything in Requirements
 2. Copy the contents of this zip's "scripts" folder into <GTA V>\scripts\ :
    FrontsAndRivals.dll, FrontsAndRivals.ini and the FrontsAndRivals folder
-3. Start Story Mode. Once you have $10,000, the Broker texts you about a car
-   wash for sale
+3. Start Story Mode. After Franklin's first mission, the Broker texts you about
+   a car wash the Dead Kings barely guard
 
 Windows may need to let mods create files in the GTA V folder. The mod saves to
 scripts\FrontsAndRivals\empire.json.
@@ -67,9 +67,9 @@ GETTING STARTED
 ---------------
   Open the Office      Hold Back/View on a controller (or M) for half a
                        second, or call The Office on your phone
-  First front          Go to the Hands On Car Wash in Strawberry and buy it
-                       at the door, like GTA's own properties: $10,000, and
-                       two of the old crew come with it
+  First front          Go to the Hands On Car Wash in Strawberry, clear the
+                       two Dead Kings watching it (pistols and bats) and
+                       claim the door; two of the car wash workers join you
   Next Step            The line at the top of the Office always says what to
                        do next
   Guards               Hire and post them from the Office, then arm them and
@@ -89,8 +89,20 @@ WHAT'S IN 1.0
  - Three original crews holding their own turf: the Dead Kings in South LS,
    Hellfire MC on the east side and the Vinewood Elite out west; each has a
    boss and three lieutenants
- - A city that moves without you: crews buy fronts that come up for sale, feud
-   with each other and take each other's fronts at night
+ - Every front starts in a crew's hands and nothing is for sale: you take them
+   by force, in person or with a raid
+ - Bigger fronts pay more and fight harder: 2 kids with pistols and bats at the
+   car wash; 3 soldiers with everyday guns at small fronts; 5 at mid-size
+   fronts with more rifles, light armour and better aim; 7 at the biggest with
+   the most heavy guns and armour
+ - Street heat, shown in the Office: every front you take raises it and every
+   night cools it; the hotter it is, the sooner the crews hit back and the
+   harder their fronts fight, so lying low for a night or two pays off
+ - Taking a front plays out like finishing a job in Story Mode: the gold
+   shard, the chime and a shot of the building
+ - A city that moves without you: once you've taken your first front, the crews
+   feud with each other and take each other's fronts at night; until then they
+   leave you and each other alone
  - Attacks with no warning: one alert, a timer showing how long your guards can
    hold (about 5 minutes, more with Cameras), a GPS route and a bonus for
    holding the door yourself
@@ -109,8 +121,8 @@ WHAT'S IN 1.0
    with the odds shown first
  - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and
    the biggest 4; Cameras, Floodlights, Reinforced Doors and an Armory
- - A Story Mode economy: fronts cost and pay about what Story Mode properties
-   do; they pay more the longer you hold them and the more you own
+ - A Story Mode economy: fronts pay about what Story Mode properties do; they
+   pay more the longer you hold them and the more you own
  - Progression money can't skip: guns unlock with rank, bigger fronts need the
    Broker's trust (3 and 8 fronts held) and new fronts get two quiet days
  - Staff at the front you're near: a cashier on the phone, a janitor sweeping,
@@ -134,7 +146,7 @@ CONTROLS
   Select or open         A                               Enter
   Back                   B                               Backspace
   Change a setting       D-pad left/right                Left/Right
-  Buy or claim at a door The button shown in the prompt  E
+  Claim a front's door   The button shown in the prompt  E
 
 
 PLAYING ALONGSIDE THE STORY
@@ -144,10 +156,12 @@ Everything pauses during missions, cutscenes, random events and character
 switches, and attacks only count free-roam time, so a long mission never costs
 you a front.
 
-Money is at Story Mode scale. Early Franklin can afford the car wash and grow
-slowly; after the Jewel Store Job he can buy a second front. Michael after the
-heists can buy whatever is for sale, but the crews' fronts still have to be
-taken by force.
+Money is at Story Mode scale, and money can't buy you fronts: every one is
+taken by force. Early Franklin can take the car wash with a pistol; bigger
+fronts need guards, guns and the Broker's trust. A steady player holds about 8
+fronts after 10-12 hours, 15 after about 25 and 22 after about 40, roughly the
+length of the story; even someone fighting non-stop can't take the city in an
+evening.
 
 
 SETTINGS

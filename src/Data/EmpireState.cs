@@ -56,7 +56,9 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "difficulty", Order = 35)] public int Difficulty;        // Office: steps from Normal, -2 Relaxed .. +2 Brutal
         [DataMember(Name = "cityResets", Order = 36)] public int CityResets;        // times you've reset the city and gone again
         [DataMember(Name = "lastRaidDay", Order = 37)] public int LastRaidDay = -1;  // one raid a day
-        [DataMember(Name = "lastHeldDay", Order = 38)] public int LastHeldDay;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "lastHeldDay", Order = 38)] public int LastHeldDay;
+        /// <summary>Street heat 0-100 (Rules.Heat): taking fronts raises it, every midnight cools it.</summary>
+        [DataMember(Name = "heat", Order = 39)] public int Heat;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]

@@ -16,10 +16,19 @@ namespace FrontsAndRivals.Rules
         public static int Soldiers(FrontDef def, FrontState f, CrewState crew, int day)
         {
             if (def == null || crew == null) return 0;
-            int n = FrontDef.PostsForTier(def.Tier);
-            if (f != null && f.WeakUntilDay >= day) n = Math.Max(1, n - 1);
+            int n = FrontDef.CrewSoldiers(def);
+            if (f != null && f.WeakUntilDay >= day) n = Math.Max(1, n - 1 - def.Tier); // thinned out
             return Math.Min(n, Math.Max(0, crew.Manpower));
         }
+
+        /// <summary>A front's defense against a raid, with street heat (the car wash's melee kids ignore it and count 60%).</summary>
+        public static double FrontDefense(CrewDef crew, FrontDef def, int soldiers, int heat)
+        {
+            if (def != null && def.Starter) return CrewDefense(crew, soldiers) * StarterFactor;
+            return CrewDefense(crew, soldiers) * Heat.CrewDefenseFactor(heat);
+        }
+
+        public const double StarterFactor = 0.6;
 
         public static double CrewDefense(CrewDef crew, int soldiers)
         {
@@ -73,7 +82,7 @@ namespace FrontsAndRivals.Rules
             if (team.Count == 0 || fs.Owner != raid.Crew) return o;
 
             int soldiers = Soldiers(def, fs, crew, s.Day);
-            double power = TeamPower(records, hour), defense = CrewDefense(crewDef, soldiers) * Difficulty.Strength(s.Difficulty);
+            double power = TeamPower(records, hour), defense = FrontDefense(crewDef, def, soldiers, s.Heat) * Difficulty.Strength(s.Difficulty);
             o.Won = soldiers == 0 || rng.NextDouble() < WinChance(power, defense);
             double r = power + defense <= 0 ? 0.5 : defense / (power + defense);
             string where = "the raid on the " + def.ShortName;

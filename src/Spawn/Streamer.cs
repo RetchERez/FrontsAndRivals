@@ -48,7 +48,7 @@ namespace FrontsAndRivals.Spawn
             public bool Streamed;
             public float Distance;
             public readonly LayLowTimer LayLow = new LayLowTimer();
-            public readonly Slot[] Slots = new Slot[FrontDef.MaxPosts];
+            public readonly Slot[] Slots = new Slot[FrontDef.MaxCrew]; // guards use the first posts; a crew can hold more
             public bool CrewSpawnedThisVisit;
             public bool ClearedReported;
             public bool Alerted;          // crew soldiers have noticed you and are fighting
@@ -310,9 +310,8 @@ namespace FrontsAndRivals.Spawn
             if (f.CrewCount < 0)
             {
                 FrontState fs = _empire.Find(f.Def.Id);
-                int c = f.Def.PlacedPosts;
-                if (fs != null && fs.WeakUntilDay >= _empire.State.Day) c = Math.Max(1, c - 1);
-                f.CrewCount = Math.Min(c, Math.Max(0, cs.Manpower));
+                int c = f.Def.Posts != null && f.Def.Posts.Count > 0 ? Raids.Soldiers(f.Def, fs, cs, _empire.State.Day) : 0;
+                f.CrewCount = Math.Min(Math.Min(c, FrontDef.MaxCrew), Math.Max(0, cs.Manpower));
             }
             int count = f.CrewCount;
             // An empty crew front (no soldiers to spare) can be claimed as soon as you walk up.
@@ -345,8 +344,10 @@ namespace FrontsAndRivals.Spawn
                 if (slot.Killed) { killed++; continue; }
                 string model = crew.Models[Math.Abs(f.Def.Id.GetHashCode() + post * 7) % crew.Models.Count];
                 int pick = Markers.Hash(f.Def.Id) + post * 7;
-                int tier = f.Def.Tier, grudge = cs.Grudge;
-                Load(slot, model, -1, 0, () => SpawnCrewGuard(slot, crew, f.Def.Posts[post], hour, pick, tier, grudge));
+                int tier = f.Def.Tier, grudge = cs.Grudge + Heat.ExtraGrudge(_empire.State.Heat); // on alert: heavier guns
+                int index = post;
+                bool starter = f.Def.Starter;
+                Load(slot, model, -1, 0, () => SpawnCrewGuard(slot, crew, CrewSpot(f.Def, index), hour, pick, tier, grudge, starter));
             }
             if (alive > 0 || killed > 0) f.CrewSpawnedThisVisit = true;
             if (!f.Alerted && alive > 0 && ShouldAlert(f, count)) Alert(f, count);
@@ -360,6 +361,30 @@ namespace FrontsAndRivals.Spawn
                     if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true);
                 }
             }
+        }
+
+        /// <summary>Where crew soldier number i stands: the scouted posts first, then extra soldiers a step to the side of a
+        /// post (never through a wall, always on the ground), so a big front's crew stands in twos.</summary>
+        private static PostDef CrewSpot(FrontDef def, int i)
+        {
+            int n = def.Posts.Count;
+            PostDef p = def.Posts[i % n];
+            if (i < n) return p;
+            double h = p.H * Math.PI / 180.0;
+            var post = new Vector3(p.X, p.Y, p.Z + 0.5f);
+            var side = new Vector3((float)Math.Cos(h), (float)Math.Sin(h), 0f);
+            var back = new Vector3((float)Math.Sin(h), -(float)Math.Cos(h), 0f);
+            float sign = (i / n) % 2 == 1 ? 1f : -1f;
+            Vector3[] tries = { post + side * (1.6f * sign), post - side * (1.6f * sign), post + back * 1.2f };
+            foreach (Vector3 t in tries)
+            {
+                RaycastResult r = GTA.World.Raycast(post, t, IntersectFlags.Map, null);
+                if (r.DidHit) continue;
+                float g = GTA.World.GetGroundHeight(new Vector3(t.X, t.Y, p.Z + 1.5f));
+                if (g <= 0f || Math.Abs(g - p.Z) > 1.2f) continue;
+                return new PostDef { X = t.X, Y = t.Y, Z = g, H = p.H, Scenario = i % 2 == 0 ? "WORLD_HUMAN_SMOKING" : p.Scenario };
+            }
+            return p == null ? null : new PostDef { X = p.X + 0.6f * sign, Y = p.Y, Z = p.Z, H = p.H, Scenario = "WORLD_HUMAN_SMOKING" };
         }
 
         /// <summary>INI Rivals.AlertRange: walking this close to a rival front's door on foot sets its soldiers on you.</summary>
@@ -397,7 +422,7 @@ namespace FrontsAndRivals.Spawn
             Log.Write("Streamer: crew at " + f.Def.Id + " alerted");
         }
 
-        private void SpawnCrewGuard(Slot slot, CrewDef crew, PostDef post, int hour, int pick, int tier, int grudge)
+        private void SpawnCrewGuard(Slot slot, CrewDef crew, PostDef post, int hour, int pick, int tier, int grudge, bool starter)
         {
             Ped ped = GTA.World.CreatePed(slot.PendingModel, new Vector3(post.X, post.Y, post.Z), post.H);
             if (ped == null) return;
@@ -405,9 +430,20 @@ namespace FrontsAndRivals.Spawn
             _registry.Track(ped);
             slot.Ped = ped;
             slot.GuardId = -1;
-            ped.Weapons.Give(CrewWeapon(crew.WeaponFor(pick, tier, grudge)), 250, false, true);
-            ped.Accuracy = 25;
-            ped.Armor = CrewDef.FrontArmor(tier); // a nightclub's crew is better kitted out than a liquor store's
+            int heat = _empire.State.Heat;
+            if (starter)
+            {
+                // The car wash: pistols and melee, no armour, street heat or not. The easy way in.
+                ped.Weapons.Give(CrewWeapon(CrewDef.StarterWeapon(pick)), 250, false, true);
+                ped.Accuracy = 15;
+                ped.Armor = 0;
+            }
+            else
+            {
+                ped.Weapons.Give(CrewWeapon(crew.WeaponFor(pick, tier, grudge)), 250, false, true);
+                ped.Accuracy = CrewDef.FrontAccuracy(tier) + Heat.CrewAccuracy(heat) - 25; // by size, sharper on hot streets
+                ped.Armor = Math.Min(100, CrewDef.FrontArmor(tier) + Heat.ExtraArmor(heat)); // bigger fronts are better kitted out, more so on hot streets
+            }
             Function.Call(Hash.SET_PED_KEEP_TASK, ped, true);
             // Calm until alerted (see ShouldAlert): idle at the post, ignoring the world.
             ped.BlockPermanentEvents = true;

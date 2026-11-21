@@ -19,6 +19,7 @@ static class Sim
         public int AssaultEveryHours;    // you take a crew front in person every this many in-game hours (0 = never)
         public double AssaultWin;        // chance your in-person assault works
         public int RaidSquad;            // guards kept in the reserve for raids instead of posted
+        public int LieLowAt = 101;       // skip going in yourself while street heat is at least this
     }
 
     sealed class Stats
@@ -26,7 +27,7 @@ static class Sim
         public int[] FrontsByDay;
         public long[] NetByDay, CashByDay;
         public int AttFull, AttFullWon, AttPartial, AttPartialWon, AttEmpty, AttEmptyWon;
-        public int Attacks, AttacksWon, FrontsLost, Raids, RaidsWon, GuardsDead, Quits, Assaults;
+        public int Attacks, AttacksWon, FrontsLost, Raids, RaidsWon, GuardsDead, Quits, Assaults, AssaultsFailed, Day1Fronts, HeatSum, HeatN;
         public int Day3 = -1, Day8 = -1, Day15 = -1, Day22 = -1;
         public long UpgradeSpend, GunSpend, HireSpend, FrontSpend;
         public int LossStreak, LongestLossStreak, LongestQuiet, QuietNow, PeakFronts, LastEventDay;
@@ -34,7 +35,7 @@ static class Sim
 
     static ContentDb _content;
     static bool Trace;
-    static long StartCash = 50000;
+    static long StartCash = 10000;
 
     static int Main(string[] args)
     {
@@ -46,9 +47,11 @@ static class Sim
 
         var policies = new[]
         {
-            new Policy { Name = "Casual", PresentAtAttack = 0.10, LiveWinBoost = 0.25, RaidMinOdds = 0.70, AssaultEveryHours = 0, AssaultWin = 0.0, RaidSquad = 0 },
-            new Policy { Name = "Normal", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 48, AssaultWin = 0.8, RaidSquad = 2 },
-            new Policy { Name = "Aggressive", PresentAtAttack = 0.50, LiveWinBoost = 0.30, RaidMinOdds = 0.45, AssaultEveryHours = 24, AssaultWin = 0.85, RaidSquad = 4 },
+            // AssaultEveryHours: how often you go and take a crew front yourself (an in-game hour is 2 real minutes).
+            new Policy { Name = "Casual", PresentAtAttack = 0.10, LiveWinBoost = 0.25, RaidMinOdds = 0.70, AssaultEveryHours = 48, AssaultWin = 0.70, RaidSquad = 0, LieLowAt = 60 },
+            new Policy { Name = "Normal", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 24, AssaultWin = 0.80, RaidSquad = 2, LieLowAt = 70 },
+            new Policy { Name = "Aggressive", PresentAtAttack = 0.50, LiveWinBoost = 0.30, RaidMinOdds = 0.45, AssaultEveryHours = 10, AssaultWin = 0.85, RaidSquad = 4, LieLowAt = 85 },
+            new Policy { Name = "Steamroller", PresentAtAttack = 0.70, LiveWinBoost = 0.35, RaidMinOdds = 0.40, AssaultEveryHours = 4, AssaultWin = 0.90, RaidSquad = 4 },
         };
         if (args.Length > 2 && args[2] == "city")
         {
@@ -70,7 +73,6 @@ static class Sim
                     Nemesis.Daily(s, s.Day);
                     foreach (CrewState crew in s.Crews) Nemesis.Rebuild(s, _content, crew, rng, s.Day);
                     foreach (Turf.Move m in Turf.Nightly(s, _content, rng, Turf.ChanceFor("Normal"))) { moves++; if (m.Success) wins++; }
-                    Turf.Market(s, _content, rng);
                 }
             }
             Console.WriteLine("city alone, " + runs + " runs: turf moves/night " + (moves / runs / days).ToString("0.00") + ", successful " + Pct(moves > 0 ? wins / moves : 0));
@@ -94,6 +96,7 @@ static class Sim
             return 0;
         }
         if (args.Length > 2 && args[2] == "trace") { Trace = true; Play(policies[1], 0, days, 1); return 0; }
+        if (args.Length > 2 && args[2] == "normal") { foreach (Policy p in policies) Report(p, 0, days, Enumerable.Range(0, runs).Select(seed => Play(p, 0, days, seed)).ToList()); return 0; }
         foreach (int diff in new[] { -2, 0, 2 })
             foreach (Policy p in policies)
                 Report(p, diff, days, Enumerable.Range(0, runs).Select(seed => Play(p, diff, days, seed)).ToList());
@@ -134,7 +137,7 @@ static class Sim
             {
                 if (Attacks.CanPlan(s, now, now, "Normal", 0, 10, true) && rng.NextDouble() < Attacks.PlanChancePerMinute)
                 {
-                    int bonus = Attacks.PressureSquadBonus(Attacks.HeldCount(s));
+                    int bonus = Attacks.PressureSquadBonus(Attacks.HeldCount(s)) + Heat.SquadBonus(s.Heat);
                     s.Attack = Attacks.Plan(s, _content, e, rng, Attacks.DefaultHoldMinutes, hour, now, bonus);
                 }
             }
@@ -194,8 +197,7 @@ static class Sim
         s.Day++;
         Nemesis.Daily(s, s.Day);
         foreach (CrewState crew in s.Crews) Nemesis.Rebuild(s, _content, crew, rng, s.Day);
-        Turf.Nightly(s, _content, rng, Turf.ChanceFor("Normal"));
-        Turf.Market(s, _content, rng);
+        if (e.InTheGame()) Turf.Nightly(s, _content, rng, Turf.ChanceFor("Normal"));
         e.BrokerRescue();
         Economy.Payout pay = Economy.Midnight(s, _content, cash, 1.0, 1.0);
         e.DayOnDuty();
@@ -203,6 +205,7 @@ static class Sim
         cash += pay.Net;
         int d = Math.Min(s.Day, st.FrontsByDay.Length - 1);
         st.FrontsByDay[d] = e.OwnedCount();
+        st.HeatSum += s.Heat; st.HeatN++;
         st.NetByDay[d] = pay.Net;
         st.CashByDay[d] = cash;
         e.EnsureFronts();
@@ -213,17 +216,8 @@ static class Sim
     {
         long wagesReserve = e.DailyWages() * 2;
 
-        // Buy the cheapest front for sale the Broker trusts you with.
-        FrontDef buy = _content.Fronts.Where(f => e.CanBuy(f.Id) && e.Trusted(f)).OrderBy(f => Economy.FrontPrice(f, Economy.PriceDays)).FirstOrDefault();
-        bool firstFront = e.OwnedCount() == 0 && buy != null && buy.Starter;
-        if (buy != null && (firstFront ? cash >= Economy.FrontPrice(buy, Economy.PriceDays) : cash - Economy.FrontPrice(buy, Economy.PriceDays) > wagesReserve + 3000))
-        {
-            int price = Economy.FrontPrice(buy, Economy.PriceDays);
-            cash -= price; st.FrontSpend += price;
-            e.SetOwner(buy.Id, Owners.Player);
-            Attacks.GracePeriod(s, buy.Id, now);
-            e.StarterCrew(buy, rng);
-        }
+        // Nothing is for sale: with no fronts, go and take the car wash (or anything small) every few hours.
+        if (e.OwnedCount() == 0 && now >= 20 * 60000L && hour % 3 == 0) nextAssault = Math.Min(nextAssault, now);
 
         // Hire when there are posts to fill.
         int posts = _content.Fronts.Where(f => e.PlayerOwns(f.Id)).Sum(f => e.EmptyPosts(f.Id));
@@ -272,21 +266,36 @@ static class Sim
         }
 
         // Going in yourself now and then.
-        if (now >= nextAssault)
+        if (now >= nextAssault && (s.Heat < pol.LieLowAt || e.OwnedCount() == 0))
         {
             nextAssault = now + pol.AssaultEveryHours * 2 * 60000L;
             FrontDef t = _content.Fronts.Where(f => Owners.IsCrew(e.OwnerOf(f.Id)) && e.Trusted(f) && !Attacks.DugIn(s, e.Find(f.Id)))
-                                        .OrderBy(f => f.Tier).FirstOrDefault();
-            if (t != null && rng.NextDouble() < pol.AssaultWin)
+                                        .OrderBy(f => f.Starter ? -1 : f.Tier).ThenBy(f => rng.Next()).FirstOrDefault();
+            if (t != null && rng.NextDouble() < AssaultChance(pol, s, e, t))
             {
                 string crew = e.OwnerOf(t.Id);
                 CrewState cs = Nemesis.Crew(s, crew);
-                cs.Manpower = Math.Max(0, cs.Manpower - FrontDef.PostsForTier(t.Tier));
+                cs.Manpower = Math.Max(0, cs.Manpower - FrontDef.CrewSoldiers(t));
                 Attacks.TakeFront(s, e, e.Find(t.Id), crew);
                 Attacks.GracePeriod(s, t.Id, now);
+                e.StarterCrew(t, rng);
                 st.Assaults++;
             }
+            else if (t != null) { st.AssaultsFailed++; cash = Math.Max(0, cash - 5000); nextAssault += 3 * 2 * 60000L; } // wasted: the hospital bill, and the trip back
         }
+    }
+
+    /// <summary>Your chance to take a crew front in person: more soldiers, a bigger front and hotter streets (soldiers on
+    /// alert, in more armour with heavier guns) all make it harder. Two soldiers at the car wash: the policy's own odds.</summary>
+    static double AssaultChance(Policy pol, EmpireState s, Empire e, FrontDef t)
+    {
+        CrewState crew = Nemesis.Crew(s, e.OwnerOf(t.Id));
+        int soldiers = Raids.Soldiers(t, e.Find(t.Id), crew, s.Day);
+        double p = pol.AssaultWin - 0.06 * Math.Max(0, soldiers - 2) - 0.03 * t.Tier;
+        if (!t.Starter) p *= 1.0 - 0.6 * s.Heat / 100.0; // on alert: more armour, heavier guns, sharper aim (not the car wash kids)
+        else p = Math.Min(0.97, p + 0.08); // pistols and bats
+        p *= Difficulty.Strength(0) / Difficulty.Strength(s.Difficulty);
+        return Math.Max(0.05, Math.Min(0.97, p));
     }
 
     static void TryUpgrade(ref long cash, Stats st, FrontDef f, long reserve, string name, int basePrice, bool owned, Action install)
@@ -311,12 +320,12 @@ static class Sim
         Func<int, double> cashAt = d => all.Average(x => (double)x.CashByDay[Math.Min(d, days)]);
         double att = all.Sum(x => x.Attacks), won = all.Sum(x => x.AttacksWon), raids = all.Sum(x => x.Raids), rwon = all.Sum(x => x.RaidsWon);
         Console.WriteLine("== " + Difficulty.Name(diff) + " / " + p.Name + " (" + all.Count + " games, " + days + " in-game days)");
-        Console.WriteLine("   fronts held   day 3: " + frontsAt(3).ToString("0.0") + "  day 7: " + frontsAt(7).ToString("0.0") + "  day 15: " + frontsAt(15).ToString("0.0") + "  day 30: " + frontsAt(days).ToString("0.0"));
+        Console.WriteLine("   fronts held   day 1: " + frontsAt(1).ToString("0.0") + "  day 3: " + frontsAt(3).ToString("0.0") + "  day 7: " + frontsAt(7).ToString("0.0") + "  day 15: " + frontsAt(15).ToString("0.0") + "  day 30: " + frontsAt(days).ToString("0.0"));
         Console.WriteLine("   milestones    3 fronts " + median(x => x.Day3) + ", 8 fronts " + median(x => x.Day8) + ", 15 fronts " + median(x => x.Day15) + ", 22 fronts " + median(x => x.Day22));
         Console.WriteLine("   net/night     day 3: $" + netAt(3).ToString("N0") + "  day 7: $" + netAt(7).ToString("N0") + "  day 15: $" + netAt(15).ToString("N0") + "  day 30: $" + netAt(days).ToString("N0"));
         Console.WriteLine("   cash          day 7: $" + cashAt(7).ToString("N0") + "  day 15: $" + cashAt(15).ToString("N0") + "  day 30: $" + cashAt(days).ToString("N0"));
         Console.WriteLine("   attacks/game  " + (att / all.Count).ToString("0.0") + ", defended " + Pct(att > 0 ? won / att : 0) + ", fronts lost " + (all.Average(x => x.FrontsLost)).ToString("0.0")
-                          + "   raids/game " + (raids / all.Count).ToString("0.0") + ", won " + Pct(raids > 0 ? rwon / raids : 0) + "   assaults " + all.Average(x => x.Assaults).ToString("0.0"));
+                          + "   raids/game " + (raids / all.Count).ToString("0.0") + ", won " + Pct(raids > 0 ? rwon / raids : 0) + "   assaults " + all.Average(x => x.Assaults).ToString("0.0") + " (failed " + all.Average(x => x.AssaultsFailed).ToString("0.0") + ")   avg heat " + (all.Sum(x => x.HeatSum) / Math.Max(1.0, all.Sum(x => x.HeatN))).ToString("0"));
         Func<Func<Stats,int>,Func<Stats,int>,string> rate = (n, w) => { double a = all.Sum(n), b = all.Sum(w); return (a / all.Count).ToString("0.0") + "/game won " + Pct(a > 0 ? b / a : 0); };
         Console.WriteLine("   by staffing   full " + rate(x => x.AttFull, x => x.AttFullWon) + ", partial " + rate(x => x.AttPartial, x => x.AttPartialWon) + ", empty " + rate(x => x.AttEmpty, x => x.AttEmptyWon));
  Func<IEnumerable<double>, string> spread = vals =>

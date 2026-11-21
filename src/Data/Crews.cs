@@ -93,6 +93,14 @@ namespace FrontsAndRivals.Data
             return from[(int)((h / 1000) % (uint)from.Count)];
         }
 
+        /// <summary>The car wash crew: a couple of kids with pistols, bats, knives and crowbars, the easy way in.</summary>
+        public static readonly string[] StarterWeapons = { "pistol", "bat", "pistol", "knife", "crowbar" };
+
+        public static string StarterWeapon(int pick) { return StarterWeapons[(int)(Mix(pick) % (uint)StarterWeapons.Length)]; }
+
+        /// <summary>Aim of a crew front's soldiers by size: 20 small, 27 mid-size, 34 big (street heat adds up to 20).</summary>
+        public static int FrontAccuracy(int tier) { return 20 + 7 * Math.Max(0, Math.Min(2, tier)); }
+
         public const double ExplosiveChance = 0.05;
 
         /// <summary>About 1 attacker in 20 carries the crew's explosive (at most one per squad; the caller enforces that).

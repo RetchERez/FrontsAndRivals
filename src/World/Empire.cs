@@ -27,7 +27,9 @@ namespace FrontsAndRivals.Rules
         {
             foreach (FrontDef def in _content.Fronts)
             {
-                if (Find(def.Id) == null) _s.Fronts.Add(new FrontState { Id = def.Id, Owner = def.StartOwner });
+                FrontState f = Find(def.Id);
+                if (f == null) _s.Fronts.Add(new FrontState { Id = def.Id, Owner = def.StartOwner });
+                else if (f.Owner == Owners.ForSale && Owners.IsCrew(def.StartOwner)) f.Owner = def.StartOwner; // nothing is sold any more
             }
             // Posts now depend on a front's size: anyone standing on a post that no longer exists goes to the reserve.
             foreach (GuardState g in _s.Guards)
@@ -266,7 +268,7 @@ namespace FrontsAndRivals.Rules
             foreach (GuardState g in RaidTeam()) records.Add(Record(g));
             int soldiers = Raids.Soldiers(def, Find(def.Id), crew, _s.Day);
             if (soldiers == 0) return 0.95;
-            return Raids.WinChance(Raids.TeamPower(records, hour), Raids.CrewDefense(cd, soldiers) * Difficulty.Strength(_s.Difficulty));
+            return Raids.WinChance(Raids.TeamPower(records, hour), Raids.FrontDefense(cd, def, soldiers, _s.Heat) * Difficulty.Strength(_s.Difficulty));
         }
 
         /// <summary>What to do next, for the top of the Office (like the game's own objective text). Title, a line of
@@ -284,8 +286,8 @@ namespace FrontsAndRivals.Rules
             if (OwnedCount() == 0)
             {
                 foreach (FrontDef d in _content.Fronts)
-                    if (d.Starter && CanBuy(d.Id))
-                        return new Hint { Title = "Buy the " + d.ShortName, Text = "The Broker's starter deal in " + d.Area + ". Go to the door and buy it; two of the old crew come with it.", FrontId = d.Id };
+                    if (d.Starter && Owners.IsCrew(OwnerOf(d.Id)))
+                        return new Hint { Title = "Take the " + d.ShortName, Text = "Only a couple of soldiers watch it in " + d.Area + ". Clear them out and claim the door; two of the car wash crew will work for you.", FrontId = d.Id };
                 return new Hint { Title = "Take a front", Text = "Clear a rival crew's soldiers at one of their small fronts and claim the door.", FrontId = null };
             }
             List<GuardState> free = FreeGuards();
@@ -316,8 +318,8 @@ namespace FrontsAndRivals.Rules
             return new Hint { Title = "Hold the city", Text = "Keep your fronts staffed and armed. The crews never stay gone for long.", FrontId = null };
         }
 
-        /// <summary>The Broker's starter deal: the car wash comes with two of the old owner's people, already on their posts
-        /// (knives only), so a broke early-story character isn't left with a front nobody guards. Only on a first front.</summary>
+        /// <summary>The car wash crew: take the car wash as your first front and two of its workers sign on, already on
+        /// their posts (knives only), so a broke early-story character isn't left with a front nobody guards.</summary>
         public int StarterCrew(FrontDef def, Random rng)
         {
             if (def == null || !def.Starter || LivingCount() > 0) return 0;
@@ -334,18 +336,20 @@ namespace FrontsAndRivals.Rules
 
         public const int RescueAfterDays = 2;
 
-        /// <summary>Safety net for a player who lost everything: after two in-game days with no fronts, the Broker buys
-        /// the car wash back from whoever took it and offers it again (with its starter crew if you have no guards).
-        /// Call once a midnight. Returns true when the Broker stepped in.</summary>
+        /// <summary>Safety net for a player who lost everything: after two in-game days with no fronts, the car wash goes
+        /// back to its old crew with only one soldier left watching it for two days, an easy way back in.
+        /// Only for someone who has held a front before. Call once a midnight. Returns true when it happened.</summary>
         public bool BrokerRescue()
         {
             if (OwnedCount() > 0) { _s.LastHeldDay = _s.Day; return false; }
-            if (_s.Day - _s.LastHeldDay < RescueAfterDays) return false;
+            if (_s.LastHeldDay <= 0 || _s.Day - _s.LastHeldDay < RescueAfterDays) return false;
             foreach (FrontDef def in _content.Fronts)
             {
                 if (!def.Starter) continue;
-                if (OwnerOf(def.Id) == Owners.ForSale) return false; // already on offer
-                SetOwner(def.Id, Owners.ForSale);
+                FrontState f = Find(def.Id);
+                if (f == null) return false;
+                if (Owners.IsCrew(def.StartOwner)) f.Owner = def.StartOwner;
+                f.WeakUntilDay = _s.Day + 1;
                 _s.LastHeldDay = _s.Day; // don't repeat every night
                 return true;
             }
@@ -452,7 +456,7 @@ namespace FrontsAndRivals.Rules
         /// <summary>Does the Broker trust you with this front yet? (Economy.TrustNeeded)</summary>
         public bool Trusted(FrontDef def) { return def == null || OwnedCount() >= Economy.TrustNeeded(def.Tier); }
 
-        /// <summary>Buying only works for fronts that are for sale (the starter car wash).</summary>
+        /// <summary>Nothing is for sale in this version: every front is taken by force. Kept for old saves.</summary>
         public bool CanBuy(string frontId) { return OwnerOf(frontId) == Owners.ForSale; }
 
         /// <summary>A guard as the defense rules see them.</summary>
@@ -479,6 +483,10 @@ namespace FrontsAndRivals.Rules
             FrontDef fdef = _content.Front(frontId);
             return DefenseRating.Compute(posted, up, hour) + DefenseRating.FrontBase(fdef != null ? fdef.Tier : 0);
         }
+
+        /// <summary>You're in the game once you've taken a front (or held one before): until then the crews leave the
+        /// city alone, with no turf moves, no attacks and no texts.</summary>
+        public bool InTheGame() { return OwnedCount() > 0 || _s.LastHeldDay > 0; }
 
         public int OwnedCount()
         {

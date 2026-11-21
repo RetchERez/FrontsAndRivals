@@ -128,8 +128,8 @@ static class EconomyTests
         e2.LetGo(g);
         T.True("Let go: off the roster", !s2.Guards.Contains(g));
 
-        T.True("The car wash is for sale at start", e2.CanBuy("carwash_handson"));
-        T.True("Crew fronts aren't for sale", !e2.CanBuy("autoshop_atomic"));
+        e2.EnsureFronts();
+        T.True("Nothing is for sale: fronts are taken, not bought", !e2.CanBuy("carwash_handson") && !e2.CanBuy("autoshop_atomic"));
 
         // Defense bar uses the doc formula: 2 recruits with pistols by day = 20.
         var content2 = new ContentDb(Path.Combine(Path.GetTempPath(), "fr_none_" + Guid.NewGuid().ToString("N")), null);

@@ -4,10 +4,24 @@
 
 First full release.
 
+- Takeovers only: every front starts in a crew's hands and nothing is for sale. The car wash is the easy way in: two
+  Dead Kings kids with pistols, bats, knives and crowbars, no armour, and two of its workers join you when you take it
+- Rivals scale with the front: small fronts hold 3 soldiers with everyday guns (aim 20, no armour), mid-size 5 (aim 27,
+  25 armour, more rifles) and the biggest 7 (aim 34, 50 armour, the most heavy guns), standing in twos at their posts
+- Street heat (Office > Overview, with a meter): +25 for every front you take, -15 every midnight. Cool streets mean
+  calmer crews (attacks x1.25 further apart); blazing ones (70+) bring attacks sooner (down to x0.65), one more
+  attacker, and crew fronts with up to +50 armour, heavier guns, +20 aim and x1.8 defense against raids (not the car wash)
+- Taking a front plays like finishing a job in Story Mode: the gold mission-passed shard, the property chime and the
+  establishing shot of the building
+- The Broker's first text arrives when Franklin's first mission ends (or after ten minutes of free roam in a game
+  that's already past it). If you lose every front, after two days the car wash is left with one soldier
+- Quiet until you're in: before your first front the crews make no turf moves, no attacks and no texts, and their
+  soldiers only fight if you hurt one
+- Fixed: the takeover shot's hook was set before the Director existed, which stopped the mod loading
+
 - 29 real businesses as fronts across Los Santos, with guard posts placed from the game's navigation data
 - Crew territories (South LS, the east side, the west) and nightly turf moves: crews grab fronts for sale and fight each other for fronts
 - Rival front soldiers stay calm while you drive past and fight when you walk up, shoot nearby or hurt one
-- Any front for sale can be bought in person at its door (the starter car wash is $10,000)
 - The Office: phone contact, three side-by-side panels (sections, lists, details), native GTA menu style, control hints
 - Guards: hiring from the Broker's daily recruits, traits, ranks and experience, permanent death, memorial
 - Weapon ladder: guards start with a knife and step up through four guns, each at least +23% power

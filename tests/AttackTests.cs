@@ -22,6 +22,7 @@ static class AttackTests
         T.True("No bonus = old squad size", Resolver.SquadSize(2, 60, 20, 0) == Resolver.SquadSize(2, 60, 20));
 
         var s = new EmpireState();
+        s.Heat = Heat.Neutral;
         for (int i = 0; i < 15; i++) s.Fronts.Add(new FrontState { Id = "f" + i, Owner = Owners.Player });
         long now = 100 * 60000L;
         s.LastAttackMs = now - 42 * 60000L; // 42 min since the last attack
@@ -37,11 +38,40 @@ static class AttackTests
         var me2 = new Empire(ms, mcontent);
         me2.EnsureFronts();
         Nemesis.EnsureCrews(ms, mcontent, new Random(4));
-        foreach (FrontState f in ms.Fronts) if (f.Owner == Owners.ForSale && f.Id != "carwash_handson") f.Owner = "CK";
-        int sold = 0;
-        for (int n = 0; n < 40; n++) if (Turf.Market(ms, mcontent, new Random(n)) != null) sold++;
-        int onSale = ms.Fronts.Count(f => f.Owner == Owners.ForSale);
-        T.True("The market refills when it runs dry, up to two (" + onSale + " on sale)", sold > 0 && onSale <= Turf.MarketTarget);
+        T.True("Every front starts held by a crew: nothing is for sale", ms.Fronts.All(f => Owners.IsCrew(f.Owner)));
+        T.True("The Dead Kings hold the car wash", me2.OwnerOf("carwash_handson") == Owners.CrownKings);
+        ms.Fronts.First(f => f.Id == "motel_alta").Owner = Owners.ForSale;
+        me2.EnsureFronts();
+        T.True("An old save's for-sale front goes back to its crew", me2.OwnerOf("motel_alta") == Owners.Velvet);
+
+        T.True("The car wash crew carries pistols and melee only", Enumerable.Range(0, 200).All(i => new[] { "pistol", "bat", "knife", "crowbar" }.Contains(CrewDef.StarterWeapon(i))));
+        T.True("Crew soldiers by size: car wash 2, small 3, mid 5, big 7", FrontDef.CrewSoldiers(mcontent.Front("carwash_handson")) == 2
+            && FrontDef.CrewSoldiers(new FrontDef { Tier = 0 }) == 3 && FrontDef.CrewSoldiers(new FrontDef { Tier = 1 }) == 5 && FrontDef.CrewSoldiers(new FrontDef { Tier = 2 }) == 7);
+        T.True("Aim gets sharper with size", CrewDef.FrontAccuracy(0) < CrewDef.FrontAccuracy(1) && CrewDef.FrontAccuracy(1) < CrewDef.FrontAccuracy(2));
+        T.True("Hot streets don't toughen the car wash", Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 100) < Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 0) + 0.001);
+
+        T.Section("Street heat");
+        var hs = SaveService.NewEmpire();
+        var he = new Empire(hs, mcontent);
+        he.EnsureFronts();
+        Nemesis.EnsureCrews(hs, mcontent, new Random(2));
+        T.Check("A new empire starts cool", hs.Heat, 0, 0);
+        Attacks.TakeFront(hs, he, he.Find("carwash_handson"), Owners.CrownKings);
+        T.Check("Taking a front heats the streets", hs.Heat, Heat.PerTake, 0);
+        for (int n = 0; n < 9; n++) Heat.Add(hs, Heat.PerTake);
+        T.Check("...up to 100", hs.Heat, 100, 0);
+        Nemesis.Daily(hs, 1);
+        T.Check("Every midnight cools it", hs.Heat, 100 - Heat.NightlyCool, 0);
+        T.True("Hot streets: attacks come sooner, cool ones later", Heat.CooldownFactor(100) < 0.7 && Heat.CooldownFactor(0) > 1.2);
+        T.True("Hot streets: crew fronts fight harder", Heat.CrewDefenseFactor(100) > Heat.CrewDefenseFactor(0) && Heat.ExtraArmor(100) == 50 && Heat.ExtraArmor(0) == 0);
+        T.True("Labels Cool / Warm / Hot / Blazing", Heat.Label(0) == "Cool" && Heat.Label(20) == "Warm" && Heat.Label(50) == "Hot" && Heat.Label(90) == "Blazing");
+        long hnow = 1000L * 60000L;
+        hs.LastAttackMs = hnow - 62 * 60000L; hs.LastLossMs = -999999999; hs.Attack = null;
+        hs.Heat = 0;
+        bool coolPlans = Attacks.CanPlan(hs, hnow, hnow, "Normal", 0, 0, false);
+        hs.Heat = 100;
+        bool hotPlans = Attacks.CanPlan(hs, hnow, hnow, "Normal", 0, 0, false);
+        T.True("An hour after the last attack: cool streets still quiet, blazing ones due", !coolPlans && hotPlans);
         CrewDef ir = mcontent.Crew("IR"), ck = mcontent.Crew("CK");
         T.True("Hellfire MC rides bikes, two up: 9 attackers on 5 bikes", ir.ConvoyPlan(9).Count == 5 && ir.ConvoyPlan(9).TrueForAll(v => v == "daemon" || v == "hexer"));
         T.True("Dead Kings: 9 in 3 cars, alternating their two rides", ck.ConvoyPlan(9).Count == 3 && ck.ConvoyPlan(9)[0] != ck.ConvoyPlan(9)[1]);
@@ -233,10 +263,10 @@ static class AttackTests
         var de = new Empire(ds, content);
         Nemesis.EnsureCrews(ds, content, rng);
         CrewState dck = Nemesis.Crew(ds, "CK");
-        dck.Manpower = 10; dck.Grudge = 20; dck.LastContactDay = 0; ds.Day = 1;
+        dck.Manpower = 5; dck.Grudge = 20; dck.LastContactDay = 0; ds.Day = 1;
         int ckHeld = ds.Fronts.FindAll(x => x.Owner == "CK").Count;
         Nemesis.Daily(ds, 1);
-        T.Check("Manpower grows by 2 plus 1 per front the crew holds", dck.Manpower, 10 + 2 + ckHeld, 0);
+        T.Check("Manpower grows by 2 plus 1 per front the crew holds", dck.Manpower, Math.Min(Nemesis.MaxManpower, 5 + 2 + ckHeld), 0);
         T.True("A crew with no fronts recruits 4 a night to fight back", Nemesis.StreetRecruits(0) == 4 && Nemesis.StreetRecruits(3) == 5);
         T.Check("Defending in person pays a day of takings", Economy.DefendBonus(7000, 1.0), 7000, 0);
         T.Check("...scaled by the income multiplier", Economy.DefendBonus(7000, 0.5), 3500, 0);
@@ -262,10 +292,9 @@ static class AttackTests
                 if (m.FromCrew == null) grabs++; else wars++;
             }
         }
-        T.True("Crews grab fronts that are for sale", grabs > 0);
         T.True("Crews take fronts from each other", wars > 0);
         T.True("Your fronts are never taken by turf moves", te.OwnerOf("cafe_tacolibre") == Owners.Player);
-        T.True("The starter car wash is never grabbed", te.OwnerOf("carwash_handson") == Owners.ForSale);
+        T.True("The car wash stays with the Dead Kings, an easy first target", te.OwnerOf("carwash_handson") == Owners.CrownKings);
         var weak = SaveService.NewEmpire();
         new Empire(weak, content);
         Nemesis.EnsureCrews(weak, content, rng);
@@ -273,10 +302,6 @@ static class AttackTests
         bool none = true;
         for (int i = 0; i < 50; i++) if (Turf.Nightly(weak, content, rng).Count > 0) none = false;
         T.True("Crews with fewer than 8 soldiers stay home", none);
-        T.Check("Starter price is $10,000", Economy.FrontPrice(content.Front("carwash_handson")), 10000, 0);
-        T.Check("Other fronts are priced like Story Mode property (35 design days)", Economy.FrontPrice(content.Front("motel_alta")), 4500 * 35, 0);
-        double weeksBack = Economy.FrontPrice(content.Front("motel_alta")) / (Economy.BaseIncome(content.Front("motel_alta")) * 7.0);
-        T.True("...about 20 weeks to pay back, like Smoke on the Water's 22 (" + weeksBack.ToString("0") + ")", weeksBack >= 18 && weeksBack <= 22);
 
         T.Section("Text lines");
         var tokens = new Dictionary<string, string> { { "crew", "Dead Kings" }, { "front", "Car Wash" } };

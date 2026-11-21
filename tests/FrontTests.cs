@@ -150,7 +150,7 @@ static class FrontTests
         var ne = new Empire(ns, content);
         ne.EnsureFronts();
         Nemesis.EnsureCrews(ns, content, new Random(9));
-        T.True("New empire: buy the car wash", ne.NextStep(true).Title == "Buy the Car Wash" || ne.NextStep(true).Title.StartsWith("Buy the"));
+        T.True("New empire: take the car wash", ne.NextStep(true).Title.StartsWith("Take the") && ne.NextStep(true).FrontId == "carwash_handson");
         ne.SetOwner("carwash_handson", Owners.Player);
         ne.StarterCrew(content.Front("carwash_handson"), rng);
         T.True("Knife guards: arm them", ne.NextStep(true).Title.StartsWith("Arm the"));
@@ -162,10 +162,15 @@ static class FrontTests
         var bs2 = SaveService.NewEmpire();
         var be2 = new Empire(bs2, content);
         be2.SetOwner("carwash_handson", Owners.CrownKings); // lost it
+        be2.EnsureFronts();
+        T.True("No rescue for someone who never held a front", !be2.BrokerRescue());
+        T.True("Before your first front you're not in the game yet", !be2.InTheGame());
+        be2.SetOwner("carwash_handson", Owners.Velvet); // lost it to another crew
         bs2.LastHeldDay = 3; bs2.Day = 4;
         T.True("Broker rescue waits two days", !be2.BrokerRescue());
         bs2.Day = 5;
-        T.True("...then puts the car wash back on sale", be2.BrokerRescue() && be2.OwnerOf("carwash_handson") == Owners.ForSale);
+        T.True("...then the car wash goes back to its old crew, thinly held", be2.BrokerRescue() && be2.OwnerOf("carwash_handson") == Owners.CrownKings
+            && be2.Find("carwash_handson").WeakUntilDay >= bs2.Day);
         T.True("...once", !be2.BrokerRescue());
         be2.SetOwner("carwash_handson", Owners.Player);
         T.True("Holding a front resets the clock", !be2.BrokerRescue() && bs2.LastHeldDay == bs2.Day);
@@ -177,8 +182,7 @@ static class FrontTests
         T.True("Before you own a front: walking up or shooting nearby doesn't start a fight", !StreamRules.CrewProvoked(false, true, true, false));
         T.True("...but hurting one of them does", StreamRules.CrewProvoked(false, false, false, true));
         T.True("Once you're in the game, walking up does", StreamRules.CrewProvoked(true, true, false, false));
-        T.True("Broker waits for $10,000", !Economy.BrokerReady(9999, 600000) && Economy.BrokerReady(10000, 600000));
-        T.True("...and two minutes of free roam", !Economy.BrokerReady(1000000, 60000));
+        T.True("The Broker's fallback text waits ten minutes of free roam", !Economy.BrokerReady(9 * 60000L) && Economy.BrokerReady(11 * 60000L));
 
         T.Section("One-click front management");
         var qs = SaveService.NewEmpire();
@@ -253,7 +257,7 @@ static class FrontTests
         T.True("Front numbers are unique and fit a plate (1-99)", shipped.Fronts.TrueForAll(x => x.Number >= 1 && x.Number <= 99) && new System.Collections.Generic.HashSet<int>(shipped.Fronts.ConvertAll(x => x.Number)).Count == shipped.Fronts.Count);
         T.True("Every crew starts with fronts on its own turf", new[] { "CK", "IR", "VS" }.All(id => shipped.Fronts.Exists(x => x.StartOwner == id)));
         T.True("No fallback warnings for shipped files", !log.Exists(l => l.Contains("built-in") || l.Contains("could not")));
-        T.True("Car wash is for sale at start", shipped.Front("carwash_handson").StartOwner == Owners.ForSale);
+        T.True("The Dead Kings hold the car wash at start", shipped.Front("carwash_handson").StartOwner == Owners.CrownKings);
         T.True("Cold storage depot starts with Ironside", shipped.Front("depot_fridgit").StartOwner == Owners.Ironside);
         T.Check("Cold storage depot income $12,000", shipped.Front("depot_fridgit").Income, 12000, 0);
         T.True("Shipped car wash has its guard posts", shipped.Front("carwash_handson").IsScouted);
@@ -347,7 +351,7 @@ static class FrontTests
         var rng = new Rng(42);
 
         T.Check("Every front gets a save entry", state.Fronts.Count, 6, 0);
-        T.True("Fronts start with their doc owners", e.OwnerOf("autoshop_atomic") == Owners.CrownKings && e.OwnerOf("carwash_handson") == Owners.ForSale);
+        T.True("Fronts start with their doc owners", e.OwnerOf("autoshop_atomic") == Owners.CrownKings && e.OwnerOf("carwash_handson") == Owners.CrownKings);
 
         GuardState g1 = e.Recruit(rng);
         T.True("Recruit has a full name and a model", g1 != null && g1.First != null && g1.Nick != null && g1.Last != null && g1.Model != null);

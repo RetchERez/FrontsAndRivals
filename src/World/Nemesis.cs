@@ -220,6 +220,7 @@ namespace FrontsAndRivals.Rules
         /// grudge decays by 5 for crews that had no contact today.</summary>
         public static void Daily(EmpireState s, int day)
         {
+            Heat.Nightly(s); // the streets cool off overnight
             foreach (CrewState c in s.Crews)
             {
                 int held = 0;

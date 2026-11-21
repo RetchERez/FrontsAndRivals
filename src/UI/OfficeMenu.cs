@@ -381,12 +381,14 @@ namespace FrontsAndRivals.UI
             AddListRow(Info("Net per Day", "Income minus wages. Fronts pay more the longer you hold them (up to +30%), and every front adds +1.5% to all of them (up to +20%).", Money(income - wages)), null, false);
             AddListRow(Info("This Week (About)", "Seven days at today's numbers.", Money((income - wages) * 7L)), null, false);
             AddListRow(Info("Last Midnight", "What actually landed last night.", Money(e.State.LastNet)), null, false);
-            AddListRow(Info("Fronts Held", "Buy fronts for sale at their door, or take them from the rival crews.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
+            AddListRow(Info("Fronts Held", "Every front is held by a rival crew until you take it: clear its soldiers and claim the door, or send a crew.", e.OwnedCount() + " of " + _content.Fronts.Count), null, false);
             int held = e.OwnedCount();
-            string heat = _config.EmpirePressure
-                ? "The bigger you get, the sooner and harder the crews come. " + HeatDetail(held)
-                : "Empire pressure is off in FrontsAndRivals.ini: attacks keep the same pace however big you get.";
-            AddListRow(Info("Street Heat", heat, _config.EmpirePressure ? Rules.Attacks.PressureLabel(held) : "Steady"), null, false);
+            int heatNow = e.State.Heat;
+            string heat = "Every front you take raises it; it cools off every night. The hotter it is, the sooner the crews hit back and the harder their fronts fight (more armour, heavier guns). Lie low a night or two to cool it down."
+                + (_config.EmpirePressure ? " " + HeatDetail(held) : "");
+            NativeItem heatRow = Info("Street Heat", heat, Rules.Heat.Label(heatNow));
+            heatRow.Panel = new NativeStatsPanel(new NativeStatsInfo("Heat", heatNow));
+            AddListRow(heatRow, null, false);
             AddListRow(Info("Guards", "Hired people, posted or in the reserve.", e.LivingCount() + (injured > 0 ? ", " + injured + " Hurt" : "")), null, false);
             if (fallen > 0) AddListRow(Info("Fallen", "Guards who died at their post.", fallen.ToString()), null, false);
         }
@@ -395,9 +397,9 @@ namespace FrontsAndRivals.UI
         {
             double f = Rules.Attacks.PressureCooldownFactor(held);
             int bonus = Rules.Attacks.PressureSquadBonus(held);
-            if (f >= 1.0 && bonus == 0) return "Hold more than 3 fronts and they start paying attention.";
+            if (f >= 1.0 && bonus == 0) return "Past 3 fronts, size draws attention too.";
             int faster = (int)Math.Round((1.0 / f - 1.0) * 100.0);
-            return "Attacks come " + faster + "% more often" + (bonus > 0 ? ", with " + bonus + " extra " + (bonus == 1 ? "attacker" : "attackers") : "") + ".";
+            return "Your size alone brings attacks " + faster + "% more often" + (bonus > 0 ? ", with " + bonus + " extra " + (bonus == 1 ? "attacker" : "attackers") : "") + ".";
         }
 
         private void ListFronts(Empire e)
@@ -634,19 +636,7 @@ namespace FrontsAndRivals.UI
             header.Panel = FrontBars(defense, Economy.BaseIncome(def));
             _detail.Add(header);
 
-            if (owner == Owners.ForSale)
-            {
-                int need = Economy.TrustNeeded(def.Tier);
-                int salePrice = Economy.FrontPrice(def, _config.FrontPriceDays);
-                int weeks = (int)Math.Round(salePrice / Math.Max(1.0, Economy.BaseIncome(def) * 7.0));
-                NativeItem price = Info("For Sale", (def.Starter ? "The Broker's starter deal: pays for itself in about " + Math.Max(1, (int)Math.Round(salePrice / Math.Max(1.0, (double)Economy.BaseIncome(def)))) + " nights. "
-                    : "Like Story Mode property, it pays its price back in about " + weeks + " weeks. ")
-                    + (e.Trusted(def) ? "Go to the door and buy it in person. Use Set Waypoint below."
-                                      : "The Broker only sells this one to someone holding " + need + " fronts. You hold " + e.OwnedCount() + "."),
-                    e.Trusted(def) ? Money(Economy.FrontPrice(def, _config.FrontPriceDays)) : "Hold " + need);
-                _detail.Add(price);
-            }
-            else if (owner == Owners.Player)
+            if (owner == Owners.Player)
             {
                 AddQuickActions(e, def);
                 for (int post = 0; post < def.Capacity; post++) _detail.Add(PostRow(e, def, post));

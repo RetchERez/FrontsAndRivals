@@ -8,7 +8,6 @@ namespace FrontsAndRivals.Rules
 {
     public static class Economy
     {
-        public const int StarterFrontPrice = 10000; // the Broker's starter deal on the car wash, cheaper than any other front
 
         /// <summary>Story Mode scale. A front pays about what a Story Mode property does (a small one about $7,000 a week,
         /// like Smoke on the Water's $9,300) and the running costs scale with it. Front prices don't: like property, a
@@ -18,22 +17,14 @@ namespace FrontsAndRivals.Rules
         /// <summary>What a front pays a night before its bonuses.</summary>
         public static int BaseIncome(FrontDef def) { return def == null ? 0 : (int)Math.Round(def.Income * StoryScale); }
 
-        /// <summary>The Broker's first text waits until you can afford the car wash (and 2 minutes into free roam),
-        /// so a broke early-story character isn't invited to something they can't buy.</summary>
-        public static bool BrokerReady(long playerCash, long freeRoamMs)
+        /// <summary>The Broker's first text comes after Franklin's first mission; this is the fallback for a game already
+        /// past it (ten minutes of free roam).</summary>
+        public const long BrokerFallbackMs = 10 * 60000L;
+        public static bool BrokerReady(long freeRoamMs)
         {
-            return playerCash >= StarterFrontPrice && freeRoamMs > 2 * 60000L;
+            return freeRoamMs > BrokerFallbackMs;
         }
 
-        /// <summary>Price of a front that's for sale: the starter's fixed price, otherwise five days of its income.</summary>
-        /// <summary>Priced like Story Mode property: 35 days of the design income is about 20 in-game weeks of what the front
-        /// actually pays at Story Mode scale (~5% back a week; Smoke on the Water is ~4.6%). The car wash is the Broker's
-        /// $10,000 starter deal. Fronts taken by force cost nothing, so fighting is how you grow early in the story.</summary>
-        public static int FrontPrice(FrontDef def) { return FrontPrice(def, PriceDays); }
-
-        public const int PriceDays = 35;
-
-        public static int FrontPrice(FrontDef def, int days) { return def.Starter ? StarterFrontPrice : def.Income * Math.Max(1, days); }
         public const int RecruitsPerDay = 4;
         public const int MaxNightsPaidOnSkip = 3; // sleeping across midnights pays at most 3
 

@@ -14,19 +14,19 @@ static class SettingsTests
         Config shipped = Config.Load(repoIni, w => warnings++);
         T.Check("Shipped INI parses with no warnings", warnings, 0, 0);
         T.True("Shipped INI: dev tools off, sounds on, controller hold on", !shipped.DevTools && shipped.SoundEffects && shipped.OfficeButton && shipped.EmpirePressure && shipped.FrontStaff && shipped.Raids && shipped.Bodyguards && shipped.PurchaseShot && shipped.Tips && shipped.Difficulty == "Normal");
-        T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.FrontPriceDays == 35 && shipped.RivalAlertRange == 35
+        T.True("Shipped INI: defaults match the code", shipped.MinSecondsBetweenTexts == 20 && shipped.RivalAlertRange == 35
             && shipped.LiveDefense && shipped.TurfFrequency == AttackFrequency.Normal && shipped.NotifyLevel == NoteLevel.All);
 
         var c = Config.FromIni(IniFile.Parse("[General]\nOfficeButton=false\n[Sound]\nEffects=false\n[Attacks]\nCooldownMinutes=90\nLiveDefense=false\nFirstAttackDelayMinutes=0\n"
-            + "[Turf]\nFrequency=Off\n[Notifications]\nLevel=Minimal\nMinSecondsBetween=45\nTaunts=false\n[Rivals]\nAlertRange=500\n[Economy]\nFrontPriceDays=10\n"), null);
+            + "[Turf]\nFrequency=Off\n[Notifications]\nLevel=Minimal\nMinSecondsBetween=45\nTaunts=false\n[Rivals]\nAlertRange=500\n"), null);
         T.True("Controller button and sound settings read", !c.OfficeButton && !c.SoundEffects);
         T.True("Attack settings read", c.CooldownMinutes == 90 && !c.LiveDefense && c.FirstAttackDelayMinutes == 0);
         T.True("Turf and notification settings read", c.TurfFrequency == AttackFrequency.Off && c.NotifyLevel == NoteLevel.Minimal && c.MinSecondsBetweenTexts == 45 && !c.Taunts);
         T.Check("Out-of-range alert range falls back to 35", c.RivalAlertRange, 35, 0);
-        T.Check("Front price days read", c.FrontPriceDays, 10, 0);
 
         var s = SaveService.NewEmpire();
         s.Fronts.Add(new FrontState { Id = "x", Owner = Owners.Player });
+        s.Heat = Heat.Neutral; // steady streets: the plain frequency
         long now = 200 * 60000L;
         s.LastAttackMs = now - 60 * 60000L;
         T.True("Cooldown 90 min: no attack after 60 min", !Attacks.CanPlan(s, now, now, "Normal", 90, 10));
@@ -70,8 +70,6 @@ static class SettingsTests
         q2.Enqueue(N(NoteKind.Midnight, "b"), nogap, 0);
         T.True("Gap 0: back to back", q2.Next(nogap, 0) != null && q2.Next(nogap, 0) != null);
 
-        T.Check("Front price uses the days setting", Economy.FrontPrice(new FrontDef { Income = 5000 }, 10), 50000, 0);
-        T.Check("The starter stays $10,000", Economy.FrontPrice(new FrontDef { Income = 4000, Starter = true }, 10), 10000, 0);
     }
 
     static Note N(NoteKind k, string msg) { return new Note { Kind = k, Message = msg, Sender = "s", Subject = "t" }; }
