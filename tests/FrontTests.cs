@@ -273,6 +273,19 @@ static class FrontTests
         T.True("Hellfire MC have the shortest fuse, the Vinewood Elite the longest", WatchRules.WarnMs("IR", 0, 20) < WatchRules.WarnMs("CK", 0, 20) && WatchRules.WarnMs("CK", 0, 20) < WatchRules.WarnMs("VS", 0, 20));
         T.True("Blazing streets: walking into range starts the fight", WatchRules.Next(Watch.Watching, 20f, true, false, false, false, true, 0, 0, R) == Watch.Hostile);
         T.True("Last warning comes halfway", !WatchRules.LastWarningDue(3900, 8000) && WatchRules.LastWarningDue(4000, 8000) && !WatchRules.LastWarningDue(9000, 0));
+        T.True("Calm and unseen, you can creep closer", WatchRules.Next(Watch.Calm, 12f, true, false, false, false, true, 0, 8000, R, false) == Watch.Calm);
+        T.True("...but not right up behind them", WatchRules.Next(Watch.Calm, 2.5f, true, false, false, false, true, 0, 8000, R, false) == Watch.Hostile);
+        T.True("Once they're watching, ducking out of sight doesn't reset them", WatchRules.Next(Watch.Watching, 20f, true, false, false, false, true, 0, 8000, R, false) == Watch.Warning);
+        T.True("Crouched in stealth mode they notice you later", WatchRules.SightScale(true, 0, false) == 0.6f && WatchRules.SightScale(true, 100, false) < WatchRules.SightScale(true, 0, false));
+        T.True("Darkness helps, and stacks with stealth", WatchRules.SightScale(false, 0, true) == 0.75f && WatchRules.SightScale(true, 100, true) < 0.31f && WatchRules.SightScale(false, 0, false) == 1f);
+        T.True("Night is 9 pm to 5 am", WatchRules.IsNight(22) && WatchRules.IsNight(3) && !WatchRules.IsNight(5) && !WatchRules.IsNight(12));
+        float half = WatchRules.SightScale(true, 50, false); // 0.5
+        T.True("Sneaking: no warning at 20 m that would come walking", walk(Watch.Watching, 20f, true) == Watch.Warning
+            && WatchRules.Next(Watch.Watching, 20f, true, false, false, false, true, 0, 8000, R, true, half) == Watch.Watching);
+        T.True("Sneaking: walking right up means 4 m, not 8", WatchRules.Next(Watch.Warning, 6f, true, false, false, false, true, 0, 8000, R, true, half) == Watch.Warning);
+        T.True("Silenced shots are only heard up close", WatchRules.HeardShot(true, false, 70f) && !WatchRules.HeardShot(true, true, 30f) && WatchRules.HeardShot(true, true, 15f) && !WatchRules.HeardShot(false, false, 5f));
+        T.True("Street crews have a shorter fuse than a front", WatchRules.StreetWarnMs("CK", 20) < WatchRules.WarnMs("CK", 0, 20) && WatchRules.StreetWarnMs("CK", 95) == 0);
+        T.True("Street crews warn at 15 m", HangoutRules.AlertOnFoot == 15f);
         T.True("Every crew has warning lines", content.Lines.Pick(rng, "warnCK", null) != "" && content.Lines.Pick(rng, "warnIR", null) != "" && content.Lines.Pick(rng, "warnVS", null) != "" && content.Lines.Pick(rng, "lastWarning", null) != "");
         T.True("The Broker's fallback text waits ten minutes of free roam", !Economy.BrokerReady(9 * 60000L) && Economy.BrokerReady(11 * 60000L));
 

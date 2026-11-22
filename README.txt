@@ -107,6 +107,11 @@ WHAT'S IN 1.5
    if you stay, walk right up, aim at one or shoot
  - Back off and they go back to work, and tempers vary: small fronts warn
    longest, hot streets barely warn and Hellfire MC have the shortest fuse
+ - Sneak up if you'd rather: calm soldiers only notice what they can see,
+   crouching and darkness let you get much closer, and silenced shots are only
+   heard up close
+ - Street crews hanging out on their turf warn you off the same way before
+   they fight
  - Street heat, shown in the Office: every front you take raises it and every
    night cools it; the hotter it is, the sooner the crews hit back and the
    harder their fronts fight, so lying low for a night or two pays off

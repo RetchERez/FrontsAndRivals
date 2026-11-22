@@ -15,7 +15,14 @@ Rival soldiers are on alert, like GTA V's own gangs on their turf:
 - Each crew has its own temper: Hellfire MC have the shortest fuse and the Vinewood Elite talk longest
 - Driving past still never bothers them, and before you own your first front they only warn (they fight only if you
   hurt one)
+- Distances count from the nearest of the door and the soldiers, so walking up behind a patroller counts too
+- Sneaking: calm soldiers only notice what's in front of them and in sight, crouching in stealth mode (better with
+  your character's Stealth skill) and darkness shrink every distance, and silenced shots are only heard within 20 m
+- Street crews hanging out on their turf now notice, warn and fight the same way, at 15 m and on a shorter fuse
+  (crews in a street fight, mid-crime or cruising still only react to shots or a hurt member)
+- A help box explains the warnings the first time a crew warns you
 - INI Rivals.AlertRange is now the warning distance (default 25 m) and they start watching at twice that
+- An old INI still set to F11 (the game's helmet visor key) now opens the Office with F4 instead
 
 ## 1.4.0 (2026-11-21)
 

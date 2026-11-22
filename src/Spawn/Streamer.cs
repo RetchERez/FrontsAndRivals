@@ -635,30 +635,35 @@ namespace FrontsAndRivals.Spawn
         /// <summary>INI Rivals.AlertRange: on foot this close to a rival front's door, its soldiers raise their guns and warn
         /// you off (they start watching at twice this).</summary>
         public float AlertOnFootRange = 25f;
-        private const float AlertShotRange = 80f;
 
         /// <summary>Every half second at a rival front that isn't fighting yet: notice, warn, then fight (WatchRules).
         /// Driving past never bothers them. Before your first front they warn but only fight if you hurt one.</summary>
         private void WatchTick(StreamedFront f, int count)
         {
-            Player me = Game.Player;
-            Ped player = me.Character;
-            bool hurt = false, aiming = false;
-            bool aimingNow = me.IsAiming;
+            Ped player = Game.Player.Character;
+            bool hurt = false, aiming = false, seen = false;
+            bool aimingNow = Game.Player.IsAiming;
+            float scale = WatchFx.SightScale();
+            var soldiers = new List<Ped>();
             for (int i = 0; i < count; i++)
             {
                 Slot s = f.Slots[i];
                 if (s.Killed) { hurt = true; continue; }
                 if (s.Ped == null || !s.Ped.Exists() || s.Ped.IsDead) continue;
+                soldiers.Add(s.Ped);
                 if (s.Ped.Health < s.Ped.MaxHealth) hurt = true;
-                if (aimingNow && !aiming && (me.IsTargeting(s.Ped) || Function.Call<bool>(Hash.IS_PLAYER_FREE_AIMING_AT_ENTITY, me, s.Ped))) aiming = true;
+                if (aimingNow && !aiming && WatchFx.AimedAt(s.Ped)) aiming = true;
             }
+            // Distance to the nearest of the door and the soldiers: walking up behind a patroller counts.
+            float distance = Math.Min(f.Distance, WatchFx.Nearest(soldiers));
+            if (distance <= WatchRules.WatchRange(AlertOnFootRange * scale) + 5f)
+                foreach (Ped p in soldiers) if (WatchFx.Sees(p, f.Watch == Watch.Calm)) { seen = true; break; }
             bool inTheGame = _empire != null && _empire.OwnedCount() > 0;
             int gt = Game.GameTime;
             int limit = WatchRules.WarnMs(f.Owner, f.Def.Tier, _empire != null ? _empire.State.Heat : 0);
             int warned = f.Watch == Watch.Warning ? gt - f.WarnStart : 0;
-            Watch next = WatchRules.Next(f.Watch, f.Distance, !player.IsInVehicle(), aiming,
-                                         player.IsShooting && f.Distance < AlertShotRange, hurt, inTheGame, warned, limit, AlertOnFootRange);
+            Watch next = WatchRules.Next(f.Watch, distance, !player.IsInVehicle(), aiming, WatchFx.HeardShot(distance),
+                                         hurt, inTheGame, warned, limit, AlertOnFootRange, seen, scale);
             if (next == Watch.Hostile)
             {
                 f.Watch = Watch.Hostile;
@@ -675,20 +680,19 @@ namespace FrontsAndRivals.Spawn
             if (next == Watch.Warning && inTheGame && !f.LastWarned && WatchRules.LastWarningDue(warned, limit))
             {
                 f.LastWarned = true;
-                WarnSubtitle(f.Owner, "lastWarning");
+                WatchFx.Say(_content, f.Owner, "lastWarning");
             }
         }
 
         /// <summary>Re-tasks the soldiers when the front's mood changes (never every tick, so tasks aren't restarted).</summary>
         private void EnterWatch(StreamedFront f, int count, Watch was, Watch now, int gt)
         {
-            Ped player = Game.Player.Character;
             int hour = GTA.World.CurrentTimeOfDay.Hours;
             if (now == Watch.Warning)
             {
                 f.WarnStart = gt;
                 f.LastWarned = false;
-                WarnSubtitle(f.Owner, "warn" + f.Owner);
+                WatchFx.Say(_content, f.Owner, "warn" + f.Owner);
             }
             for (int i = 0; i < count; i++)
             {
@@ -700,18 +704,12 @@ namespace FrontsAndRivals.Spawn
                 s.PatrolAt = -1; // patrols pick up again from scratch once they're calm
                 if (now == Watch.Warning)
                 {
-                    // Guns up (anyone with only a bat or a knife squares up instead), with a blip in the crew's colour.
-                    if (Function.Call<bool>(Hash.IS_PED_ARMED, p, 4)) p.Task.AimAt(player, -1);
-                    else p.Task.TurnTo(player, -1);
-                    CrewBlip(p, f.Owner);
+                    WatchFx.Raise(p);
+                    WatchFx.Blip(_content, p, f.Owner);
                     continue;
                 }
-                DropBlip(p);
-                if (now == Watch.Watching)
-                {
-                    p.Task.TurnTo(player, -1); // keeps turning to face you until re-tasked
-                    p.Task.LookAt(player, -1);
-                }
+                WatchFx.DropBlip(p);
+                if (now == Watch.Watching) WatchFx.Eye(p);
                 else
                 {
                     // Calm again: back to the post's idle. Patrollers set off on their loop on the next patrol tick.
@@ -727,41 +725,6 @@ namespace FrontsAndRivals.Spawn
             Log.Write("Streamer: crew at " + f.Def.Id + " " + was + " -> " + now);
         }
 
-        /// <summary>A line in the subtitle bar, the crew's name in its colour (text only: no reused game voices).</summary>
-        private void WarnSubtitle(string crewId, string moment)
-        {
-            try
-            {
-                CrewDef cd = _content.Crew(crewId);
-                CrewColor c = CrewColors.Get(CrewColors.ForCrew(crewId));
-                string line = _content.Lines.Pick(new Random(Game.GameTime), moment, null);
-                if (string.IsNullOrEmpty(line)) return;
-                GTA.UI.Screen.ShowSubtitle((c != null ? c.Text : "") + (cd != null ? cd.Name : "Crew") + ":~s~ " + line, 4000);
-            }
-            catch (Exception ex) { Log.Error("Warning line", ex); }
-        }
-
-        private void CrewBlip(Ped p, string crewId)
-        {
-            try
-            {
-                CrewDef cd = _content.Crew(crewId);
-                if (p.AttachedBlip == null || !p.AttachedBlip.Exists())
-                {
-                    Blip b = p.AddBlip();
-                    b.Color = cd != null ? (BlipColor)cd.BlipColor : BlipColor.Red;
-                    b.Scale = 0.7f;
-                    b.Name = cd != null ? cd.Name : "Crew";
-                }
-            }
-            catch (Exception ex) { Log.Error("Crew blip", ex); }
-        }
-
-        private static void DropBlip(Ped p)
-        {
-            try { if (p.AttachedBlip != null && p.AttachedBlip.Exists()) p.AttachedBlip.Delete(); } catch { }
-        }
-
         private void Alert(StreamedFront f, int count)
         {
             f.Alerted = true;
@@ -772,7 +735,7 @@ namespace FrontsAndRivals.Spawn
                 s.Ped.Task.ClearAll();
                 s.Ped.BlockPermanentEvents = false;
                 s.Ped.Task.FightAgainstHatedTargets(60f);
-                CrewBlip(s.Ped, f.Owner); // a small blip in the crew's colour on every soldier in the fight
+                WatchFx.Blip(_content, s.Ped, f.Owner); // a small blip in the crew's colour on every soldier in the fight
             }
             Log.Write("Streamer: crew at " + f.Def.Id + " alerted");
         }

@@ -31,6 +31,10 @@ Rival soldiers are on alert, like GTA V's own gangs on their turf:
 - **Fight:** they open fire when the warning runs out, or straight away if you walk right up, aim at one, shoot nearby or hurt one
 - **Back off:** walk away during a warning and they lower their guns and go back to work
 - **Tempers:** small fronts warn for about 8 seconds and bigger ones about 5, hot streets cut it to 3 and blazing streets skip it, and Hellfire MC have the shortest fuse
+- **Sneak up:** calm soldiers only notice what they can see, crouching (better with your Stealth skill) and darkness let you get much closer, and silenced shots are only heard within 20 m
+- **Street crews too:** crews hanging out on their turf warn you off the same way, at 15 m and on a shorter fuse
+- Distances count from the nearest soldier as well as the door, so walking up behind a patroller counts
+- A help box explains it the first time a crew warns you
 - Driving past never bothers them, and before your first front they only warn
 
-The Office still opens with RB + D-pad Left on a controller or F4 on keyboard. If you're updating, replace FrontsAndRivals.ini too (AlertRange is now the warning distance, 25 m). Your empire save carries over.
+The Office still opens with RB + D-pad Left on a controller or F4 on keyboard. An old INI still set to F11 now opens the Office with F4. If you're updating, replace FrontsAndRivals.ini too (AlertRange is now the warning distance, 25 m). Your empire save carries over.

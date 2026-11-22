@@ -31,6 +31,9 @@ namespace FrontsAndRivals.Spawn
             public readonly HashSet<int> Counted = new HashSet<int>();
             public Vehicle Car;
             public bool Spawned, Alerted;
+            public Watch Watch;            // calm, watching you, warning you, or fighting (WatchRules)
+            public int WarnStart;          // game time the current warning began
+            public bool LastWarned;
             public int RequestedAt;
             public Group Rival;            // a street fight: the other crew's group across the road
             public StreetCrime Crime;
@@ -411,27 +414,76 @@ namespace FrontsAndRivals.Spawn
                 else if (ped.Health < ped.MaxHealth) hurt = true;
             }
             if (g.Alerted) return;
-            bool provoked = StreamRules.CrewProvoked(e.InTheGame(), me.IsOnFoot && dist < HangoutRules.AlertOnFoot, me.IsShooting && dist < HangoutRules.AlertShots, hurt);
-            if (!provoked) return;
+            bool inTheGame = e.InTheGame();
+            float near = Math.Min(dist, WatchFx.Nearest(g.Peds));
+            // Busy crews (in a street fight, mid-crime or cruising) skip the warning: only shots or a hurt one set them off.
+            if (g.Rival != null || g.Crime != StreetCrime.None || g.Kind == HangoutKind.Cruise)
+            {
+                if (StreamRules.CrewProvoked(inTheGame, false, WatchFx.HeardShot(near), hurt)) AlertGroup(g);
+                return;
+            }
+            // Everyone else on the street: notice, warn, then fight, like a front's soldiers but on a shorter fuse.
+            bool aiming = false, seen = false;
+            bool aimingNow = Game.Player.IsAiming;
+            float scale = WatchFx.SightScale();
+            foreach (Ped ped in g.Peds)
+                if (aimingNow && Alive(ped) && WatchFx.AimedAt(ped)) { aiming = true; break; }
+            if (near <= WatchRules.WatchRange(HangoutRules.AlertOnFoot * scale) + 5f)
+                foreach (Ped ped in g.Peds)
+                    if (Alive(ped) && WatchFx.Sees(ped, g.Watch == Watch.Calm)) { seen = true; break; }
+            int gt = Game.GameTime;
+            int limit = WatchRules.StreetWarnMs(g.Crew, e.State.Heat);
+            int warned = g.Watch == Watch.Warning ? gt - g.WarnStart : 0;
+            Watch next = WatchRules.Next(g.Watch, near, me.IsOnFoot, aiming, WatchFx.HeardShot(near), hurt, inTheGame,
+                                         warned, limit, HangoutRules.AlertOnFoot, seen, scale);
+            if (next == Watch.Hostile) { g.Watch = Watch.Hostile; AlertGroup(g); return; }
+            if (next != g.Watch) { g.Watch = next; EnterWatch(g, gt); return; }
+            if (next == Watch.Warning && inTheGame && !g.LastWarned && WatchRules.LastWarningDue(warned, limit))
+            {
+                g.LastWarned = true;
+                WatchFx.Say(_content, g.Crew, "lastWarning");
+            }
+        }
+
+        /// <summary>Re-tasks a street crew when its mood changes: eyes on you, guns up, or back to hanging out.</summary>
+        private void EnterWatch(Group g, int gt)
+        {
+            if (g.Watch == Watch.Warning)
+            {
+                g.WarnStart = gt;
+                g.LastWarned = false;
+                WatchFx.Say(_content, g.Crew, "warn" + g.Crew);
+            }
+            int k = 0;
+            foreach (Ped ped in g.Peds)
+            {
+                int index = k++;
+                if (!Alive(ped)) continue;
+                ped.Task.ClearAll();
+                if (g.Watch == Watch.Warning) { WatchFx.Raise(ped); WatchFx.Blip(_content, ped, g.Crew); continue; }
+                WatchFx.DropBlip(ped);
+                if (g.Watch == Watch.Watching) WatchFx.Eye(ped);
+                else
+                {
+                    ped.Task.ClearLookAt();
+                    if (g.Kind == HangoutKind.Walk) ped.Task.WanderAround(g.Spot, 60f);
+                    else ped.Task.StartScenario(HangoutRules.Scenario(index + g.Seed), ped.Position, ped.Heading);
+                }
+            }
+        }
+
+        /// <summary>The whole group turns on you.</summary>
+        private void AlertGroup(Group g)
+        {
             g.Alerted = true;
-            CrewDef crew = _content.Crew(g.Crew);
+            g.Watch = Watch.Hostile;
             foreach (Ped ped in g.Peds)
             {
                 if (ped == null || !ped.Exists() || ped.IsDead) continue;
                 ped.BlockPermanentEvents = false;
                 ped.Task.ClearAll();
                 ped.Task.FightAgainstHatedTargets(80f);
-                try
-                {
-                    if (ped.AttachedBlip == null || !ped.AttachedBlip.Exists())
-                    {
-                        Blip b = ped.AddBlip();
-                        b.Color = crew != null ? (BlipColor)crew.BlipColor : BlipColor.Red;
-                        b.Scale = 0.7f;
-                        b.Name = crew != null ? crew.Name : "Crew";
-                    }
-                }
-                catch (Exception ex) { Log.Error("Hangout blip", ex); }
+                WatchFx.Blip(_content, ped, g.Crew);
             }
         }
 

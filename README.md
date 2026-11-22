@@ -51,6 +51,8 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Bigger fronts pay more and fight harder: 3 kids with pistols and bats at the car wash; 3 soldiers with everyday guns at other small fronts; 5 at mid-size fronts with more rifles, light armour and better aim; 8 at the biggest with the most heavy guns and armour. Everyone in a fight, yours and theirs, has twice an ordinary ped's health, so fights last
 - Soldiers on alert, like GTA V's gangs on their turf: walk up on foot and they watch you, then raise their guns and warn you off, and they open fire if you stay, walk right up, aim at one or shoot
 - Back off and they go back to work, and tempers vary: small fronts warn longest, hot streets barely warn and Hellfire MC have the shortest fuse
+- Sneak up if you'd rather: calm soldiers only notice what they can see, crouching and darkness let you get much closer, and silenced shots are only heard up close
+- Street crews hanging out on their turf warn you off the same way before they fight
 - Street heat, shown in the Office: every front you take raises it and every night cools it; the hotter it is, the sooner the crews hit back and the harder their fronts fight, so lying low for a night or two pays off
 - Taking a front plays out like finishing a job in Story Mode: the gold shard, the chime and a shot of the building
 - A city that moves without you: once you've taken your first front, the crews feud with each other and take each other's fronts at night; until then they leave you and each other alone

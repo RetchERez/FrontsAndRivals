@@ -16,7 +16,8 @@ namespace FrontsAndRivals.Spawn
         public const float TurfRange = 600f;       // a crew front this close to a spot makes it that crew's turf
         public const float SpawnMin = 70f, SpawnMax = 150f; // from you: out of sight when they appear
         public const float DespawnRange = 280f;    // gone once you're well away
-        public const float AlertOnFoot = 25f, AlertShots = 70f;
+        /// <summary>Street crews warn you off at 15 m on foot (they watch from 30 m); shots within 70 m set them off.</summary>
+        public const float AlertOnFoot = 15f, AlertShots = 70f;
         public const int CarChancePct = 35;        // a group hanging out round one of their cars
         public const int ClashChancePct = 15;      // on a border between two crews' turf: they run into each other and fight
         public const float ClashGap = 18f;         // how far apart the two sides start

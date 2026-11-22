@@ -146,6 +146,12 @@ namespace FrontsAndRivals.Core
             catch (Exception ex) { _phone = null; Log.Write("Phone contact unavailable (is iFruitAddon2 installed?): " + ex.GetType().Name + ": " + ex.Message); }
 
             Keys key;
+            // 1.4's first build used F11, which is also the game's helmet visor key: an old INI moves to F4.
+            if (string.Equals(_config.OfficeHotkey, "F11", StringComparison.OrdinalIgnoreCase))
+            {
+                _config.OfficeHotkey = "F4";
+                Log.Write("Config: OfficeHotkey F11 is the game's helmet visor key, using F4 instead (change it in FrontsAndRivals.ini)");
+            }
             if (!string.IsNullOrEmpty(_config.OfficeHotkey) && !_config.OfficeHotkey.Equals("None", StringComparison.OrdinalIgnoreCase))
             {
                 if (Enum.TryParse(_config.OfficeHotkey, true, out key)) { _officeKey = key; Log.Write("Office hotkey: " + key); }
