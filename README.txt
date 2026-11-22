@@ -1,4 +1,4 @@
-FRONTS & RIVALS 1.4
+FRONTS & RIVALS 1.5
 ===================
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
@@ -88,7 +88,7 @@ GETTING STARTED
                        yours on the spot, or send a crew from the Office
 
 
-WHAT'S IN 1.4
+WHAT'S IN 1.5
 -------------
  - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels,
    diners, markets, factories and garages
@@ -102,6 +102,11 @@ WHAT'S IN 1.4
    mid-size fronts with more rifles, light armour and better aim; 8 at the
    biggest with the most heavy guns and armour. Everyone in a fight has twice
    an ordinary ped's health, so fights last
+ - Soldiers on alert, like GTA V's gangs on their turf: walk up on foot and
+   they watch you, then raise their guns and warn you off, and they open fire
+   if you stay, walk right up, aim at one or shoot
+ - Back off and they go back to work, and tempers vary: small fronts warn
+   longest, hot streets barely warn and Hellfire MC have the shortest fuse
  - Street heat, shown in the Office: every front you take raises it and every
    night cools it; the hotter it is, the sooner the crews hit back and the
    harder their fronts fight, so lying low for a night or two pays off

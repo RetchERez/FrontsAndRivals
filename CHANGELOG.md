@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.5.0 (2026-11-21)
+
+Rival soldiers are on alert, like GTA V's own gangs on their turf:
+
+- Notice: walk up on foot within about 50 m and patrols stop and the soldiers turn to keep an eye on you
+- Warn: within about 25 m they raise their guns, get blips in the crew's colour and tell you to leave in a subtitle
+  (text only), with a last warning halfway through
+- Fight: they open fire when the warning runs out, or straight away if you walk right up (8 m), aim at one of them,
+  shoot nearby or hurt one
+- Back off during a warning and they lower their guns, then go back to their posts and patrols
+- Small fronts warn for about 8 seconds and bigger fronts about 5, hot streets (heat 70+) cut it to 3 and blazing
+  streets (90+) skip the warning
+- Each crew has its own temper: Hellfire MC have the shortest fuse and the Vinewood Elite talk longest
+- Driving past still never bothers them, and before you own your first front they only warn (they fight only if you
+  hurt one)
+- INI Rivals.AlertRange is now the warning distance (default 25 m) and they start watching at twice that
+
 ## 1.4.0 (2026-11-21)
 
 - New Office controls: holding Back/View (or M) also opened the game's own Interaction Menu on top of the Office, so

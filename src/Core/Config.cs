@@ -84,7 +84,7 @@ namespace FrontsAndRivals.Core
         public bool StreetWord = true;
         public bool MidnightReport = true;
         // [Rivals]
-        public int RivalAlertRange = 35;
+        public int RivalAlertRange = 25;
         // [Map] (ShowRivalFronts below)
         public bool ShowForSaleFronts = true;
         public bool FrontStaff = true;

@@ -1,4 +1,4 @@
-# Fronts & Rivals 1.4
+# Fronts & Rivals 1.5
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
@@ -43,12 +43,14 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
 - **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
-## What's in 1.4
+## What's in 1.5
 
 - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
 - Three original crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side and the Vinewood Elite out west; each has a boss and three lieutenants
 - Every front starts in a crew's hands and nothing is for sale: you take them by force, in person or with a raid
 - Bigger fronts pay more and fight harder: 3 kids with pistols and bats at the car wash; 3 soldiers with everyday guns at other small fronts; 5 at mid-size fronts with more rifles, light armour and better aim; 8 at the biggest with the most heavy guns and armour. Everyone in a fight, yours and theirs, has twice an ordinary ped's health, so fights last
+- Soldiers on alert, like GTA V's gangs on their turf: walk up on foot and they watch you, then raise their guns and warn you off, and they open fire if you stay, walk right up, aim at one or shoot
+- Back off and they go back to work, and tempers vary: small fronts warn longest, hot streets barely warn and Hellfire MC have the shortest fuse
 - Street heat, shown in the Office: every front you take raises it and every night cools it; the hotter it is, the sooner the crews hit back and the harder their fronts fight, so lying low for a night or two pays off
 - Taking a front plays out like finishing a job in Story Mode: the gold shard, the chime and a shot of the building
 - A city that moves without you: once you've taken your first front, the crews feud with each other and take each other's fronts at night; until then they leave you and each other alone

@@ -85,5 +85,29 @@
   ],
   "brokerTip": [
     "The {crew} hold the {front} in {area}. Clear their guards and claim the door, and it's yours."
+  ],
+  "warnCK": [
+    "This is our block. Keep walking.",
+    "You lost? Turn around.",
+    "Wrong street, homie. Walk away while you can.",
+    "Nobody comes up on this spot. Back up."
+  ],
+  "warnIR": [
+    "Hellfire property. Get lost.",
+    "Turn around before we bury you.",
+    "Nobody invited you. Move.",
+    "Keep coming and you're leaving in a bag."
+  ],
+  "warnVS": [
+    "Private business. You'll want to leave.",
+    "We don't do walk-ins. Goodbye.",
+    "You really don't want our attention. Go.",
+    "This conversation ends with you walking away."
+  ],
+  "lastWarning": [
+    "Last warning.",
+    "I won't say it again.",
+    "Final chance. Walk.",
+    "One more step."
   ]
 }

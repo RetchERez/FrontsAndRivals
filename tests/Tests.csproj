@@ -21,6 +21,7 @@
     <Compile Include="../src/Data/Content.cs" />
     <Compile Include="../src/World/Empire.cs" />
     <Compile Include="../src/Spawn/StreamRules.cs" />
+    <Compile Include="../src/Spawn/WatchRules.cs" />
     <Compile Include="../src/Spawn/HangoutRules.cs" />
     <Compile Include="../src/Spawn/WorkerRules.cs" />
     <Compile Include="../src/Spawn/EscortRules.cs" />

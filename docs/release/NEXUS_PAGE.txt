@@ -1,11 +1,11 @@
-NEXUS MODS UPLOAD SHEET - Fronts & Rivals 1.4.0
+NEXUS MODS UPLOAD SHEET - Fronts & Rivals 1.5.0
 ===============================================
 
 Game: Grand Theft Auto V (nexusmods.com/gta5)
 Mod name: Fronts & Rivals
-Version: 1.4.0
+Version: 1.5.0
 Category: Scripts (or Gameplay, whichever the GTA V section offers for script mods)
-Main file: dist/FrontsAndRivals-1.4.0.zip   (file name: Fronts & Rivals 1.4.0, category: Main Files)
+Main file: dist/FrontsAndRivals-1.5.0.zip   (file name: Fronts & Rivals 1.5.0, category: Main Files)
 
 AI TAGS (required, apply both):
  - AI-Generated Content  (Claude wrote most of the code)

@@ -246,6 +246,34 @@ static class FrontTests
         T.True("Before you own a front: walking up or shooting nearby doesn't start a fight", !StreamRules.CrewProvoked(false, true, true, false));
         T.True("...but hurting one of them does", StreamRules.CrewProvoked(false, false, false, true));
         T.True("Once you're in the game, walking up does", StreamRules.CrewProvoked(true, true, false, false));
+
+        T.Section("Rival soldiers: notice, warn, fight");
+        const float R = 25f;
+        Func<Watch, float, bool, Watch> walk = (now, d, inGame) => WatchRules.Next(now, d, true, false, false, false, inGame, 0, 8000, R);
+        T.True("Far away they ignore you", walk(Watch.Calm, 70f, true) == Watch.Calm);
+        T.True("On foot within 50 m they start watching", walk(Watch.Calm, 45f, true) == Watch.Watching);
+        T.True("Within 25 m they warn you", walk(Watch.Watching, 20f, true) == Watch.Warning);
+        T.True("A warning holds until you're 5 m past the line", walk(Watch.Warning, 28f, true) == Watch.Warning && walk(Watch.Warning, 32f, true) == Watch.Watching);
+        T.True("Watching fades once you're well away", walk(Watch.Watching, 55f, true) == Watch.Watching && walk(Watch.Watching, 65f, true) == Watch.Calm);
+        T.True("Walking right up to them starts the fight", walk(Watch.Warning, 6f, true) == Watch.Hostile);
+        T.True("The fuse running out starts the fight", WatchRules.Next(Watch.Warning, 20f, true, false, false, false, true, 8000, 8000, R) == Watch.Hostile
+            && WatchRules.Next(Watch.Warning, 20f, true, false, false, false, true, 7500, 8000, R) == Watch.Warning);
+        T.True("Aiming at one of them starts the fight", WatchRules.Next(Watch.Watching, 40f, true, true, false, false, true, 0, 8000, R) == Watch.Hostile);
+        T.True("Shooting nearby starts the fight", WatchRules.Next(Watch.Calm, 70f, true, false, true, false, true, 0, 8000, R) == Watch.Hostile);
+        T.True("Hurting one always starts the fight", WatchRules.Next(Watch.Calm, 70f, false, false, false, true, false, 0, 8000, R) == Watch.Hostile);
+        T.True("Driving past never bothers them", WatchRules.Next(Watch.Calm, 5f, false, false, false, false, true, 0, 8000, R) == Watch.Calm
+            && WatchRules.Next(Watch.Warning, 10f, false, false, false, false, true, 99000, 8000, R) == Watch.Watching);
+        T.True("Before your first front they warn but never start it", walk(Watch.Warning, 5f, false) == Watch.Warning
+            && WatchRules.Next(Watch.Warning, 10f, true, true, true, false, false, 99000, 8000, R) == Watch.Warning);
+        T.True("Once it's a fight it stays a fight", walk(Watch.Hostile, 200f, true) == Watch.Hostile);
+        T.Check("Small front, cool streets: 8 s warning", WatchRules.WarnMs("CK", 0, 20), 8000, 0);
+        T.Check("Bigger front: 5 s", WatchRules.WarnMs("CK", 2, 20), 5000, 0);
+        T.Check("Hot streets: 3 s", WatchRules.WarnMs("CK", 0, 75), 3000, 0);
+        T.Check("Blazing streets: no warning", WatchRules.WarnMs("VS", 0, 95), 0, 0);
+        T.True("Hellfire MC have the shortest fuse, the Vinewood Elite the longest", WatchRules.WarnMs("IR", 0, 20) < WatchRules.WarnMs("CK", 0, 20) && WatchRules.WarnMs("CK", 0, 20) < WatchRules.WarnMs("VS", 0, 20));
+        T.True("Blazing streets: walking into range starts the fight", WatchRules.Next(Watch.Watching, 20f, true, false, false, false, true, 0, 0, R) == Watch.Hostile);
+        T.True("Last warning comes halfway", !WatchRules.LastWarningDue(3900, 8000) && WatchRules.LastWarningDue(4000, 8000) && !WatchRules.LastWarningDue(9000, 0));
+        T.True("Every crew has warning lines", content.Lines.Pick(rng, "warnCK", null) != "" && content.Lines.Pick(rng, "warnIR", null) != "" && content.Lines.Pick(rng, "warnVS", null) != "" && content.Lines.Pick(rng, "lastWarning", null) != "");
         T.True("The Broker's fallback text waits ten minutes of free roam", !Economy.BrokerReady(9 * 60000L) && Economy.BrokerReady(11 * 60000L));
 
         T.Section("One-click front management");
