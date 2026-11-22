@@ -10,7 +10,14 @@ Crews remember who hurts them:
 - Each crew's anger shows in words on its Rivals page: Calm, Angry, Furious or Vendetta
 - An angry crew has a short fuse: its soldiers warn you as briefly as its anger says, even when the rest of the city
   is calm, and a crew with a vendetta barely warns you at all
-- A text when the streets heat up and when they cool down again, so you know without opening the Office
+- A text when the streets heat up and when they cool down again, and when a crew gets furious, wants you dead or
+  calms down, so you know without opening the Office
+- Settings > How It Works: a quick in-game guide to the Office, taking fronts, your crew, income, attacks, street heat,
+  crew anger, warnings and sneaking
+- Help boxes show the Office buttons for the device you're using (the game's own RB and D-pad icons on a controller,
+  your key on keyboard), and follow your OfficeHotkey if you change it
+- The readmes group the features under Fronts, Your Crew, Rival Crews, Soldiers on Alert, Street Life, Fights and
+  Made For Story Mode
 - Street heat still comes only from the fronts you take
 - The keyboard Office key is now O, for Office, because F4 also opened the Script Hook V .NET console, and an old INI
   set to F4 or F11 switches to O by itself (an old AlertRange of 35 becomes the new 25 too)

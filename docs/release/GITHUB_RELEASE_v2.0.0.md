@@ -38,7 +38,9 @@ A single-player script mod for GTA V Enhanced (Story Mode): take Los Santos busi
 - Kill a crew's people on the street, yourself or through your guards and bodyguards, and that crew gets angrier
 - Each crew's anger shows on its Rivals page: Calm, Angry, Furious or Vendetta
 - An angry crew's soldiers barely warn you before they shoot, even when the rest of the city is calm
-- You get a text when the streets heat up and when they cool down
+- You get a text when the streets heat up or cool down, and when a crew gets furious or calms down
+- New in Settings: How It Works, a quick in-game guide to every system
+- Help boxes show the right buttons for your controller or keyboard
 
 **Soldiers on alert** (new since 1.4)
 

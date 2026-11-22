@@ -12,6 +12,21 @@ namespace FrontsAndRivals.UI
     {
         private const int ShowMs = 9000;
 
+        /// <summary>Set by Main: the keyboard key that opens the Office (null if there isn't one).</summary>
+        public static Func<string> OfficeKey;
+
+        /// <summary>How to open the Office, for the device you're using: the game's own RB and D-pad icons on a controller,
+        /// your key on keyboard. plain = words only, for text that's kept in Messages.</summary>
+        public static string OfficeKeys(bool plain)
+        {
+            string key = OfficeKey != null ? OfficeKey() : null;
+            if (plain) return "RB + D-pad Left" + (key != null ? " (" + key + " on keyboard)" : "");
+            bool pad = false;
+            try { pad = GTA.Game.LastInputMethod == GTA.InputMethod.GamePad; } catch { }
+            if (pad || key == null) return "~INPUT_FRONTEND_RB~ + ~INPUT_FRONTEND_LEFT~";
+            return key;
+        }
+
         /// <summary>The save the "seen" flags live in. Set by Main.</summary>
         public static Func<EmpireState> State;
 
@@ -26,7 +41,7 @@ namespace FrontsAndRivals.UI
                 case Tip.Posting: return "New hires wait in the reserve. Open one of your fronts and choose Fill Empty Posts, or pick a post on the guard's own page.";
                 case Tip.Attack: return "One of your fronts is under attack. Your guards hold for a few minutes (the timer, bottom right): get there to fight it yourself for a bonus, or leave it to them.";
                 case Tip.BuyAtDoor: return "Clear a rival front's soldiers, then stand at the door to claim it.";
-                case Tip.Warned: return "Rival crews usually warn you before they shoot. Walk away, or start the fight on your terms. Crouch and stay out of sight to get closer before they notice you.";
+                case Tip.Warned: return "Rival crews usually warn you before they shoot. Walk away, or start the fight on your terms. Crouch and stay out of sight to get closer before they notice you. Settings > How It Works explains it all.";
                 case Tip.Bodyguard: return "Your bodyguard follows you everywhere, even into your car. Untick Bodyguard on their page to send them back to their post.";
                 default: return "";
             }

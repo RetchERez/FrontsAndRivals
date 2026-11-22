@@ -82,6 +82,19 @@ namespace FrontsAndRivals.Rules
             c.LastContactDay = s.Day;
         }
 
+        /// <summary>0 Calm, 1 Angry, 2 Furious, 3 Vendetta (the same lines as AngerLabel).</summary>
+        public static int AngerBand(int grudge) { return grudge < 25 ? 0 : grudge < 50 ? 1 : grudge < 70 ? 2 : 3; }
+
+        /// <summary>The text for a crew's anger moving between bands, or null when it isn't worth a message: rising to
+        /// Furious or Vendetta, or calming back down below Furious.</summary>
+        public static string AngerChangeText(string crewName, int before, int after)
+        {
+            if (after > before && after == 2) return "The " + crewName + " are furious with you. Expect them to come for your fronts.";
+            if (after > before && after == 3) return "The " + crewName + " want you dead. Their soldiers won't bother warning you.";
+            if (after < before && before >= 2 && after <= 1) return "The " + crewName + " have calmed down. For now.";
+            return null;
+        }
+
         /// <summary>How a crew feels about you, in words: Calm, Angry, Furious or Vendetta.</summary>
         public static string AngerLabel(int grudge)
         {

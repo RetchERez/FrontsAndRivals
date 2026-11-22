@@ -90,83 +90,102 @@ GETTING STARTED
 
 WHAT'S IN 2.0
 -------------
+
+  FRONTS
  - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels,
    diners, markets, factories and garages
- - Three original crews holding their own turf: the Dead Kings in South LS,
-   Hellfire MC on the east side and the Vinewood Elite out west; each has a
-   boss and three lieutenants
- - Every front starts in a crew's hands and nothing is for sale: you take them
-   by force, in person or with a raid
- - Bigger fronts pay more and fight harder: 3 kids with pistols and bats at the
-   car wash; 3 soldiers with everyday guns at other small fronts; 5 at
-   mid-size fronts with more rifles, light armour and better aim; 8 at the
-   biggest with the most heavy guns and armour. Everyone in a fight has twice
-   an ordinary ped's health, so fights last
- - Soldiers on alert, like GTA V's gangs on their turf: walk up on foot and
-   they watch you, then raise their guns and warn you off, and they open fire
-   if you stay, walk right up, aim at one or shoot
- - Back off and they go back to work, and tempers vary: small fronts warn
-   longest, hot streets barely warn and Hellfire MC have the shortest fuse
- - Sneak up if you'd rather: calm soldiers only notice what they can see,
-   crouching and darkness let you get much closer, and silenced shots are only
-   heard up close
- - Street crews hanging out on their turf warn you off the same way before
-   they fight
- - Crews remember who hurts them: kill their people on the street, yourself or
-   through your guards, and that crew gets angrier, shown as Calm, Angry,
-   Furious or Vendetta on its Rivals page, and an angry crew's soldiers barely
-   warn you
- - A text tells you when the streets heat up and when they cool down
- - Street heat, shown in the Office: every front you take raises it and every
-   night cools it; the hotter it is, the sooner the crews hit back and the
-   harder their fronts fight, so lying low for a night or two pays off
+ - Every front starts in a crew's hands and nothing is for sale: you take
+   them by force, in person or with a raid
+ - Bigger fronts pay more and fight harder: 3 kids with pistols and bats at
+   the car wash, 3 soldiers at other small fronts, 5 at mid-size fronts and 8
+   at the biggest, with better guns and armour as they grow
  - Taking a front plays out like finishing a job in Story Mode: the gold
    shard, the chime and a shot of the building
- - A city that moves without you: once you've taken your first front, the crews
-   feud with each other and take each other's fronts at night; until then they
-   leave you and each other alone
- - Attacks with no warning: one alert, a timer showing how long your guards can
-   hold (about 5 minutes, more with Cameras), a GPS route and a bonus for
+ - Every front pays out at midnight, about what Story Mode properties pay,
+   and more the longer you hold it and the more you own
+ - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3
+   and the biggest 4, with Cameras, Floodlights, Reinforced Doors and an
+   Armory
+ - Staff at the front you're near: a cashier on the phone, a janitor
+   sweeping, a chef on a smoke break
+
+  YOUR CREW
+ - Guards with skills like the player's (Shooting, Strength, Stamina and
+   Stealth) that grow on the job, with ranks, traits and a memorial for the
+   fallen
+ - A weapon ladder: every guard starts with a knife and is armed one gun at a
+   time at Ammu-Nation's prices, and better guns unlock with rank
+ - Body armour that stays on: guards heal and re-vest after every fight
+ - Bodyguards you earn: your first at 8 fronts and a second at 14, Soldiers
+   or better only, who follow you and fight at your side
+ - Raids: send up to four reserve guards to take a rival front without you,
+   with the odds shown first
+ - Your colours: your guards wear your crew colour in the style you pick
+   (Street, Smart, Biker or Mixed)
+
+  RIVAL CREWS
+ - Three original crews on their own turf: the Dead Kings in South LS,
+   Hellfire MC on the east side and the Vinewood Elite out west, each with a
+   boss and three lieutenants
+ - Every crew member wears their crew colour on a major piece of clothing, so
+   you always know who you're fighting
+ - Crews remember who hurts them: kill their people on the street, yourself
+   or through your guards, and that crew gets angrier, from Calm to Vendetta
+   (shown on its Rivals page)
+ - A nemesis loop: leaders who escape come back with scars and text you about
+   it, and dead lieutenants are replaced by promoted survivors
+ - A city that moves without you: once you've taken your first front, the
+   crews feud and take each other's fronts at night
+
+  SOLDIERS ON ALERT
+ - Walk up on foot and rival soldiers watch you, then raise their guns and
+   warn you off, and they open fire if you stay, walk right up, aim at one or
+   shoot
+ - Back off and they go back to work
+ - Tempers vary: small fronts warn longest, hot streets and angry crews
+   barely warn, and Hellfire MC have the shortest fuse
+ - Sneak up if you'd rather: they only notice what they can see, crouching
+   and darkness let you get much closer, and silenced shots are only heard up
+   close
+ - Street crews hanging out on their turf warn you off the same way before
+   they fight
+
+  STREET LIFE
+ - Crews on their streets, like Saints Row: they hang out, walk the block or
+   cruise their turf in their colours, and your own crew does the same around
+   your fronts
+ - A rougher city: now and then crew members mug people, carjack drivers, get
+   chased by the police or bundle someone into a car, and rival crews shoot
+   it out on turf borders
+ - A big, mixed cast of ordinary Los Santos street people, women and men,
+   with nicknames for only some of them
+
+  FIGHTS
+ - Attacks with no warning: one alert, a timer showing how long your guards
+   can hold (about 5 minutes, more with Cameras), a GPS route and a bonus for
    holding the door yourself
  - Live defenses within 300 m: crews arrive in convoys in their own vehicles
    (Hellfire MC on motorcycles), with their own guns and the odd explosive
- - A nemesis loop: leaders who escape come back with scars and text you about
-   it; dead lieutenants are replaced by promoted survivors
- - Guards with skills like the player's (Shooting, Strength, Stamina and
-   Stealth) that grow on the job; ranks, experience, traits and a memorial for
-   the fallen
- - A weapon ladder: every guard starts with a knife and is armed one gun at a
-   time at Ammu-Nation's prices; better guns unlock with rank
- - Body armour that stays on: guards heal and re-vest after every fight
- - Bodyguards you earn: the first at 8 fronts, a second at 14, Soldiers or
-   better only; they follow you and fight at your side
- - Raids: send up to four reserve guards to take a rival front without you,
-   with the odds shown first
- - Guard posts and upgrades by size: small fronts take 2 guards, mid-size 3 and
-   the biggest 4; Cameras, Floodlights, Reinforced Doors and an Armory
- - A Story Mode economy: fronts pay about what Story Mode properties do; they
-   pay more the longer you hold them and the more you own
+ - Everyone in a fight, yours and theirs, has twice an ordinary person's
+   health, so fights last
+ - Running soldiers over counts, but the whole front opens fire on your car
+   and calls for backup
+ - Street heat, shown in the Office: every front you take raises it and every
+   night cools it, and the hotter it is, the sooner the crews hit back, so
+   lying low for a night or two pays off
+ - A text tells you when the streets heat up or cool down, and when a crew
+   gets furious or calms down
+
+  MADE FOR STORY MODE
  - Progression money can't skip: guns unlock with rank, bigger fronts need a
    bigger empire (3 and 8 fronts held) and new fronts get two quiet days
- - Crews on their streets, like Saints Row: a crew's people hang out, walk the
-   block or cruise around their turf in their colours, and your own crew does
-   the same around your fronts
- - Every crew member wears their crew colour on a major piece of clothing, and
-   your guards wear yours in the style you pick: Street, Smart, Biker or Mixed
- - Running soldiers over counts, but the whole front opens fire on your car and
-   calls for backup, a crew car with two more soldiers
- - A rougher city: now and then crew members mug people, carjack drivers, get
-   chased by the police or bundle someone into a car, rival crews shoot it out
-   on turf borders, and the cops sometimes turn up
- - Staff at the front you're near: a cashier on the phone, a janitor sweeping,
-   a chef on a smoke break
- - A big, mixed cast of ordinary Los Santos street people, women and men, with
-   nicknames for only some of them
- - Difficulty from Relaxed to Brutal, Reset the City, and Start a New Empire
-   for a new story game
- - The game's own sounds, a message queue that never spams, first-time tips in
-   GTA's help box and full controller support
- - Nothing to collect and no upkeep chores; good guards win without you
+ - Difficulty from Relaxed to Brutal, Reset All Fronts to take the city again
+   with the crew you built, and Start a New Empire for a new story game
+ - Settings > How It Works explains every system in the game, and first-time
+   tips show in GTA's help box
+ - The game's own sounds, a message queue that never spams and full
+   controller support
+ - Nothing to collect and no upkeep chores: good guards win without you
 
 
 CONTROLS

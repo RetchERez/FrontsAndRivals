@@ -96,6 +96,10 @@ static class AttackTests
         T.True("Anger in words", Nemesis.AngerLabel(0) == "Calm" && Nemesis.AngerLabel(30) == "Angry" && Nemesis.AngerLabel(60) == "Furious" && Nemesis.AngerLabel(80) == "Vendetta");
         T.True("Vendetta and Blazing start exactly where the short fuse does", Nemesis.AngerLabel(FrontsAndRivals.Spawn.WatchRules.HotHeat) == "Vendetta" && Nemesis.AngerLabel(FrontsAndRivals.Spawn.WatchRules.HotHeat - 1) == "Furious"
             && Heat.Label(FrontsAndRivals.Spawn.WatchRules.HotHeat) == "Blazing" && Heat.Label(FrontsAndRivals.Spawn.WatchRules.HotHeat - 1) == "Hot");
+        T.True("Anger bands match the words", Nemesis.AngerBand(0) == 0 && Nemesis.AngerBand(30) == 1 && Nemesis.AngerBand(60) == 2 && Nemesis.AngerBand(80) == 3);
+        T.True("A text when a crew gets furious, wants you dead, or calms down", Nemesis.AngerChangeText("Dead Kings", 1, 2) != null && Nemesis.AngerChangeText("Dead Kings", 2, 3).Contains("Dead Kings") && Nemesis.AngerChangeText("Dead Kings", 3, 1) != null);
+        T.True("...but not for every small change", Nemesis.AngerChangeText("X", 0, 1) == null && Nemesis.AngerChangeText("X", 3, 2) == null);
+        T.True("The intro names the Office keys for your device", mcontent.Lines.Pick(new Random(1), "brokerIntro", null).Contains("{officeKeys}"));
         T.True("Heat bands match the labels", Heat.Band(0) == 0 && Heat.Band(20) == 1 && Heat.Band(50) == 2 && Heat.Band(90) == 3);
         T.True("A text when the streets heat up or cool down", Heat.BandChangeText(1, 2) != null && Heat.BandChangeText(2, 3) != null && Heat.BandChangeText(3, 1) != null);
         T.True("...but not for every small change", Heat.BandChangeText(0, 1) == null && Heat.BandChangeText(3, 2) == null && Heat.BandChangeText(2, 2) == null);

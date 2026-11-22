@@ -160,6 +160,7 @@ namespace FrontsAndRivals.Core
                 else Log.Write("Config: OfficeHotkey '" + _config.OfficeHotkey + "' is not a key name, no hotkey");
             }
             KeyDown += OnKeyDown;
+            Tips.OfficeKey = () => _officeKey != Keys.None ? _officeKey.ToString() : null;
             // Always a way in: with no phone contact (iFruitAddon2 missing), no hotkey and the controller hold switched off,
             // the Office would be unreachable, so the hold comes back on.
             if (_phone == null && _officeKey == Keys.None && !_config.OfficeButton)
@@ -283,6 +284,7 @@ namespace FrontsAndRivals.Core
             }
             _state = loaded.State;
             _heatBand = -1; // a different save: no "cooled down" text for the switch
+            _angerBands.Clear();
             if (loaded.Source != "new" && loaded.Source != "locked" && _state.ModVersion != ModVersion)
             {
                 // A different version is about to use this empire: keep a copy of it as it was, just in case.
@@ -429,6 +431,7 @@ namespace FrontsAndRivals.Core
             _placer.ResetAll();
             _state = SaveService.NewEmpire();
             _heatBand = -1;
+            _angerBands.Clear();
             _state.Difficulty = DifficultyStep(_config.Difficulty);
             _rng = new Rng(_state.RngState);
             _activeBase = -_scheduler.ActiveMs; // the new empire's clock starts at zero
@@ -585,6 +588,7 @@ namespace FrontsAndRivals.Core
         /// <summary>Every 2 s of free roam: process in-game midnights (wages, then income, one feed message)
         /// and the Broker's morning recruits. Skipped midnights (sleep, switches) pay up to 3.</summary>
         private int _heatBand = -1; // Cool/Warm/Hot/Blazing last time we looked, for the "streets are heating up" texts
+        private readonly System.Collections.Generic.Dictionary<string, int> _angerBands = new System.Collections.Generic.Dictionary<string, int>(); // each crew's anger band, likewise
 
         private void ClockTick()
         {
@@ -596,6 +600,19 @@ namespace FrontsAndRivals.Core
                 if (heatText != null) _notifier.Send(NoteKind.StreetWord, "Street word", "Street Heat: " + FrontsAndRivals.Rules.Heat.Label(_state.Heat), heatText);
             }
             _heatBand = band;
+            foreach (CrewState crewNow in _state.Crews)
+            {
+                int angerBand = Nemesis.AngerBand(crewNow.Grudge);
+                int was;
+                if (_angerBands.TryGetValue(crewNow.Id, out was) && was != angerBand)
+                {
+                    CrewDef crewDef = _content.Crew(crewNow.Id);
+                    string crewName = crewDef != null ? crewDef.Name : crewNow.Id;
+                    string angerText = Nemesis.AngerChangeText(crewName, was, angerBand);
+                    if (angerText != null) _notifier.Send(NoteKind.Nemesis, "Street word", crewName + ": " + Nemesis.AngerLabel(crewNow.Grudge), angerText);
+                }
+                _angerBands[crewNow.Id] = angerBand;
+            }
             DateTime date = GTA.World.CurrentDate;
             int nights = GameCalendar.MidnightsSince(_state.LastGameDate, date);
             bool first = _state.LastGameDate == null;
@@ -664,9 +681,10 @@ namespace FrontsAndRivals.Core
             {
                 _state.IntroSent = true;
                 // A GTA help box, like the game introducing a new activity, and the map icon flashes.
-                string intro = _content.Lines.Pick(_rng, "brokerIntro", null);
-                GTA.UI.Screen.ShowHelpText(intro, 15000, true, false);
-                _notifier.Remember("Fronts & Rivals", "Your first front", intro);
+                var introRng = new Random(_rng.Next());
+                string intro = _content.Lines.Pick(introRng, "brokerIntro", null);
+                GTA.UI.Screen.ShowHelpText(intro.Replace("{officeKeys}", Tips.OfficeKeys(false)), 15000, true, false);
+                _notifier.Remember("Fronts & Rivals", "Your first front", intro.Replace("{officeKeys}", Tips.OfficeKeys(true)));
                 _blips.Flash("carwash_handson");
                 changed = true;
             }

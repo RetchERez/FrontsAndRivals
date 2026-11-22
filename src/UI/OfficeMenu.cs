@@ -252,7 +252,27 @@ namespace FrontsAndRivals.UI
             return (heat < 15 ? "~b~" : heat < 40 ? "~y~" : heat < 70 ? "~o~" : "~r~") + label + "~s~";
         }
 
-        private const string ConfirmResetFronts = "confirm:resetfronts", ConfirmStartOver = "confirm:startover";
+        private const string ConfirmResetFronts = "confirm:resetfronts", ConfirmStartOver = "confirm:startover", HowItWorks = "help:how";
+
+        /// <summary>Settings > How It Works: one line per system, so nobody needs the readme to relearn the mod.</summary>
+        private void DetailHelp()
+        {
+            SetTitles(_detail, "How It Works", "A QUICK GUIDE");
+            string[,] lines =
+            {
+                { "The Office", "Press " + Tips.OfficeKeys(true) + " to open or close the Office, or call The Office on your phone. The top line always says what to do next." },
+                { "Taking a Front", "Every business starts in a rival crew's hands. Take out every soldier guarding it and it's yours. The Hands On Car Wash in Strawberry is the easiest start." },
+                { "Your Crew", "Hire recruits under Hire Recruits, then post them at a front under Fronts. Buy them guns and vests to make them tougher. They get better the longer they work for you." },
+                { "Income", "Every front pays out at midnight, after wages. Fronts pay more the longer you hold them and the more you own." },
+                { "Attacks", "Crews hit your fronts without warning. A timer shows how long your guards can hold: get there to fight beside them for a bonus, or trust them." },
+                { "Street Heat", "Every front you take heats the streets, and every night cools them. The hotter it is, the sooner the crews hit back. Lie low for a night or two to cool off." },
+                { "Crew Anger", "Killing a crew's people makes that crew angrier, from Calm to Vendetta (see Rivals). Angry crews hit harder and barely warn you. Anger fades a little every day." },
+                { "Warnings", "Walk up to a crew on foot and they raise their guns and tell you to leave. Walk away, or start the fight on your terms. Driving past never bothers them." },
+                { "Sneaking", "Crews only notice what they can see. Crouch, or come at night, to get closer, and use a silenced gun to stay quiet." }
+            };
+            for (int i = 0; i < lines.GetLength(0); i++) _detail.Add(Info(lines[i, 0], lines[i, 1], ""));
+            _detail.SelectedIndex = 0;
+        }
 
         /// <summary>A confirmation page, like the game's own "are you sure" screens: No is highlighted first.</summary>
         private void DetailConfirm(Empire e, bool fronts)
@@ -649,7 +669,9 @@ namespace FrontsAndRivals.UI
                 AddListRow(dev, null, false);
             }
 
-            NativeItem tips = Row("Show Tips Again", "The short first-time tips (the Office, posting guards, attacks, buying, bodyguards) show again when they come up.", "");
+            AddListRow(Row("How It Works", "A quick guide to the Office, taking fronts, attacks, street heat, crew anger, warnings and sneaking.", ""), HowItWorks, true);
+
+            NativeItem tips = Row("Show Tips Again", "The short first-time tips (the Office, posting guards, attacks, bodyguards, crew warnings) show again when they come up.", "");
             tips.Activated += (s, a) => { Tips.Reset(); Changed(false); GTA.UI.Notification.Show("Tips will show again."); };
             AddListRow(tips, null, false);
 
@@ -678,6 +700,7 @@ namespace FrontsAndRivals.UI
 
             if (key is string && (string)key == ConfirmResetFronts) { DetailConfirm(e, true); return; }
             if (key is string && (string)key == ConfirmStartOver) { DetailConfirm(e, false); return; }
+            if (key is string && (string)key == HowItWorks) { DetailHelp(); return; }
             if (key is FrontDef) DetailFront(e, (FrontDef)key);
             else if (key is CrewState) DetailCrew(e, (CrewState)key);
             else if (key is GuardState && _section == Section.Hire) DetailRecruit(e, (GuardState)key);
