@@ -1,11 +1,11 @@
-NEXUS MODS UPLOAD SHEET - Fronts & Rivals 1.4.0
+NEXUS MODS UPLOAD SHEET - Fronts & Rivals 1.4.1
 ===============================================
 
 Game: Grand Theft Auto V (nexusmods.com/gta5)
 Mod name: Fronts & Rivals
-Version: 1.4.0
+Version: 1.4.1
 Category: Scripts (or Gameplay, whichever the GTA V section offers for script mods)
-Main file: dist/FrontsAndRivals-1.4.0.zip   (file name: Fronts & Rivals 1.4.0, category: Main Files)
+Main file: dist/FrontsAndRivals-1.4.1.zip   (file name: Fronts & Rivals 1.4.1, category: Main Files)
 
 AI TAGS (required, apply both):
  - AI-Generated Content  (Claude wrote most of the code)
@@ -82,7 +82,7 @@ DESCRIPTION (Nexus uses BBCode, paste everything between the lines):
 [list]
 [*]Balanced for Story Mode money and length, so it lasts your whole playthrough
 [*]Pauses during missions, cutscenes and character switches
-[*]The Office is a GTA-style menu: press RB + D-pad Left (F11 on keyboard), or call it from your phone with iFruitAddon2
+[*]The Office is a GTA-style menu: press RB + D-pad Left (F4 on keyboard), or call it from your phone with iFruitAddon2
 [*]Full controller support, and difficulty from Relaxed to Brutal
 [/list]
 

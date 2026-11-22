@@ -18,7 +18,7 @@ namespace FrontsAndRivals.Core
 {
     public sealed class Main : Script
     {
-        public const string ModVersion = "1.4.0";
+        public const string ModVersion = "1.4.1";
         private const int SaveEveryMs = 120000;          // one in-game hour = 2 real minutes
         private const long InjuryRecoveryMs = 96L * 60000; // 2 in-game days = 96 real minutes of free roam
 
@@ -210,10 +210,13 @@ namespace FrontsAndRivals.Core
             if (!_config.OfficeButton) return;
             // Controller: RB + D-pad Left toggles the Office (the combo Menyoo uses). Back/View is left alone:
             // holding it opens the game's own Interaction Menu, and disabling the control doesn't stop that.
-            // Only on a gamepad, so keyboard arrows and E never open it by accident.
-            if (Game.LastInputMethod == InputMethod.GamePad
-                && Game.IsControlPressed(GTA.Control.FrontendRb)
-                && Game.IsControlJustPressed(GTA.Control.FrontendLeft))
+            // Only on a gamepad, so keyboard arrows and E never open it by accident. Either order works; holding
+            // D-pad Left first keeps RB from ducking you into cover (RB is also the cover button).
+            if (Game.LastInputMethod != InputMethod.GamePad) return;
+            bool left = Game.IsControlPressed(GTA.Control.FrontendLeft);
+            bool rb = Game.IsControlPressed(GTA.Control.FrontendRb);
+            if (left) Game.DisableControlThisFrame(GTA.Control.Cover);
+            if (left && rb && (Game.IsControlJustPressed(GTA.Control.FrontendLeft) || Game.IsControlJustPressed(GTA.Control.FrontendRb)))
             {
                 _office.Toggle();
             }

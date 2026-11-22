@@ -33,7 +33,7 @@ Install these yourself first. The mod never bundles them.
 
   iFruitAddon2 3.x (the Office contact on your phone)
       https://github.com/Bob74/iFruitAddon2/releases
-      Optional: without it, press RB + D-pad Left or F11 to open the Office
+      Optional: without it, press RB + D-pad Left or F4 to open the Office
 
   .NET Framework 4.8 (needed by Script Hook V .NET; already on most PCs)
       https://dotnet.microsoft.com/download/dotnet-framework/net48
@@ -70,7 +70,7 @@ scripts\FrontsAndRivals\empire.json.
 
 GETTING STARTED
 ---------------
-  Open the Office      Press RB + D-pad Left on a controller or F11 on
+  Open the Office      Press RB + D-pad Left on a controller or F4 on
                        keyboard, or call The Office on your phone
   First front          Go to the Hands On Car Wash in Strawberry, take out
                        the three Dead Kings watching it (pistols and bats)
@@ -157,8 +157,9 @@ WHAT'S IN 1.4
 CONTROLS
 --------
                          Controller                      Keyboard
-  Open/close the Office  RB + D-pad Left                 F11, or set
-                                                         OfficeHotkey
+  Open/close the Office  RB + D-pad Left (hold D-pad     F4, or set
+                         Left first and you won't duck   OfficeHotkey
+                         into cover)
   Move in the Office     D-pad                           Arrow keys
   Select or open         A                               Enter
   Back                   B                               Backspace

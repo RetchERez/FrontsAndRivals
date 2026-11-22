@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 (2026-11-21)
+
+- The keyboard Office key is now F4. F11 turned out to be the game's helmet visor key (F9 and F10 drop your weapon and
+  ammo), while F4 does nothing in GTA V
+- RB + D-pad Left works in either order: hold D-pad Left first, then press RB, and you won't duck into cover
+
 ## 1.4.0 (2026-11-21)
 
 - New Office controls: holding Back/View (or M) also opened the game's own Interaction Menu on top of the Office, so
