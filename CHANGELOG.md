@@ -1,17 +1,13 @@
 # Changelog
 
-## 1.4.1 (2026-11-21)
-
-- The keyboard Office key is now F4. F11 turned out to be the game's helmet visor key (F9 and F10 drop your weapon and
-  ammo), while F4 does nothing in GTA V
-- RB + D-pad Left works in either order: hold D-pad Left first, then press RB, and you won't duck into cover
-
 ## 1.4.0 (2026-11-21)
 
 - New Office controls: holding Back/View (or M) also opened the game's own Interaction Menu on top of the Office, so
   the Office no longer uses that button at all
-  - Controller: press RB + D-pad Left to open or close the Office (the combo trainers like Menyoo use)
-  - Keyboard: F11 by default, changeable with OfficeHotkey in the INI
+  - Controller: press RB + D-pad Left to open or close the Office (the combo trainers like Menyoo use), in either
+    order, and holding D-pad Left first keeps RB from ducking you into cover
+  - Keyboard: F4 by default, changeable with OfficeHotkey in the INI (F4 does nothing in GTA V, while F9, F10 and
+    F11 drop your weapon, drop ammo and flip your helmet visor)
   - The phone contact (with iFruitAddon2) works as before
 - The game's Interaction Menu and the camera button behave exactly as in an unmodded game again
 - Back up your saves note added to the install steps

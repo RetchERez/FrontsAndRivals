@@ -26,9 +26,9 @@ A single-player script mod for GTA V Enhanced (Story Mode): take Los Santos busi
 
 New Office controls:
 
-- Controller: press RB + D-pad Left to open or close the Office
-- Keyboard: F11 by default (change it with OfficeHotkey in the INI)
+- Controller: press RB + D-pad Left to open or close the Office, in either order (hold D-pad Left first and you won't duck into cover)
+- Keyboard: F4 by default (change it with OfficeHotkey in the INI), a key GTA V doesn't use
 - Holding Back/View or M no longer opens the Office, because the game opened its own Interaction Menu on top of it, and that button now works exactly as in an unmodded game
 - The phone contact with iFruitAddon2 works as before
 
-If you're updating, replace FrontsAndRivals.ini too so the new F11 key is set. Your empire save carries over.
+If you're updating, replace FrontsAndRivals.ini too so the new F4 key is set. Your empire save carries over.
