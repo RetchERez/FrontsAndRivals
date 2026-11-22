@@ -1,4 +1,4 @@
-FRONTS & RIVALS 1.3
+FRONTS & RIVALS 1.4
 ===================
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
@@ -33,7 +33,7 @@ Install these yourself first. The mod never bundles them.
 
   iFruitAddon2 3.x (the Office contact on your phone)
       https://github.com/Bob74/iFruitAddon2/releases
-      Optional: without it, hold Back/View or M to open the Office
+      Optional: without it, press RB + D-pad Left or F11 to open the Office
 
   .NET Framework 4.8 (needed by Script Hook V .NET; already on most PCs)
       https://dotnet.microsoft.com/download/dotnet-framework/net48
@@ -70,8 +70,8 @@ scripts\FrontsAndRivals\empire.json.
 
 GETTING STARTED
 ---------------
-  Open the Office      Hold Back/View on a controller (or M) for half a
-                       second, or call The Office on your phone
+  Open the Office      Press RB + D-pad Left on a controller or F11 on
+                       keyboard, or call The Office on your phone
   First front          Go to the Hands On Car Wash in Strawberry, take out
                        the three Dead Kings watching it (pistols and bats)
                        and it's yours; then hire recruits in the Office
@@ -88,7 +88,7 @@ GETTING STARTED
                        yours on the spot, or send a crew from the Office
 
 
-WHAT'S IN 1.3
+WHAT'S IN 1.4
 -------------
  - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels,
    diners, markets, factories and garages
@@ -157,9 +157,8 @@ WHAT'S IN 1.3
 CONTROLS
 --------
                          Controller                      Keyboard
-  Open/close the Office  Hold Back/View for half a       Hold M, or set
-                         second (a tap still changes     OfficeHotkey
-                         the camera)
+  Open/close the Office  RB + D-pad Left                 F11, or set
+                                                         OfficeHotkey
   Move in the Office     D-pad                           Arrow keys
   Select or open         A                               Enter
   Back                   B                               Backspace

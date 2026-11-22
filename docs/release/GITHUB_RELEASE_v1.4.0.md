@@ -1,0 +1,34 @@
+# Fronts & Rivals 1.4.0
+
+A single-player script mod for GTA V Enhanced (Story Mode): take Los Santos businesses from three rival crews, staff them with your own crew, and hold them when the crews come back. It runs alongside the whole story and pauses during missions.
+
+**Made with AI:** designed, directed and playtested by Retch. The code, data and documentation were written with Claude, an AI assistant from Anthropic.
+
+## Download
+
+`FrontsAndRivals-1.4.0.zip` below. It contains only this mod's own files: `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `FrontsAndRivals` data folder, plus the readme and changelog.
+
+## Requirements
+
+- GTA V Enhanced, Story Mode, BattlEye off
+- [Script Hook V](http://www.dev-c.com/gtav/scripthookv/)
+- [Script Hook V .NET Enhanced](https://github.com/Chiheb-Bacha/ScriptHookVDotNetEnhanced/releases)
+- [LemonUI](https://github.com/LemonUIbyLemon/LemonUI/releases) (SHVDN3 build)
+- [iFruitAddon2](https://github.com/Bob74/iFruitAddon2/releases) (optional, adds the Office to your phone)
+
+## Install
+
+1. Install the requirements
+2. Copy the contents of the zip's `scripts` folder into your GTA V `scripts` folder
+3. Start Story Mode: after Franklin's first mission a help box points you to your first front
+
+## What's new in 1.4.0
+
+New Office controls:
+
+- Controller: press RB + D-pad Left to open or close the Office
+- Keyboard: F11 by default (change it with OfficeHotkey in the INI)
+- Holding Back/View or M no longer opens the Office, because the game opened its own Interaction Menu on top of it, and that button now works exactly as in an unmodded game
+- The phone contact with iFruitAddon2 works as before
+
+If you're updating, replace FrontsAndRivals.ini too so the new F11 key is set. Your empire save carries over.

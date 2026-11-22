@@ -12,7 +12,7 @@
 //    Settings            >
 //
 // Select (Enter / A) opens the next level, Back (Backspace / B) goes up one; Back at the top closes.
-// Opened by the hotkey, the phone contact, or holding the Interaction Menu button (M / Back/View).
+// Opened by the hotkey, the phone contact, or RB + D-pad Left on a controller.
 // Native look: the game's banner and arrows, the description box under the menu, bars not numbers.
 using System;
 using System.Collections.Generic;

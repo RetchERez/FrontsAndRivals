@@ -59,9 +59,9 @@ namespace FrontsAndRivals.Core
     {
         // [General]
         public bool Enabled = true;
-        public string OfficeHotkey = "None";
-        /// <summary>Controller: the Interaction Menu button (Back/View, M on keyboard) opens the Office.</summary>
-        public bool OfficeButton = true; // hold Back/View; a tap still changes the camera
+        public string OfficeHotkey = "F11";
+        /// <summary>Controller: RB + D-pad Left opens the Office.</summary>
+        public bool OfficeButton = true;
         // [Sound]
         public bool SoundEffects = true;
         // [Attacks]

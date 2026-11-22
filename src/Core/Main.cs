@@ -18,7 +18,7 @@ namespace FrontsAndRivals.Core
 {
     public sealed class Main : Script
     {
-        public const string ModVersion = "1.3.0";
+        public const string ModVersion = "1.4.0";
         private const int SaveEveryMs = 120000;          // one in-game hour = 2 real minutes
         private const long InjuryRecoveryMs = 96L * 60000; // 2 in-game days = 96 real minutes of free roam
 
@@ -42,7 +42,6 @@ namespace FrontsAndRivals.Core
         private readonly OfficeMenu _office;
         private readonly object _phone; // PhoneContact, held as object so a missing iFruitAddon2.dll can't break Main
         private readonly Keys _officeKey = Keys.None;
-        private readonly HoldButton _officeHold = new HoldButton(500); // hold Back/View (M on keyboard)
         private readonly AutoScout _autoScout;
         private readonly FailureWindow _tickFailures = new FailureWindow();
 
@@ -158,7 +157,7 @@ namespace FrontsAndRivals.Core
             if (_phone == null && _officeKey == Keys.None && !_config.OfficeButton)
             {
                 _config.OfficeButton = true;
-                Log.Write("No phone contact and no OfficeHotkey: OfficeButton switched on so the Office can still be opened (hold Back/View or M)");
+                Log.Write("No phone contact and no OfficeHotkey: OfficeButton switched on so the Office can still be opened (RB + D-pad Left)");
             }
 
             if (_config.DevTools)
@@ -209,16 +208,15 @@ namespace FrontsAndRivals.Core
             _director.UpdateFrame();
             Tips.Update();
             if (!_config.OfficeButton) return;
-            // Hold the Interaction Menu button (Back/View on a pad, M on keyboard) for half a second, like GTA Online.
-            // A tap still changes the camera view; once the hold fires the camera change is blocked until you let go.
-            // The game never gets that key while the Office uses it, so it can't open anything of its own at the same time
-            // (SHVDN's IsControlPressed still reads a disabled control).
-            Game.DisableControlThisFrame(GTA.Control.InteractionMenu);
-            if (_officeHold.Update(Game.IsControlPressed(GTA.Control.InteractionMenu), Game.GameTime))
+            // Controller: RB + D-pad Left toggles the Office (the combo Menyoo uses). Back/View is left alone:
+            // holding it opens the game's own Interaction Menu, and disabling the control doesn't stop that.
+            // Only on a gamepad, so keyboard arrows and E never open it by accident.
+            if (Game.LastInputMethod == InputMethod.GamePad
+                && Game.IsControlPressed(GTA.Control.FrontendRb)
+                && Game.IsControlJustPressed(GTA.Control.FrontendLeft))
             {
                 _office.Toggle();
             }
-            if (_officeHold.Fired) Game.DisableControlThisFrame(GTA.Control.NextCamera);
         }
 
         /// <summary>Notification settings: the INI, with the Office's Notifications choice on top.</summary>

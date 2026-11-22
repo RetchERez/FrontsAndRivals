@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.0 (2026-11-21)
+
+- New Office controls: holding Back/View (or M) also opened the game's own Interaction Menu on top of the Office, so
+  the Office no longer uses that button at all
+  - Controller: press RB + D-pad Left to open or close the Office (the combo trainers like Menyoo use)
+  - Keyboard: F11 by default, changeable with OfficeHotkey in the INI
+  - The phone contact (with iFruitAddon2) works as before
+- The game's Interaction Menu and the camera button behave exactly as in an unmodded game again
+- Back up your saves note added to the install steps
+- The release zip uses standard forward-slash folder paths, so every unzip tool and mod manager puts the files in
+  the right folders
+
 ## 1.3.0 (2026-11-20)
 
 Safeguards and a self-check, no new content.

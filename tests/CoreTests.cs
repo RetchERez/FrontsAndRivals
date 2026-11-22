@@ -15,23 +15,6 @@ static class CoreTests
         ConfigTests();
         MarkerTests();
         DevFormatTests();
-        HoldButtonTests();
-    }
-
-    static void HoldButtonTests()
-    {
-        T.Section("HoldButton (hold Back/View to open the Office)");
-        var b = new HoldButton(500);
-        T.True("a tap never fires", !b.Update(true, 0) && !b.Update(true, 300) && !b.Update(false, 350));
-        T.True("not fired after a tap", !b.Fired);
-        T.True("held under 0.5 s: nothing", !b.Update(true, 1000) && !b.Update(true, 1499));
-        T.True("held 0.5 s: fires", b.Update(true, 1500));
-        T.True("fires once per press", !b.Update(true, 1600) && !b.Update(true, 5000));
-        T.True("blocks the camera until let go", b.Fired);
-        T.True("let go clears it", !b.Update(false, 5100) && !b.Fired);
-        T.True("next press counts from its own start", !b.Update(true, 6000) && b.Update(true, 6500));
-        b.Reset();
-        T.True("reset forgets the press", !b.Fired && !b.Update(true, 6600) && !b.Update(true, 7000) && b.Update(true, 7100));
     }
 
     static void FailureWindowTests()

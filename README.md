@@ -1,4 +1,4 @@
-# Fronts & Rivals 1.3
+# Fronts & Rivals 1.4
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
@@ -15,7 +15,7 @@ Install these yourself first. The mod never bundles them.
 | **Script Hook V** | Loads script mods into the game | http://www.dev-c.com/gtav/scripthookv/ |
 | **Script Hook V .NET Enhanced** | Runs .NET script mods like this one | https://github.com/Chiheb-Bacha/ScriptHookVDotNetEnhanced/releases |
 | **LemonUI** (the SHVDN3 build, 2.2 or later) | The game-style menus | https://github.com/LemonUIbyLemon/LemonUI/releases |
-| **iFruitAddon2** (3.x) | The Office contact on your phone (optional: without it, hold Back/View or M to open the Office) | https://github.com/Bob74/iFruitAddon2/releases |
+| **iFruitAddon2** (3.x) | The Office contact on your phone (optional: without it, press RB + D-pad Left or F11 to open the Office) | https://github.com/Bob74/iFruitAddon2/releases |
 | **.NET Framework 4.8** | Needed by Script Hook V .NET (already on most Windows 10 and 11 PCs) | https://dotnet.microsoft.com/download/dotnet-framework/net48 |
 | **Visual C++ Redistributable** (x64, latest) | Needed by Script Hook V .NET (already on most PCs) | https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist |
 
@@ -35,7 +35,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 
 ## Getting started
 
-- **Open the Office:** hold Back/View on a controller (or M) for half a second, or call The Office on your phone
+- **Open the Office:** press RB + D-pad Left on a controller or F11 on keyboard, or call The Office on your phone
 - **Take your first front:** go to the Hands On Car Wash in Strawberry, take out the three Dead Kings watching it (pistols and bats) and it's yours on the spot; then hire recruits in the Office and post them there
 - **Follow the Next Step line** at the top of the Office: it always says what to do next
 - **Hire and post guards** from the Office, then arm them and give them body armour
@@ -43,7 +43,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
 - **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
-## What's in 1.3
+## What's in 1.4
 
 - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
 - Three original crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side and the Vinewood Elite out west; each has a boss and three lieutenants
@@ -77,7 +77,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 
 | Action | Controller | Keyboard |
 |---|---|---|
-| Open or close the Office | Hold Back/View for half a second (a tap still changes the camera) | Hold M, or set `OfficeHotkey` |
+| Open or close the Office | RB + D-pad Left | F11 (change it with `OfficeHotkey`) |
 | Move in the Office | D-pad | Arrow keys |
 | Select or open | A | Enter |
 | Back | B | Backspace |
