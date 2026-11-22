@@ -25,6 +25,8 @@ Playing on the older Legacy edition? It should work but hasn't been tested there
 
 ## Install
 
+As with any mod, back up your saves first: copy your GTA V save folder (`Documents/Rockstar Games/GTAV Enhanced/Profiles`) somewhere safe before installing. Fronts & Rivals never touches GTA's own saves, but a backup costs nothing.
+
 1. Install everything in Requirements
 2. Copy the contents of this zip's `scripts` folder into `<GTA V>\scripts\`: `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `FrontsAndRivals` folder
 3. Start Story Mode; after Franklin's first mission, a help box points you at a car wash the Dead Kings hold

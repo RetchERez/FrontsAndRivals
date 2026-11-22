@@ -53,6 +53,11 @@ yet. Use the Script Hook V .NET nightly build instead (3.6.0-nightly.89 or later
 
 INSTALL
 -------
+As with any mod, back up your saves first: copy your GTA V save folder
+(Documents/Rockstar Games/GTAV Enhanced/Profiles) somewhere safe before
+installing. Fronts & Rivals never touches GTA's own saves, but a backup costs
+nothing.
+
 1. Install everything in Requirements
 2. Copy the contents of this zip's "scripts" folder into <GTA V>\scripts\ :
    FrontsAndRivals.dll, FrontsAndRivals.ini and the FrontsAndRivals folder
