@@ -1,4 +1,4 @@
-FRONTS & RIVALS 1.5
+FRONTS & RIVALS 2.0
 ===================
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
@@ -33,7 +33,7 @@ Install these yourself first. The mod never bundles them.
 
   iFruitAddon2 3.x (the Office contact on your phone)
       https://github.com/Bob74/iFruitAddon2/releases
-      Optional: without it, press RB + D-pad Left or F4 to open the Office
+      Optional: without it, press RB + D-pad Left or O to open the Office
 
   .NET Framework 4.8 (needed by Script Hook V .NET; already on most PCs)
       https://dotnet.microsoft.com/download/dotnet-framework/net48
@@ -70,7 +70,7 @@ scripts\FrontsAndRivals\empire.json.
 
 GETTING STARTED
 ---------------
-  Open the Office      Press RB + D-pad Left on a controller or F4 on
+  Open the Office      Press RB + D-pad Left on a controller or O on
                        keyboard, or call The Office on your phone
   First front          Go to the Hands On Car Wash in Strawberry, take out
                        the three Dead Kings watching it (pistols and bats)
@@ -88,7 +88,7 @@ GETTING STARTED
                        yours on the spot, or send a crew from the Office
 
 
-WHAT'S IN 1.5
+WHAT'S IN 2.0
 -------------
  - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels,
    diners, markets, factories and garages
@@ -112,6 +112,11 @@ WHAT'S IN 1.5
    heard up close
  - Street crews hanging out on their turf warn you off the same way before
    they fight
+ - Crews remember who hurts them: kill their people on the street, yourself or
+   through your guards, and that crew gets angrier, shown as Calm, Angry,
+   Furious or Vendetta on its Rivals page, and an angry crew's soldiers barely
+   warn you
+ - A text tells you when the streets heat up and when they cool down
  - Street heat, shown in the Office: every front you take raises it and every
    night cools it; the hotter it is, the sooner the crews hit back and the
    harder their fronts fight, so lying low for a night or two pays off
@@ -167,7 +172,7 @@ WHAT'S IN 1.5
 CONTROLS
 --------
                          Controller                      Keyboard
-  Open/close the Office  RB + D-pad Left (hold D-pad     F4, or set
+  Open/close the Office  RB + D-pad Left (hold D-pad     O, or set
                          Left first and you won't duck   OfficeHotkey
                          into cover)
   Move in the Office     D-pad                           Arrow keys

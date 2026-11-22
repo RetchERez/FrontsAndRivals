@@ -49,8 +49,8 @@ namespace FrontsAndRivals.Spawn
         }
 
         /// <summary>How long the warning lasts before they open fire, in ms. 0 = no warning at all.
-        /// Small fronts give a full warning and bigger ones a shorter one; hot streets cut it short and blazing streets
-        /// skip it. Hellfire MC have a short fuse, the Vinewood Elite talk longest.</summary>
+        /// Small fronts give a full warning and bigger ones a shorter one. Temper 70+ (Blazing streets, or a crew with a
+        /// Vendetta) cuts it to 3 s, and 90+ skips it. Hellfire MC have a short fuse, the Vinewood Elite talk longest.</summary>
         public static int WarnMs(string crewId, int tier, int heat)
         {
             if (heat >= BlazingHeat) return 0;
@@ -61,34 +61,47 @@ namespace FrontsAndRivals.Spawn
             return ms;
         }
 
+        /// <summary>What sets a crew's fuse: the city's heat or that crew's own anger, whichever is higher (both 0-100),
+        /// so a crew with a vendetta shoots first even on quiet streets.</summary>
+        public static int Temper(int heat, int grudge) { return Math.Max(heat, grudge); }
+
         /// <summary>Street crews on the pavement: a shorter fuse than a front (three fifths of a small front's).</summary>
         public static int StreetWarnMs(string crewId, int heat) { return WarnMs(crewId, 0, heat) * 3 / 5; }
 
         /// <summary>The next state. warnedMs = how long the current warning has run; seen = someone can see you;
-        /// scale = SightScale. Before your first front (inTheGame false) they still watch and warn, but only start a
-        /// fight if you hurt one of them.</summary>
+        /// scale = SightScale, which only counts while they're calm (once they've noticed you, crouching doesn't make you
+        /// vanish); soldierDistance = to the nearest of them (for "heard you", -1 = use distance). Before your first front
+        /// (inTheGame false) they still watch and warn, but only start a fight if you hurt one of them.</summary>
         public static Watch Next(Watch now, float distance, bool onFoot, bool aimingAtOne, bool shotHeard, bool hurtOne,
-                                 bool inTheGame, int warnedMs, int warnLimitMs, float warnRange, bool seen = true, float scale = 1f)
+                                 bool inTheGame, int warnedMs, int warnLimitMs, float warnRange, bool seen = true, float scale = 1f,
+                                 float soldierDistance = -1f)
         {
             if (now == Watch.Hostile || hurtOne) return Watch.Hostile;
             if (inTheGame && shotHeard) return Watch.Hostile;
-            if (aimingAtOne) return inTheGame ? Watch.Hostile : Watch.Warning;
+            float sight = now == Watch.Calm ? scale : 1f;
+            float warn = warnRange * sight;
+            if (aimingAtOne)
+            {
+                if (inTheGame) return Watch.Hostile;
+                if (distance <= CalmRange(warnRange)) return Watch.Warning; // before your first front: a warning, if you're close enough to matter
+            }
 
-            float warn = warnRange * scale;
             if (!onFoot)
             {
                 // Driving: never escalates. A warning drops back to watching, and watching fades once you're away.
                 if (now == Watch.Calm) return Watch.Calm;
                 return distance <= CalmRange(warn) ? Watch.Watching : Watch.Calm;
             }
-            // Calm and nobody can see you: you can creep closer (but not right up behind them).
-            if (now == Watch.Calm && !seen && distance > HearRange) return Watch.Calm;
+            // Calm and nobody can see you: you can creep closer (but not right up behind one of them).
+            float hear = soldierDistance >= 0f ? soldierDistance : distance;
+            if (now == Watch.Calm && !seen && hear > HearRange) return Watch.Calm;
 
             if (inTheGame)
             {
-                if (distance <= TrespassRange * scale) return Watch.Hostile;
+                if (distance <= TrespassRange * sight) return Watch.Hostile;
                 if (distance <= warn && warnLimitMs <= 0) return Watch.Hostile;
-                if (now == Watch.Warning && warnedMs >= warnLimitMs) return Watch.Hostile;
+                // The fuse only counts while you're still in range: walk away and it never goes off.
+                if (now == Watch.Warning && warnedMs >= warnLimitMs && distance <= BackOffRange(warn)) return Watch.Hostile;
             }
             if (distance <= warn) return Watch.Warning;
             if (now == Watch.Warning && distance <= BackOffRange(warn)) return Watch.Warning;

@@ -47,6 +47,19 @@ namespace FrontsAndRivals.Rules
         /// <summary>Blazing streets (70+): crews send one more attacker.</summary>
         public static int SquadBonus(int heat) { return heat >= 70 ? 1 : 0; }
 
+        /// <summary>0 Cool, 1 Warm, 2 Hot, 3 Blazing (the same lines as Label).</summary>
+        public static int Band(int heat) { return heat < 15 ? 0 : heat < 40 ? 1 : heat < 70 ? 2 : 3; }
+
+        /// <summary>The text for heat moving from one band to another, or null when it isn't worth a message:
+        /// rising into Hot or Blazing, or cooling back below Hot.</summary>
+        public static string BandChangeText(int before, int after)
+        {
+            if (after > before && after == 2) return "Word's getting around about you. The streets are heating up.";
+            if (after > before && after == 3) return "The streets are blazing. Every crew is on edge, and their soldiers won't give you long.";
+            if (after < before && before >= 2 && after <= 1) return "Things have cooled down out there. The crews have stopped looking over their shoulders.";
+            return null;
+        }
+
         public static string Label(int heat)
         {
             if (heat < 15) return "Cool";

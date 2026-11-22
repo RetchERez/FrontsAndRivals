@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.0.0 (2026-11-21)
+
+Crews remember who hurts them:
+
+- Killing a crew's people on the street, yourself or through your guards and bodyguards, makes that crew angrier
+  (+1 anger each, at most +5 a day per crew, and anger still fades 8 a day, so street fights alone never build a
+  grudge up)
+- Each crew's anger shows in words on its Rivals page: Calm, Angry, Furious or Vendetta
+- An angry crew has a short fuse: its soldiers warn you as briefly as its anger says, even when the rest of the city
+  is calm, and a crew with a vendetta barely warns you at all
+- A text when the streets heat up and when they cool down again, so you know without opening the Office
+- Street heat still comes only from the fronts you take
+- The keyboard Office key is now O, for Office, because F4 also opened the Script Hook V .NET console, and an old INI
+  set to F4 or F11 switches to O by itself (an old AlertRange of 35 becomes the new 25 too)
+- Fixes from a full code review of the alert system:
+  - crouching no longer resets a warning (sneaking only helps before they've noticed you)
+  - the warning only runs out while you're still in range, so walking away or a long pause never sets it off
+  - standing near the door with every soldier round the back no longer counts as being heard
+  - calm-down no longer snaps patrollers back to their posts
+  - a soldier who turns up mid-warning joins the warning
+  - single and silenced shots are always heard (the mod remembers your last shot instead of checking twice a second)
+  - controller lock-on aiming counts as aiming
+  - the heat texts and anger words line up with the rules: Blazing streets and a Vendetta both mean a 3 second
+    warning, and full heat means none
+  - no "cooled down" text after starting a new empire
+- The GitHub project is now github.com/RetchERez/GTAV_FrontsAndRivals (old links still redirect)
+- Balance checked over 300 simulated games per play style: a steady player still reaches about 8 fronts by day 14,
+  15 by day 33 and 22 by day 48 and holds two thirds of attacks, the same as 1.5, and hunting street crews costs
+  you only a few more attacks
+
 ## 1.5.0 (2026-11-21)
 
 Rival soldiers are on alert, like GTA V's own gangs on their turf:

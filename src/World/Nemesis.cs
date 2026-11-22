@@ -64,6 +64,30 @@ namespace FrontsAndRivals.Rules
             };
         }
 
+        public const int GrudgeStreetKill = 1, StreetGrudgeDailyCap = 5;
+
+        /// <summary>One of this crew's people killed on the street by you or your people: that crew gets angrier, capped
+        /// per day so street fights can't snowball (grudge fades 8 a day). Street heat stays about the fronts you take
+        /// (the balance sim showed street heat on top of that kept the city too hot to grow in).</summary>
+        public static void StreetKill(EmpireState s, CrewState c)
+        {
+            if (s == null || c == null) return;
+            if (s.StreetDay != s.Day)
+            {
+                s.StreetDay = s.Day;
+                foreach (CrewState x in s.Crews) x.StreetGrudgeToday = 0;
+            }
+            int g = Math.Min(GrudgeStreetKill, StreetGrudgeDailyCap - c.StreetGrudgeToday);
+            if (g > 0) { AddGrudge(c, g); c.StreetGrudgeToday += g; }
+            c.LastContactDay = s.Day;
+        }
+
+        /// <summary>How a crew feels about you, in words: Calm, Angry, Furious or Vendetta.</summary>
+        public static string AngerLabel(int grudge)
+        {
+            return grudge < 25 ? "Calm" : grudge < 50 ? "Angry" : grudge < 70 ? "Furious" : "Vendetta"; // Vendetta = the short fuse (WatchRules.HotHeat)
+        }
+
         public static void AddGrudge(CrewState c, int amount)
         {
             c.Grudge = Math.Max(0, Math.Min(100, c.Grudge + amount));

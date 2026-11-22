@@ -46,14 +46,30 @@ namespace FrontsAndRivals.Spawn
             return me.IsTargeting(p) || Function.Call<bool>(Hash.IS_PLAYER_FREE_AIMING_AT_ENTITY, me, p);
         }
 
-        /// <summary>A shot they'd hear: any gunfire within 80 m, a silenced one only within 20 m.</summary>
-        public static bool HeardShot(float distance)
+        private static int _lastShotAt = int.MinValue / 2;
+        private static bool _lastShotSilenced;
+
+        /// <summary>Every frame (Main's prompts tick): remembers the player's last shot, since the crews only look every
+        /// half second and a single shot is over in a frame.</summary>
+        public static void Frame()
         {
             Ped me = Game.Player.Character;
-            if (!me.IsShooting) return false;
-            bool silenced = false;
-            try { silenced = Function.Call<bool>(Hash.IS_PED_CURRENT_WEAPON_SILENCED, me); } catch { }
-            return WatchRules.HeardShot(true, silenced, distance);
+            if (me == null || !me.IsShooting) return;
+            _lastShotAt = Game.GameTime;
+            try { _lastShotSilenced = Function.Call<bool>(Hash.IS_PED_CURRENT_WEAPON_SILENCED, me); } catch { _lastShotSilenced = false; }
+        }
+
+        /// <summary>A shot they'd hear in the last second or so: any gunfire within 80 m, a silenced one only within 20 m.</summary>
+        public static bool HeardShot(float distance)
+        {
+            bool recent = Game.GameTime - _lastShotAt < 1200;
+            return WatchRules.HeardShot(recent, _lastShotSilenced, distance);
+        }
+
+        /// <summary>Aiming in any way: free aim or a controller lock-on.</summary>
+        public static bool Aiming()
+        {
+            return Game.Player.IsAiming || Game.Player.IsTargetingAnything;
         }
 
         /// <summary>Can this person see you? Calm people only notice what's in front of them.</summary>

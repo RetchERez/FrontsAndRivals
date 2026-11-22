@@ -66,7 +66,8 @@ namespace FrontsAndRivals.Data
         /// <summary>The Office's Messages page, newest first, kept with the save so it survives a reload.</summary>
         [DataMember(Name = "messages", Order = 42)] public List<MessageEntry> Messages;
         /// <summary>The Fronts & Rivals version that last saved this empire (a copy is kept before a different version uses it).</summary>
-        [DataMember(Name = "modVersion", Order = 43)] public string ModVersion;      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
+        [DataMember(Name = "modVersion", Order = 43)] public string ModVersion;
+        [DataMember(Name = "streetDay", Order = 44)] public int StreetDay = -1;      // the day each crew's StreetGrudgeToday counts for      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
     }
 
     [DataContract]

@@ -20,6 +20,8 @@ static class Sim
         public double AssaultWin;        // chance your in-person assault works
         public int RaidSquad;            // guards kept in the reserve for raids instead of posted
         public int LieLowAt = 101;       // skip going in yourself while street heat is at least this
+        public double StreetKillsPerDay; // crew members you (or your people) kill on the street, on average; each game varies 50-150%
+        public bool FocusOneCrew;        // hunt one crew's street people, or whoever's around
     }
 
     sealed class Stats
@@ -31,6 +33,8 @@ static class Sim
         public int Day3 = -1, Day8 = -1, Day15 = -1, Day22 = -1;
         public long UpgradeSpend, GunSpend, HireSpend, FrontSpend;
         public int LossStreak, LongestLossStreak, LongestQuiet, QuietNow, PeakFronts, LastEventDay;
+        public int StreetKills, VendettaDays, LongestVendetta, VendettaNow, AttacksByHunted, GrudgeSum, GrudgeN;
+        public string Hunted;
     }
 
     static ContentDb _content;
@@ -48,10 +52,12 @@ static class Sim
         var policies = new[]
         {
             // AssaultEveryHours: how often you go and take a crew front yourself (an in-game hour is 2 real minutes).
-            new Policy { Name = "Casual", PresentAtAttack = 0.10, LiveWinBoost = 0.25, RaidMinOdds = 0.70, AssaultEveryHours = 48, AssaultWin = 0.70, RaidSquad = 0, LieLowAt = 60 },
-            new Policy { Name = "Normal", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 24, AssaultWin = 0.80, RaidSquad = 2, LieLowAt = 70 },
-            new Policy { Name = "Aggressive", PresentAtAttack = 0.50, LiveWinBoost = 0.30, RaidMinOdds = 0.45, AssaultEveryHours = 10, AssaultWin = 0.85, RaidSquad = 4, LieLowAt = 85 },
-            new Policy { Name = "Steamroller", PresentAtAttack = 0.70, LiveWinBoost = 0.35, RaidMinOdds = 0.40, AssaultEveryHours = 4, AssaultWin = 0.90, RaidSquad = 4 },
+            new Policy { Name = "Casual", PresentAtAttack = 0.10, LiveWinBoost = 0.25, RaidMinOdds = 0.70, AssaultEveryHours = 48, AssaultWin = 0.70, RaidSquad = 0, LieLowAt = 60, StreetKillsPerDay = 1 },
+            new Policy { Name = "Normal", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 24, AssaultWin = 0.80, RaidSquad = 2, LieLowAt = 70, StreetKillsPerDay = 2 },
+            new Policy { Name = "Aggressive", PresentAtAttack = 0.50, LiveWinBoost = 0.30, RaidMinOdds = 0.45, AssaultEveryHours = 10, AssaultWin = 0.85, RaidSquad = 4, LieLowAt = 85, StreetKillsPerDay = 4 },
+            new Policy { Name = "Steamroller", PresentAtAttack = 0.70, LiveWinBoost = 0.35, RaidMinOdds = 0.40, AssaultEveryHours = 4, AssaultWin = 0.90, RaidSquad = 4, StreetKillsPerDay = 6 },
+            new Policy { Name = "Street Hunter (one crew)", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 24, AssaultWin = 0.80, RaidSquad = 2, LieLowAt = 70, StreetKillsPerDay = 12, FocusOneCrew = true },
+            new Policy { Name = "Street Hunter (every crew)", PresentAtAttack = 0.30, LiveWinBoost = 0.25, RaidMinOdds = 0.55, AssaultEveryHours = 24, AssaultWin = 0.80, RaidSquad = 2, LieLowAt = 70, StreetKillsPerDay = 12 },
         };
         if (args.Length > 2 && args[2] == "city")
         {
@@ -118,6 +124,9 @@ static class Sim
         int hour = 8; // free roam starts mid-morning
         e.RefreshOffers(rng, s.Day);
         long nextAssault = pol.AssaultEveryHours > 0 ? pol.AssaultEveryHours * Hour : long.MaxValue;
+        double streetRate = pol.StreetKillsPerDay * (0.5 + rng.NextDouble()); // every player is different: 50-150% of the policy
+        if (Environment.GetEnvironmentVariable("FR_NOSTREET") == "1") streetRate = 0; // the old rules, for comparison
+        st.Hunted = s.Crews[rng.Next(s.Crews.Count)].Id;
         AttackState attackSeen = null;
 
         for (int minute = 0; s.Day < days; minute++)
@@ -131,6 +140,7 @@ static class Sim
             e.Recover(now);
 
             if (hourTick) PlayerTurn(pol, s, e, rng, ref cash, st, now, hour, ref nextAssault);
+            if (hourTick && streetRate > 0 && e.InTheGame()) StreetFights(pol, s, rng, streetRate, st);
 
             // The Director: one roll a minute, the same rules as the game.
             if (s.Attack == null)
@@ -144,7 +154,7 @@ static class Sim
             else if (now >= s.Attack.WindowEnds)
             {
                 AttackState a = s.Attack;
-                if (a != attackSeen) { attackSeen = a; st.Attacks++; }
+                if (a != attackSeen) { attackSeen = a; st.Attacks++; if (a.Crew == st.Hunted) st.AttacksByHunted++; }
                 bool? live = null; int lost = 0;
                 if (rng.NextDouble() < pol.PresentAtAttack)
                 {
@@ -192,6 +202,23 @@ static class Sim
         return st;
     }
 
+    /// <summary>Street fights in free roam, at random hours: a group of 1-4 crew members down at a time (the game's rule:
+    /// Nemesis.StreetKill, capped per day), only crews with people on the street (manpower 3+).</summary>
+    static void StreetFights(Policy pol, EmpireState s, Random rng, double perDay, Stats st)
+    {
+        const double avgGroup = 2.5;
+        if (rng.NextDouble() >= perDay / 24.0 / avgGroup) return;
+        CrewState c = pol.FocusOneCrew ? Nemesis.Crew(s, st.Hunted) : s.Crews[rng.Next(s.Crews.Count)];
+        if (c == null || c.Manpower < 3) return;
+        int n = 1 + rng.Next(4);
+        for (int i = 0; i < n && c.Manpower > 0; i++)
+        {
+            c.Manpower--;
+            Nemesis.StreetKill(s, c);
+            st.StreetKills++;
+        }
+    }
+
     static void Midnight(EmpireState s, Empire e, Random rng, ref long cash, Stats st)
     {
         s.Day++;
@@ -206,6 +233,9 @@ static class Sim
         int d = Math.Min(s.Day, st.FrontsByDay.Length - 1);
         st.FrontsByDay[d] = e.OwnedCount();
         st.HeatSum += s.Heat; st.HeatN++;
+        bool vendetta = false;
+        foreach (CrewState c in s.Crews) { st.GrudgeSum += c.Grudge; st.GrudgeN++; if (c.Grudge >= 75) vendetta = true; }
+        if (vendetta) { st.VendettaDays++; st.VendettaNow++; st.LongestVendetta = Math.Max(st.LongestVendetta, st.VendettaNow); } else st.VendettaNow = 0;
         st.NetByDay[d] = pay.Net;
         st.CashByDay[d] = cash;
         e.EnsureFronts();
@@ -339,6 +369,10 @@ static class Sim
                           + "   worst losing streak p90 " + spread(all.Select(x => (double)x.LongestLossStreak)).Split('/')[2].Trim()
                           + "   longest quiet stretch p50/p90 " + spread(all.Select(x => (double)x.LongestQuiet)).Split('/')[1].Trim() + "/" + spread(all.Select(x => (double)x.LongestQuiet)).Split('/')[2].Trim() + " days"
                           + "   runaway (all 29 held) " + Pct(all.Count(x => x.PeakFronts >= 29) / (double)all.Count));
+        Console.WriteLine("   street        kills/game " + all.Average(x => x.StreetKills).ToString("0") + "   attacks by the crew hunted most " + Pct(att > 0 ? all.Sum(x => x.AttacksByHunted) / att : 0)
+                          + "   avg anger " + (all.Sum(x => x.GrudgeSum) / Math.Max(1.0, all.Sum(x => x.GrudgeN))).ToString("0")
+                          + "   days with a crew at Vendetta p50/p90 " + spread(all.Select(x => (double)x.VendettaDays)).Split('/')[1].Trim() + "/" + spread(all.Select(x => (double)x.VendettaDays)).Split('/')[2].Trim()
+                          + "   longest Vendetta p90 " + spread(all.Select(x => (double)x.LongestVendetta)).Split('/')[2].Trim() + " days");
         Console.WriteLine("   guards dead   " + all.Average(x => x.GuardsDead).ToString("0.0") + "/game, quits " + all.Average(x => x.Quits).ToString("0.0")
                           + "   spend: fronts $" + all.Average(x => x.FrontSpend).ToString("N0") + ", hires $" + all.Average(x => x.HireSpend).ToString("N0")
                           + ", guns $" + all.Average(x => x.GunSpend).ToString("N0") + ", upgrades $" + all.Average(x => x.UpgradeSpend).ToString("N0"));

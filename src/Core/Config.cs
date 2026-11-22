@@ -59,7 +59,7 @@ namespace FrontsAndRivals.Core
     {
         // [General]
         public bool Enabled = true;
-        public string OfficeHotkey = "F4";
+        public string OfficeHotkey = "O";
         /// <summary>Controller: RB + D-pad Left opens the Office.</summary>
         public bool OfficeButton = true;
         // [Sound]

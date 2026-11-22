@@ -1,4 +1,4 @@
-# Fronts & Rivals 1.5
+# Fronts & Rivals 2.0
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
@@ -15,7 +15,7 @@ Install these yourself first. The mod never bundles them.
 | **Script Hook V** | Loads script mods into the game | http://www.dev-c.com/gtav/scripthookv/ |
 | **Script Hook V .NET Enhanced** | Runs .NET script mods like this one | https://github.com/Chiheb-Bacha/ScriptHookVDotNetEnhanced/releases |
 | **LemonUI** (the SHVDN3 build, 2.2 or later) | The game-style menus | https://github.com/LemonUIbyLemon/LemonUI/releases |
-| **iFruitAddon2** (3.x) | The Office contact on your phone (optional: without it, press RB + D-pad Left or F4 to open the Office) | https://github.com/Bob74/iFruitAddon2/releases |
+| **iFruitAddon2** (3.x) | The Office contact on your phone (optional: without it, press RB + D-pad Left or O to open the Office) | https://github.com/Bob74/iFruitAddon2/releases |
 | **.NET Framework 4.8** | Needed by Script Hook V .NET (already on most Windows 10 and 11 PCs) | https://dotnet.microsoft.com/download/dotnet-framework/net48 |
 | **Visual C++ Redistributable** (x64, latest) | Needed by Script Hook V .NET (already on most PCs) | https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist |
 
@@ -35,7 +35,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 
 ## Getting started
 
-- **Open the Office:** press RB + D-pad Left on a controller or F4 on keyboard, or call The Office on your phone
+- **Open the Office:** press RB + D-pad Left on a controller or O on keyboard, or call The Office on your phone
 - **Take your first front:** go to the Hands On Car Wash in Strawberry, take out the three Dead Kings watching it (pistols and bats) and it's yours on the spot; then hire recruits in the Office and post them there
 - **Follow the Next Step line** at the top of the Office: it always says what to do next
 - **Hire and post guards** from the Office, then arm them and give them body armour
@@ -43,7 +43,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
 - **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
-## What's in 1.5
+## What's in 2.0
 
 - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels, diners, markets, factories and garages
 - Three original crews holding their own turf: the Dead Kings in South LS, Hellfire MC on the east side and the Vinewood Elite out west; each has a boss and three lieutenants
@@ -53,6 +53,8 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Back off and they go back to work, and tempers vary: small fronts warn longest, hot streets barely warn and Hellfire MC have the shortest fuse
 - Sneak up if you'd rather: calm soldiers only notice what they can see, crouching and darkness let you get much closer, and silenced shots are only heard up close
 - Street crews hanging out on their turf warn you off the same way before they fight
+- Crews remember who hurts them: kill their people on the street, yourself or through your guards, and that crew gets angrier, shown as Calm, Angry, Furious or Vendetta on its Rivals page, and an angry crew's soldiers barely warn you
+- A text tells you when the streets heat up and when they cool down
 - Street heat, shown in the Office: every front you take raises it and every night cools it; the hotter it is, the sooner the crews hit back and the harder their fronts fight, so lying low for a night or two pays off
 - Taking a front plays out like finishing a job in Story Mode: the gold shard, the chime and a shot of the building
 - A city that moves without you: once you've taken your first front, the crews feud with each other and take each other's fronts at night; until then they leave you and each other alone
@@ -81,7 +83,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 
 | Action | Controller | Keyboard |
 |---|---|---|
-| Open or close the Office | RB + D-pad Left (hold D-pad Left first and you won't duck into cover) | F4 (change it with `OfficeHotkey`) |
+| Open or close the Office | RB + D-pad Left (hold D-pad Left first and you won't duck into cover) | O (change it with `OfficeHotkey`) |
 | Move in the Office | D-pad | Arrow keys |
 | Select or open | A | Enter |
 | Back | B | Backspace |

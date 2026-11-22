@@ -229,6 +229,8 @@ namespace FrontsAndRivals.Data
  /// <summary>The crew this one is feuding with (its last turf fight, either way).</summary>
         [DataMember(Name = "feudWith", Order = 20)] public string FeudWith;
         [DataMember(Name = "lastMove", Order = 6)] public string LastMove;
+        /// <summary>Grudge from street kills so far on EmpireState.StreetDay (capped per day).</summary>
+        [DataMember(Name = "streetGrudgeToday", Order = 21)] public int StreetGrudgeToday;
 
         public CrewMember Boss
         {

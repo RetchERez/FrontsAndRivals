@@ -76,6 +76,31 @@ static class AttackTests
         T.True("Hot streets: attacks come sooner, cool ones later", Heat.CooldownFactor(100) < 0.7 && Heat.CooldownFactor(0) > 1.2);
         T.True("Hot streets: crew fronts fight harder", Heat.CrewDefenseFactor(100) > Heat.CrewDefenseFactor(0) && Heat.ExtraArmor(100) == 35 && Heat.ExtraArmor(0) == 0);
         T.True("Labels Cool / Warm / Hot / Blazing", Heat.Label(0) == "Cool" && Heat.Label(20) == "Warm" && Heat.Label(50) == "Hot" && Heat.Label(90) == "Blazing");
+
+        T.Section("Street kills: an angrier crew, capped per day");
+        var ks = SaveService.NewEmpire();
+        Nemesis.EnsureCrews(ks, mcontent, new Random(3));
+        ks.Day = 5;
+        CrewState kc = Nemesis.Crew(ks, "CK"), kother = Nemesis.Crew(ks, "IR");
+        Nemesis.StreetKill(ks, kc);
+        T.True("One kill: +1 anger for that crew, and the streets don't heat up", kc.Grudge == 1 && ks.Heat == 0 && kc.LastContactDay == 5);
+        T.Check("...and the other crews don't care", kother.Grudge, 0, 0);
+        for (int n = 0; n < 20; n++) Nemesis.StreetKill(ks, kc);
+        T.True("A street massacre still adds at most +5 anger a day", kc.Grudge == 5);
+        Nemesis.StreetKill(ks, kother);
+        T.True("The cap is per crew", kother.Grudge == 1);
+        ks.Day = 6;
+        Nemesis.StreetKill(ks, kc);
+        T.True("A new day, a new cap", kc.Grudge == 6);
+        T.True("Street kills alone never build a grudge up: it fades faster", Nemesis.GrudgeDailyDecay > Nemesis.StreetGrudgeDailyCap);
+        T.True("Anger in words", Nemesis.AngerLabel(0) == "Calm" && Nemesis.AngerLabel(30) == "Angry" && Nemesis.AngerLabel(60) == "Furious" && Nemesis.AngerLabel(80) == "Vendetta");
+        T.True("Vendetta and Blazing start exactly where the short fuse does", Nemesis.AngerLabel(FrontsAndRivals.Spawn.WatchRules.HotHeat) == "Vendetta" && Nemesis.AngerLabel(FrontsAndRivals.Spawn.WatchRules.HotHeat - 1) == "Furious"
+            && Heat.Label(FrontsAndRivals.Spawn.WatchRules.HotHeat) == "Blazing" && Heat.Label(FrontsAndRivals.Spawn.WatchRules.HotHeat - 1) == "Hot");
+        T.True("Heat bands match the labels", Heat.Band(0) == 0 && Heat.Band(20) == 1 && Heat.Band(50) == 2 && Heat.Band(90) == 3);
+        T.True("A text when the streets heat up or cool down", Heat.BandChangeText(1, 2) != null && Heat.BandChangeText(2, 3) != null && Heat.BandChangeText(3, 1) != null);
+        T.True("...but not for every small change", Heat.BandChangeText(0, 1) == null && Heat.BandChangeText(3, 2) == null && Heat.BandChangeText(2, 2) == null);
+        T.True("A crew's fuse follows its anger or the city's heat, whichever is higher", FrontsAndRivals.Spawn.WatchRules.Temper(20, 80) == 80 && FrontsAndRivals.Spawn.WatchRules.Temper(75, 10) == 75);
+        T.True("A crew with a vendetta barely warns you, even on cool streets", FrontsAndRivals.Spawn.WatchRules.WarnMs("CK", 0, FrontsAndRivals.Spawn.WatchRules.Temper(10, 80)) == 3000);
         long hnow = 1000L * 60000L;
         hs.LastAttackMs = hnow - 62 * 60000L; hs.LastLossMs = -999999999; hs.Attack = null;
         hs.Heat = 0;

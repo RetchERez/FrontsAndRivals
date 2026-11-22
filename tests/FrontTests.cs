@@ -281,8 +281,16 @@ static class FrontTests
         T.True("Night is 9 pm to 5 am", WatchRules.IsNight(22) && WatchRules.IsNight(3) && !WatchRules.IsNight(5) && !WatchRules.IsNight(12));
         float half = WatchRules.SightScale(true, 50, false); // 0.5
         T.True("Sneaking: no warning at 20 m that would come walking", walk(Watch.Watching, 20f, true) == Watch.Warning
-            && WatchRules.Next(Watch.Watching, 20f, true, false, false, false, true, 0, 8000, R, true, half) == Watch.Watching);
-        T.True("Sneaking: walking right up means 4 m, not 8", WatchRules.Next(Watch.Warning, 6f, true, false, false, false, true, 0, 8000, R, true, half) == Watch.Warning);
+            && WatchRules.Next(Watch.Calm, 20f, true, false, false, false, true, 0, 8000, R, true, half) == Watch.Watching);
+        T.True("Sneaking: walking right up means 4 m, not 8", WatchRules.Next(Watch.Calm, 6f, true, false, false, false, true, 0, 8000, R, true, half) == Watch.Warning);
+        T.True("Once they've noticed you, crouching doesn't reset a warning", WatchRules.Next(Watch.Warning, 22f, true, false, false, false, true, 1000, 8000, R, true, half) == Watch.Warning);
+        T.True("The fuse only runs out while you're in range", WatchRules.Next(Watch.Warning, 200f, true, false, false, false, true, 99000, 8000, R) == Watch.Calm
+            && WatchRules.Next(Watch.Warning, 29f, true, false, false, false, true, 8000, 8000, R) == Watch.Hostile);
+        T.True("Near the door with every soldier round the back: not heard", WatchRules.Next(Watch.Calm, 2f, true, false, false, false, true, 0, 8000, R, false, 1f, 20f) == Watch.Calm
+            && WatchRules.Next(Watch.Calm, 2f, true, false, false, false, true, 0, 8000, R, false, 1f, 2f) == Watch.Hostile);
+        T.True("Before your first front, aiming from far off is ignored", WatchRules.Next(Watch.Calm, 200f, true, true, false, false, false, 0, 8000, R) == Watch.Calm
+            && WatchRules.Next(Watch.Calm, 40f, true, true, false, false, false, 0, 8000, R) == Watch.Warning);
+        T.True("Night edges: 9 pm is night, 4 am too", WatchRules.IsNight(21) && WatchRules.IsNight(4) && !WatchRules.IsNight(20));
         T.True("Silenced shots are only heard up close", WatchRules.HeardShot(true, false, 70f) && !WatchRules.HeardShot(true, true, 30f) && WatchRules.HeardShot(true, true, 15f) && !WatchRules.HeardShot(false, false, 5f));
         T.True("Street crews have a shorter fuse than a front", WatchRules.StreetWarnMs("CK", 20) < WatchRules.WarnMs("CK", 0, 20) && WatchRules.StreetWarnMs("CK", 95) == 0);
         T.True("Street crews warn at 15 m", HangoutRules.AlertOnFoot == 15f);

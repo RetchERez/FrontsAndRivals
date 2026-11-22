@@ -508,7 +508,7 @@ namespace FrontsAndRivals.Attacks
         {
             if (_firstFrontHelpAt == 0 || Game.GameTime < _firstFrontHelpAt) return;
             _firstFrontHelpAt = 0;
-            GTA.UI.Screen.ShowHelpText("Your first front, and nobody's guarding it yet. Press RB + D-pad Left (F4 on keyboard) to open the Office: "
+            GTA.UI.Screen.ShowHelpText("Your first front, and nobody's guarding it yet. Press RB + D-pad Left (O on keyboard) to open the Office: "
                 + "hire recruits under Hire Recruits, then post them under Fronts. Your crew's colour and style are in Settings.", 20000, true, false);
         }
 

@@ -18,7 +18,7 @@ namespace FrontsAndRivals.Core
 {
     public sealed class Main : Script
     {
-        public const string ModVersion = "1.5.0";
+        public const string ModVersion = "2.0.0";
         private const int SaveEveryMs = 120000;          // one in-game hour = 2 real minutes
         private const long InjuryRecoveryMs = 96L * 60000; // 2 in-game days = 96 real minutes of free roam
 
@@ -146,12 +146,14 @@ namespace FrontsAndRivals.Core
             catch (Exception ex) { _phone = null; Log.Write("Phone contact unavailable (is iFruitAddon2 installed?): " + ex.GetType().Name + ": " + ex.Message); }
 
             Keys key;
-            // 1.4's first build used F11, which is also the game's helmet visor key: an old INI moves to F4.
-            if (string.Equals(_config.OfficeHotkey, "F11", StringComparison.OrdinalIgnoreCase))
+            // Older INIs: F11 is the game's helmet visor key and F4 opens the Script Hook V .NET console, so both move to O.
+            if (string.Equals(_config.OfficeHotkey, "F11", StringComparison.OrdinalIgnoreCase) || string.Equals(_config.OfficeHotkey, "F4", StringComparison.OrdinalIgnoreCase))
             {
-                _config.OfficeHotkey = "F4";
-                Log.Write("Config: OfficeHotkey F11 is the game's helmet visor key, using F4 instead (change it in FrontsAndRivals.ini)");
+                Log.Write("Config: OfficeHotkey " + _config.OfficeHotkey + " clashes with the game or Script Hook V .NET, using O instead (change it in FrontsAndRivals.ini)");
+                _config.OfficeHotkey = "O";
             }
+            // 1.4's INI had the old fight range (35 m); 1.5 made it the warning range, 25 m.
+            if (_config.RivalAlertRange == 35) { _config.RivalAlertRange = 25; _streamer.AlertOnFootRange = 25; Log.Write("Config: AlertRange 35 is the old fight range, using 25 (the warning range)"); }
             if (!string.IsNullOrEmpty(_config.OfficeHotkey) && !_config.OfficeHotkey.Equals("None", StringComparison.OrdinalIgnoreCase))
             {
                 if (Enum.TryParse(_config.OfficeHotkey, true, out key)) { _officeKey = key; Log.Write("Office hotkey: " + key); }
@@ -213,6 +215,7 @@ namespace FrontsAndRivals.Core
         {
             _director.UpdateFrame();
             Tips.Update();
+            try { WatchFx.Frame(); } catch (Exception ex) { Log.Error("Shot watch", ex); }
             if (!_config.OfficeButton) return;
             // Controller: RB + D-pad Left toggles the Office (the combo Menyoo uses). Back/View is left alone:
             // holding it opens the game's own Interaction Menu, and disabling the control doesn't stop that.
@@ -279,6 +282,7 @@ namespace FrontsAndRivals.Core
                 loaded = new SaveService.LoadResult { State = SaveService.NewEmpire(), Source = "new" };
             }
             _state = loaded.State;
+            _heatBand = -1; // a different save: no "cooled down" text for the switch
             if (loaded.Source != "new" && loaded.Source != "locked" && _state.ModVersion != ModVersion)
             {
                 // A different version is about to use this empire: keep a copy of it as it was, just in case.
@@ -424,6 +428,7 @@ namespace FrontsAndRivals.Core
             _director.Reset();
             _placer.ResetAll();
             _state = SaveService.NewEmpire();
+            _heatBand = -1;
             _state.Difficulty = DifficultyStep(_config.Difficulty);
             _rng = new Rng(_state.RngState);
             _activeBase = -_scheduler.ActiveMs; // the new empire's clock starts at zero
@@ -579,9 +584,18 @@ namespace FrontsAndRivals.Core
 
         /// <summary>Every 2 s of free roam: process in-game midnights (wages, then income, one feed message)
         /// and the Broker's morning recruits. Skipped midnights (sleep, switches) pay up to 3.</summary>
+        private int _heatBand = -1; // Cool/Warm/Hot/Blazing last time we looked, for the "streets are heating up" texts
+
         private void ClockTick()
         {
             if (_empire == null) return;
+            int band = FrontsAndRivals.Rules.Heat.Band(_state.Heat);
+            if (_heatBand >= 0 && band != _heatBand)
+            {
+                string heatText = FrontsAndRivals.Rules.Heat.BandChangeText(_heatBand, band);
+                if (heatText != null) _notifier.Send(NoteKind.StreetWord, "Street word", "Street Heat: " + FrontsAndRivals.Rules.Heat.Label(_state.Heat), heatText);
+            }
+            _heatBand = band;
             DateTime date = GTA.World.CurrentDate;
             int nights = GameCalendar.MidnightsSince(_state.LastGameDate, date);
             bool first = _state.LastGameDate == null;

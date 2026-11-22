@@ -34,6 +34,7 @@ namespace FrontsAndRivals.Spawn
             public Watch Watch;            // calm, watching you, warning you, or fighting (WatchRules)
             public int WarnStart;          // game time the current warning began
             public bool LastWarned;
+            public int LastWatchAt;        // a long gap between looks restarts a warning's fuse
             public int RequestedAt;
             public Group Rival;            // a street fight: the other crew's group across the road
             public StreetCrime Crime;
@@ -407,8 +408,13 @@ namespace FrontsAndRivals.Spawn
                     {
                         // A soldier down: their crew is one short, and they won't forget who did it.
                         CrewState cs = Nemesis.Crew(e.State, g.Crew);
-                        bool byYou = ped.Killer == me || (ped.Killer != null && (ped.Killer == me.CurrentVehicle || ped.Killer == me.LastVehicle)); // on foot or with your car
-                        if (cs != null && (byYou || g.Rival != null)) { cs.Manpower = Math.Max(0, cs.Manpower - 1); if (byYou) cs.LastContactDay = e.State.Day; }
+                        // You on foot, your car, or your own people (guards, bodyguards, your crew on the street).
+                        Entity killer = ped.Killer;
+                        Ped killerPed = killer as Ped;
+                        bool byYou = killer == me || (killer != null && (killer == me.CurrentVehicle || killer == me.LastVehicle))
+                                     || (killerPed != null && killerPed.RelationshipGroup == Factions.Guards);
+                        if (cs != null && (byYou || g.Rival != null)) cs.Manpower = Math.Max(0, cs.Manpower - 1);
+                        if (cs != null && byYou && e.InTheGame()) Nemesis.StreetKill(e.State, cs); // angrier crew, hotter streets (capped daily)
                     }
                 }
                 else if (ped.Health < ped.MaxHealth) hurt = true;
@@ -424,7 +430,7 @@ namespace FrontsAndRivals.Spawn
             }
             // Everyone else on the street: notice, warn, then fight, like a front's soldiers but on a shorter fuse.
             bool aiming = false, seen = false;
-            bool aimingNow = Game.Player.IsAiming;
+            bool aimingNow = WatchFx.Aiming();
             float scale = WatchFx.SightScale();
             foreach (Ped ped in g.Peds)
                 if (aimingNow && Alive(ped) && WatchFx.AimedAt(ped)) { aiming = true; break; }
@@ -432,10 +438,13 @@ namespace FrontsAndRivals.Spawn
                 foreach (Ped ped in g.Peds)
                     if (Alive(ped) && WatchFx.Sees(ped, g.Watch == Watch.Calm)) { seen = true; break; }
             int gt = Game.GameTime;
-            int limit = WatchRules.StreetWarnMs(g.Crew, e.State.Heat);
+            if (g.Watch == Watch.Warning && gt - g.LastWatchAt > 3000) { g.WarnStart = gt; g.LastWarned = false; }
+            g.LastWatchAt = gt;
+            CrewState angry = Nemesis.Crew(e.State, g.Crew);
+            int limit = WatchRules.StreetWarnMs(g.Crew, WatchRules.Temper(e.State.Heat, angry != null ? angry.Grudge : 0));
             int warned = g.Watch == Watch.Warning ? gt - g.WarnStart : 0;
             Watch next = WatchRules.Next(g.Watch, near, me.IsOnFoot, aiming, WatchFx.HeardShot(near), hurt, inTheGame,
-                                         warned, limit, HangoutRules.AlertOnFoot, seen, scale);
+                                         warned, limit, HangoutRules.AlertOnFoot, seen, scale, WatchFx.Nearest(g.Peds));
             if (next == Watch.Hostile) { g.Watch = Watch.Hostile; AlertGroup(g); return; }
             if (next != g.Watch) { g.Watch = next; EnterWatch(g, gt); return; }
             if (next == Watch.Warning && inTheGame && !g.LastWarned && WatchRules.LastWarningDue(warned, limit))

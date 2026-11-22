@@ -400,9 +400,7 @@ namespace FrontsAndRivals.UI
             AddSection(Section.Guards, "Guards", "Your people: their post, rank, gun and skills. Free guards are in the reserve, ready to post.",
                 e.LivingCount() + (free > 0 ? " · " + free + " Free" : "") + (injured > 0 ? " · " + injured + " Hurt" : ""));
             AddSection(Section.Hire, "Hire Recruits", Economy.RecruitsPerDay + " new faces turn up every morning at 06:00. Hire them before midnight.", e.State.Offers.Count + " Today");
-            int maxGrudge = 0;
-            foreach (CrewState c in e.State.Crews) maxGrudge = Math.Max(maxGrudge, c.Grudge);
-            AddSection(Section.Rivals, "Rivals", "The three crews and their leaders. Street heat rises with every front you take and cools each night: the hotter it is, the sooner they hit back.",
+            AddSection(Section.Rivals, "Rivals", "The three crews, their leaders and how angry each one is with you. Street heat rises with every front you take and cools each night: the hotter it is, the sooner they hit back. Killing a crew's people on the street makes that crew angrier.",
                 "Heat: " + HeatColored(e.State.Heat));
             AddSection(Section.Messages, "Messages", "Every text and alert from Fronts & Rivals, newest first, so you can read them again.", (Messages != null ? Messages().Count : 0).ToString());
             AddSection(Section.Overview, "Overview", "Income, wages, street heat and your people at a glance.", Money(net) + "/day");
@@ -1053,7 +1051,7 @@ namespace FrontsAndRivals.UI
                 foreach (FrontState f in e.State.Fronts) if (f.Owner == c.Id) held++;
                 bool quiet = Nemesis.IsQuiet(c, e.State.Day);
                 string desc = def.Style + ". Holds " + held + (held == 1 ? " front. " : " fronts. ") + (quiet ? "Gone quiet after losing their leaders." : "Select for their leaders.");
-                NativeItem row = Row(def.Name, desc, (quiet ? "Quiet" : "Grudge " + c.Grudge) + Open);
+                NativeItem row = Row(def.Name, desc, (quiet ? "Quiet" : Nemesis.AngerLabel(c.Grudge)) + Open);
                 AddListRow(row, c, true);
             }
         }
@@ -1062,8 +1060,8 @@ namespace FrontsAndRivals.UI
         {
             CrewDef def = _content.Crew(c.Id);
             SetTitles(_detail, def.Name, def.Style.ToUpperInvariant());
-            NativeItem header = Info("Last Move", string.IsNullOrEmpty(c.LastMove) ? "Nothing yet. They're watching." : c.LastMove + ".", "Grudge " + c.Grudge);
-            header.Panel = new NativeStatsPanel(new NativeStatsInfo("Grudge", c.Grudge), new NativeStatsInfo("Manpower", Bar(c.Manpower, Nemesis.MaxManpower)));
+            NativeItem header = Info("Last Move", string.IsNullOrEmpty(c.LastMove) ? "Nothing yet. They're watching." : c.LastMove + ".", Nemesis.AngerLabel(c.Grudge));
+            header.Panel = new NativeStatsPanel(new NativeStatsInfo("Anger", c.Grudge), new NativeStatsInfo("Manpower", Bar(c.Manpower, Nemesis.MaxManpower)));
             _detail.Add(header);
 
             if (!string.IsNullOrEmpty(c.FeudWith))

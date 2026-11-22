@@ -59,6 +59,7 @@ namespace FrontsAndRivals.Spawn
             public Watch Watch;           // calm, watching you, warning you, or fighting (WatchRules)
             public int WarnStart;         // game time the current warning began
             public bool LastWarned;       // "last warning" shown for this warning
+            public int LastWatchAt;       // game time of the last WatchTick (a long gap restarts a warning's fuse)
             public int CrewCount = -1;    // soldiers this visit, fixed when the front streams in
             public List<Vector3> Patrol;  // walkable points around the building, found once per visit
             public bool PatrolTried;
@@ -489,14 +490,15 @@ namespace FrontsAndRivals.Spawn
                     SpawnCrewGuard(slot, crew, CrewSpot(front.Def, index), hour, pick, tier, grudge, starter);
                     if (slot.Ped != null) Wardrobe.Apply(slot.Ped, dress);
                     if (front.Alerted && slot.Ped != null) { slot.Ped.BlockPermanentEvents = false; slot.Ped.Task.FightAgainstHatedTargets(60f); }
-                    else if (front.Watch != Watch.Calm && slot.Ped != null) slot.Ped.Task.TurnTo(Game.Player.Character, -1); // joins in keeping an eye on you
+                    else if (front.Watch == Watch.Warning && slot.Ped != null) { WatchFx.Raise(slot.Ped); WatchFx.Blip(_content, slot.Ped, front.Owner); } // joins the warning
+                    else if (front.Watch == Watch.Watching && slot.Ped != null) WatchFx.Eye(slot.Ped); // joins in keeping an eye on you
                 });
             }
             if (alive > 0 || killed > 0) f.CrewSpawnedThisVisit = true;
             if (!f.Alerted && alive > 0)
             {
                 try { WatchTick(f, count); }
-                catch (Exception ex) { Log.Error("Watch " + f.Def.Id, ex); Alert(f, count); }
+                catch (Exception ex) { Log.Error("Watch " + f.Def.Id, ex); if (FallbackProvoked(f, count)) Alert(f, count); }
             }
             try { UpdateBackup(f, crew, cs); } catch (Exception ex) { Log.Error("Backup " + f.Def.Id, ex); f.BackupAt = 0; }
             if (f.CrewSpawnedThisVisit && alive == 0 && killed > 0 && !f.ClearedReported && BackupDone(f))
@@ -642,7 +644,7 @@ namespace FrontsAndRivals.Spawn
         {
             Ped player = Game.Player.Character;
             bool hurt = false, aiming = false, seen = false;
-            bool aimingNow = Game.Player.IsAiming;
+            bool aimingNow = WatchFx.Aiming();
             float scale = WatchFx.SightScale();
             var soldiers = new List<Ped>();
             for (int i = 0; i < count; i++)
@@ -655,15 +657,20 @@ namespace FrontsAndRivals.Spawn
                 if (aimingNow && !aiming && WatchFx.AimedAt(s.Ped)) aiming = true;
             }
             // Distance to the nearest of the door and the soldiers: walking up behind a patroller counts.
-            float distance = Math.Min(f.Distance, WatchFx.Nearest(soldiers));
+            float nearestSoldier = WatchFx.Nearest(soldiers);
+            float distance = Math.Min(f.Distance, nearestSoldier);
             if (distance <= WatchRules.WatchRange(AlertOnFootRange * scale) + 5f)
                 foreach (Ped p in soldiers) if (WatchFx.Sees(p, f.Watch == Watch.Calm)) { seen = true; break; }
             bool inTheGame = _empire != null && _empire.OwnedCount() > 0;
             int gt = Game.GameTime;
-            int limit = WatchRules.WarnMs(f.Owner, f.Def.Tier, _empire != null ? _empire.State.Heat : 0);
+            // Ticks stopped for a while (a fade, a death, a paused stretch): a warning's fuse starts again rather than going off.
+            if (f.Watch == Watch.Warning && gt - f.LastWatchAt > 3000) { f.WarnStart = gt; f.LastWarned = false; }
+            f.LastWatchAt = gt;
+            CrewState angry = _empire != null ? Nemesis.Crew(_empire.State, f.Owner) : null;
+            int limit = WatchRules.WarnMs(f.Owner, f.Def.Tier, WatchRules.Temper(_empire != null ? _empire.State.Heat : 0, angry != null ? angry.Grudge : 0));
             int warned = f.Watch == Watch.Warning ? gt - f.WarnStart : 0;
             Watch next = WatchRules.Next(f.Watch, distance, !player.IsInVehicle(), aiming, WatchFx.HeardShot(distance),
-                                         hurt, inTheGame, warned, limit, AlertOnFootRange, seen, scale);
+                                         hurt, inTheGame, warned, limit, AlertOnFootRange, seen, scale, nearestSoldier);
             if (next == Watch.Hostile)
             {
                 f.Watch = Watch.Hostile;
@@ -682,6 +689,25 @@ namespace FrontsAndRivals.Spawn
                 f.LastWarned = true;
                 WatchFx.Say(_content, f.Owner, "lastWarning");
             }
+        }
+
+        /// <summary>If the watch logic ever fails: the old simple rule (walk up on foot, shoot nearby or hurt one).</summary>
+        private bool FallbackProvoked(StreamedFront f, int count)
+        {
+            try
+            {
+                bool hurt = false;
+                for (int i = 0; i < count; i++)
+                {
+                    Slot s = f.Slots[i];
+                    if (s.Killed || (s.Ped != null && s.Ped.Exists() && !s.Ped.IsDead && s.Ped.Health < s.Ped.MaxHealth)) hurt = true;
+                }
+                Ped player = Game.Player.Character;
+                bool inTheGame = _empire != null && _empire.OwnedCount() > 0;
+                return StreamRules.CrewProvoked(inTheGame, !player.IsInVehicle() && f.Distance < AlertOnFootRange,
+                                                player.IsShooting && f.Distance < WatchRules.ShotHeard, hurt);
+            }
+            catch { return false; }
         }
 
         /// <summary>Re-tasks the soldiers when the front's mood changes (never every tick, so tasks aren't restarted).</summary>
@@ -712,13 +738,15 @@ namespace FrontsAndRivals.Spawn
                 if (now == Watch.Watching) WatchFx.Eye(p);
                 else
                 {
-                    // Calm again: back to the post's idle. Patrollers set off on their loop on the next patrol tick.
+                    // Calm again: the door-holders walk back to their post's idle (no teleport); patrollers set off on their
+                    // loop again on the next patrol tick.
                     p.Task.ClearLookAt();
+                    if (StreamRules.Patrols(i, count)) continue;
                     PostDef post = CrewSpot(f.Def, i);
                     if (post != null)
                     {
                         string scenario = StreamRules.GuardScenario(post.Scenario, Trait.None, hour);
-                        Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, p, scenario, post.X, post.Y, post.Z, post.H, -1, false, true);
+                        Function.Call(Hash.TASK_START_SCENARIO_AT_POSITION, p, scenario, post.X, post.Y, post.Z, post.H, -1, false, false);
                     }
                 }
             }
