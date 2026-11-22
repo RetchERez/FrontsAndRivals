@@ -4,6 +4,15 @@ A single-player script mod for GTA V Enhanced (Story Mode): take Los Santos busi
 
 **Made with AI:** designed, directed and playtested by Retch. The code, data and documentation were written with Claude, an AI assistant from Anthropic.
 
+## What you do
+
+- **Take 29 real businesses by force:** every front starts in one of three rival crews' hands, and nothing is for sale
+- **Build your crew:** hire recruits with their own skills and ranks, arm them and post them at your fronts
+- **Hold what you take:** crews hit back with surprise attacks, so race back to fight or trust your guards
+- **Three rival crews:** each has its own colours, cars, boss, lieutenants and grudge against you
+- **Balanced for the whole story:** income and pacing match Story Mode, and everything pauses during missions
+- **The Office:** one GTA-style menu for everything, opened with RB + D-pad Left on a controller or O on keyboard
+
 ## Download
 
 `FrontsAndRivals-2.0.0.zip` below. It contains only this mod's own files: `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `FrontsAndRivals` data folder, plus the readme and changelog.
@@ -36,6 +45,21 @@ A single-player script mod for GTA V Enhanced (Story Mode): take Los Santos busi
 - Rival soldiers and street crews notice you, raise their guns and warn you off, and open fire if you stay, walk right up, aim at one or shoot nearby
 - Back off and they go back to work
 - Sneak up if you'd rather: they only notice what they can see, crouching and darkness let you get closer, and silenced shots are only heard up close
+
+**Fixes**
+
+- Crouching no longer resets a warning (sneaking only helps before they've noticed you)
+- A warning only runs out while you're still in range, so walking away or a long pause never sets off a fight
+- Standing near the door while every soldier is round the back no longer counts as being heard
+- Patrollers no longer snap back to their posts when a crew calms down
+- A soldier who turns up mid-warning joins the warning
+- Single and silenced shots are always heard
+- Controller lock-on aiming counts as aiming
+- No "cooled down" text after starting a new empire
+
+**New keyboard key: O, for Office**
+
+F4 also opened the Script Hook V .NET console, so the Office key is now O. An old settings file set to F4 or F11 switches to O by itself.
 
 **Balance:** checked over 300 simulated games per play style. A steady player still reaches about 8 fronts by day 14, 15 by day 33 and 22 by day 48 and holds two thirds of attacks, and hunting street crews costs only a few more attacks.
 
