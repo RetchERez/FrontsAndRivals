@@ -407,7 +407,7 @@ namespace FrontsAndRivals.Attacks
 
         // ---------------------------------------------------------------- taking rival fronts
 
-        private void OnCrewGuardDown(FrontDef front, string crewId, Ped ped, bool lastOne)
+        private void OnCrewGuardDown(FrontDef front, string crewId, Ped ped, bool lastOne, bool byYou)
         {
             Empire e = _empire();
             if (e == null) return;
@@ -417,11 +417,12 @@ namespace FrontsAndRivals.Attacks
                 if (cs != null) { cs.Manpower = Math.Max(0, cs.Manpower - 1); cs.LastContactDay = e.State.Day; }
                 return;
             }
-            // Every soldier is down: the front is yours on the spot, unless it can't be taken yet. Only if you were there:
-            // a front cleared by anyone else (your people on the street, another crew) just restocks on your next visit.
+            // Every soldier is down: the front is yours on the spot, unless it can't be taken yet. Only if you took part:
+            // you or your people dropped one of them, or you're close by. Soldiers chase you in a fight, so how far you
+            // ended up doesn't matter. A front cleared by anyone else (another crew) just restocks on your next visit.
             if (e.OwnerOf(front.Id) != crewId) return;
             Vector3 me = Game.Player.Character.Position;
-            if (front.Door.DistanceTo(me.X, me.Y, me.Z) > ClaimNear) { Log.Write("Director: " + front.Id + " cleared without you, not claimed"); return; }
+            if (!byYou && front.Door.DistanceTo(me.X, me.Y, me.Z) > ClaimNear) { Log.Write("Director: " + front.Id + " cleared without you, not claimed"); return; }
             if (Rules.Attacks.DugIn(e.State, e.Find(front.Id)))
             {
                 GTA.UI.Screen.ShowHelpText("The " + front.ShortName + " is clear, but the " + CrewName(crewId) + " only just took it and their people will be back. Take it after midnight.", 8000, true, false);

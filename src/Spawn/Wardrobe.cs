@@ -53,7 +53,7 @@ namespace FrontsAndRivals.Spawn
         {
             Ped me = Game.Player.Character;
             if (me == null || !me.Exists()) { _checked = false; return; }
-            var at = me.Position + new GTA.Math.Vector3(0f, 0f, -30f);
+            var at = me.Position + new GTA.Math.Vector3(0f, 0f, -3f);
             Ped man = GTA.World.CreatePed(_m, at), woman = GTA.World.CreatePed(_f, at);
             try
             {
@@ -100,6 +100,16 @@ namespace FrontsAndRivals.Spawn
             if (ped == null || d == null || !ped.Exists()) return;
             try
             {
+                if (!Whole(ped, d.Look, d.Colour))
+                {
+                    // A top without its matching arms (or the other way round) shows as floating hands. Swap in a look
+                    // that's whole on this ped, or keep the model's own default clothes.
+                    OutfitLook other = OutfitRules.FindWhole(Data, d.Female, d.Colour, d.Look, l => Whole(ped, l, d.Colour));
+                    string was = PartsKey(d.Look);
+                    if (_warned.Add("look " + was)) Log.Write("Wardrobe: look " + was + " isn't whole in this game version, " + (other != null ? "using " + PartsKey(other) : "using default clothes"));
+                    if (other == null) { Function.Call(Hash.SET_PED_DEFAULT_COMPONENT_VARIATION, ped); return; }
+                    d.Look = other;
+                }
                 Function.Call(Hash.SET_PED_DEFAULT_COMPONENT_VARIATION, ped);
                 Function.Call(Hash.SET_PED_HEAD_BLEND_DATA, ped, d.Mother, d.Father, 0, d.Mother, d.Father, 0, d.ShapeMix, d.SkinMix, 0f, false);
                 Set(ped, 2, d.Hair, 0);
@@ -111,6 +121,22 @@ namespace FrontsAndRivals.Spawn
                 Function.Call(Hash.CLEAR_ALL_PED_PROPS, ped);
             }
             catch (Exception ex) { Log.Error("Wardrobe", ex); }
+        }
+
+        /// <summary>Every piece of the look is valid on this ped in this colour.</summary>
+        private static bool Whole(Ped ped, OutfitLook look, string colour)
+        {
+            if (look == null || look.Parts == null) return false;
+            foreach (OutfitPart p in look.Parts)
+                if (!Function.Call<bool>(Hash.IS_PED_COMPONENT_VARIATION_VALID, ped, p.Component, p.Drawable, p.TextureFor(colour))) return false;
+            return true;
+        }
+
+        private static string PartsKey(OutfitLook l)
+        {
+            var sb = new System.Text.StringBuilder(l.Gender);
+            foreach (OutfitPart p in l.Parts) sb.Append(' ').Append(p.Component).Append('/').Append(p.Drawable);
+            return sb.ToString();
         }
 
         private static void Set(Ped ped, int component, int drawable, int texture)

@@ -124,6 +124,18 @@ namespace FrontsAndRivals.Data
             return removed;
         }
 
+        /// <summary>Another look of the same gender, in the colour, that passes the check (any style: the same colour
+        /// matters more than the style). Null if there's none.</summary>
+        public static OutfitLook FindWhole(OutfitData data, bool female, string colour, OutfitLook not, Func<OutfitLook, bool> whole)
+        {
+            if (data == null || data.Styles == null) return null;
+            string g = female ? "f" : "m";
+            foreach (List<OutfitLook> looks in data.Styles.Values)
+                foreach (OutfitLook l in looks)
+                    if (l != not && l.Gender == g && l.Wears(colour) && whole(l)) return l;
+            return null;
+        }
+
         private static uint Mix(int n) { return unchecked((uint)n * 2654435761u); }
         private static int Pick(int seed, int salt, int count) { return count <= 0 ? 0 : (int)(Mix(seed * 31 + salt) % (uint)count); }
 

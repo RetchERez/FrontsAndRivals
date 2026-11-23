@@ -19,7 +19,7 @@ namespace FrontsAndRivals.Spawn
     public sealed class Streamer
     {
         public delegate void GuardDownHandler(GuardState guard, Ped ped, FrontDef front);
-        public delegate void CrewGuardDownHandler(FrontDef front, string crewId, Ped ped, bool lastOne);
+        public delegate void CrewGuardDownHandler(FrontDef front, string crewId, Ped ped, bool lastOne, bool byYou);
 
         private const float DoorReachedDistance = 2.5f;
         private const int LeaveTimeoutMs = 20000;
@@ -70,6 +70,7 @@ namespace FrontsAndRivals.Spawn
             public Vehicle BackupCar;
             public Model BackupCarModel;
             public bool BackupOut;        // they've got out and joined the fight
+            public bool KilledByYou;      // you (on foot, in a car) or your people dropped at least one soldier this visit
 
             public StreamedFront(FrontDef def, string owner)
             {
@@ -212,6 +213,7 @@ namespace FrontsAndRivals.Spawn
                     f.Backup.Clear();
                     f.BackupCounted.Clear();
                     f.BackupCar = null;
+                    f.KilledByYou = false;
                     for (int i = 0; i < f.Slots.Length; i++) f.Slots[i].PatrolAt = -1;
                     StreamIns++;
                 }
@@ -441,13 +443,7 @@ namespace FrontsAndRivals.Spawn
                 f.CrewCount = Math.Min(Math.Min(c, FrontDef.MaxCrew), Math.Max(0, cs.Manpower));
             }
             int count = f.CrewCount;
-            // An empty crew front (no soldiers to spare) can be claimed as soon as you walk up.
-            if (count == 0 && !f.ClearedReported && f.Distance < 60f)
-            {
-                f.ClearedReported = true;
-                if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true);
-                return;
-            }
+            if (count == 0) return; // only a front with no posts: every crew keeps a skeleton guard, so never a free front
 
             int alive = 0, killed = 0;
             for (int post = 0; post < count; post++)
@@ -461,10 +457,12 @@ namespace FrontsAndRivals.Spawn
                         Ped body = slot.Ped;
                         bool byCar = false;
                         try { byCar = StreamRules.VehicleKill((int)body.CauseOfDeath, body.Killer is Vehicle); } catch { }
+                        WatchFx.DropBlip(body); // no crew dot left on a body
+                        if (ByYou(body)) f.KilledByYou = true;
                         if (slot.Body != null) _registry.Despawn(slot.Body);
                         slot.Body = body;
                         slot.Ped = null;
-                        if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, slot.Body, false);
+                        if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, slot.Body, false, false);
                         slot.Killed = true;
                         if (byCar)
                         {
@@ -503,14 +501,37 @@ namespace FrontsAndRivals.Spawn
             try { UpdateBackup(f, crew, cs); } catch (Exception ex) { Log.Error("Backup " + f.Def.Id, ex); f.BackupAt = 0; }
             if (f.CrewSpawnedThisVisit && alive == 0 && killed > 0 && !f.ClearedReported && BackupDone(f))
             {
+                // Wait for a soldier who's still on the way in, but not for one who can't appear (a model that won't
+                // load, or the people budget full): after 10 s they don't count, so the front can always be cleared.
                 bool anyPending = false;
-                for (int post = 0; post < count; post++) if (f.Slots[post].Pending) anyPending = true;
+                for (int post = 0; post < count; post++)
+                {
+                    Slot s = f.Slots[post];
+                    if (s.Pending && Game.GameTime - s.PendingSince < StuckSpawnMs) anyPending = true;
+                }
                 if (!anyPending)
                 {
                     f.ClearedReported = true;
-                    if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true);
+                    for (int post = 0; post < count; post++) CancelPending(f.Slots[post]);
+                    if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, null, true, f.KilledByYou);
                 }
             }
+        }
+
+        private const int StuckSpawnMs = 10000;
+
+        /// <summary>Killed by you on foot, by your car, or by one of your own people.</summary>
+        private static bool ByYou(Ped body)
+        {
+            try
+            {
+                Ped me = Game.Player.Character;
+                Entity killer = body.Killer;
+                Ped killerPed = killer as Ped;
+                return killer == me || (killer != null && (killer == me.CurrentVehicle || killer == me.LastVehicle))
+                       || (killerPed != null && killerPed.RelationshipGroup == Factions.Guards);
+            }
+            catch { return false; }
         }
 
         // ---------------- backup: a crew car answering the call after a car kill ----------------
@@ -599,7 +620,12 @@ namespace FrontsAndRivals.Spawn
             }
             // Backup soldiers who die cost the crew a soldier, like the front's own.
             foreach (Ped p in f.Backup)
-                if (p != null && p.Exists() && p.IsDead && f.BackupCounted.Add(p.Handle) && OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, p, false);
+                if (p != null && p.Exists() && p.IsDead && f.BackupCounted.Add(p.Handle))
+                {
+                    WatchFx.DropBlip(p);
+                    if (ByYou(p)) f.KilledByYou = true;
+                    if (OnCrewGuardDown != null) OnCrewGuardDown(f.Def, f.Owner, p, false, false);
+                }
         }
 
         /// <summary>The front only counts as cleared once any backup that was called is down too.</summary>

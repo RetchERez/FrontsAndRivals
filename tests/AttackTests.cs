@@ -47,6 +47,14 @@ static class AttackTests
         T.True("The car wash crew carries pistols and melee only", Enumerable.Range(0, 200).All(i => new[] { "pistol", "bat", "knife", "crowbar" }.Contains(CrewDef.StarterWeapon(i))));
         T.True("Crew soldiers by size: car wash 3, small 3, mid 5, big 8", FrontDef.CrewSoldiers(mcontent.Front("carwash_handson")) == 3
             && FrontDef.CrewSoldiers(new FrontDef { Tier = 0 }) == 3 && FrontDef.CrewSoldiers(new FrontDef { Tier = 1 }) == 5 && FrontDef.CrewSoldiers(new FrontDef { Tier = 2 }) == 8);
+        T.True("A crew with nobody to spare still keeps a skeleton guard: 2 small, 3 mid, 4 big",
+            Raids.Soldiers(new FrontDef { Tier = 0 }, null, new CrewState { Manpower = 0 }, 1) == 2
+            && Raids.Soldiers(new FrontDef { Tier = 1 }, null, new CrewState { Manpower = 0 }, 1) == 3
+            && Raids.Soldiers(new FrontDef { Tier = 2 }, null, new CrewState { Manpower = 1 }, 1) == 4);
+        T.True("A full-strength crew still fields the whole front", Raids.Soldiers(new FrontDef { Tier = 2 }, null, new CrewState { Manpower = 10 }, 1) == 8
+            && Raids.Soldiers(new FrontDef { Tier = 1 }, null, new CrewState { Manpower = 4 }, 1) == 4);
+        T.True("A weakened front is thinned, never below its skeleton guard or above its size",
+            Raids.Soldiers(new FrontDef { Tier = 0 }, new FrontState { WeakUntilDay = 5 }, new CrewState { Manpower = 0 }, 1) == 2);
         T.True("Aim gets sharper with size", CrewDef.FrontAccuracy(0) < CrewDef.FrontAccuracy(1) && CrewDef.FrontAccuracy(1) < CrewDef.FrontAccuracy(2));
         T.True("Hot streets don't toughen the car wash", Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 100) < Raids.FrontDefense(mcontent.Crew("CK"), mcontent.Front("carwash_handson"), 2, 0) + 0.001);
 

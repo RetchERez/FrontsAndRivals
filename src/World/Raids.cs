@@ -12,14 +12,19 @@ namespace FrontsAndRivals.Rules
         public const int MaxGuards = 4;
         public const double DugInBonus = 1.8;          // the crew fights hard at its own door: challenging, but a good crew has the edge
 
-        /// <summary>How many crew soldiers hold this front tonight (its size, fewer if weakened, never more than the crew has).</summary>
+        /// <summary>How many crew soldiers hold this front tonight: its size, fewer if weakened or the crew is short of
+        /// people, but never fewer than its skeleton guard (2 at a small front, 3 mid-size, 4 big). A crew always keeps
+        /// someone on every front it holds, so no front is ever empty and free for the taking.</summary>
         public static int Soldiers(FrontDef def, FrontState f, CrewState crew, int day)
         {
             if (def == null || crew == null) return 0;
             int n = FrontDef.CrewSoldiers(def);
             if (f != null && f.WeakUntilDay >= day) n = Math.Max(1, n - 1 - def.Tier); // thinned out
-            return Math.Min(n, Math.Max(0, crew.Manpower));
+            return Math.Max(Math.Min(n, MinGuard(def)), Math.Min(n, Math.Max(0, crew.Manpower)));
         }
+
+        /// <summary>The skeleton guard a crew keeps on a front however short of people it is.</summary>
+        public static int MinGuard(FrontDef def) { return def == null ? 0 : 2 + Math.Min(2, Math.Max(0, def.Tier)); }
 
         /// <summary>A front's defense against a raid, with street heat (the car wash's melee kids ignore it and count 60%).</summary>
         public static double FrontDefense(CrewDef crew, FrontDef def, int soldiers, int heat)

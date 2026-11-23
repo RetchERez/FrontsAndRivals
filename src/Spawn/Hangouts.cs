@@ -406,6 +406,7 @@ namespace FrontsAndRivals.Spawn
                     hurt = true;
                     if (g.Counted.Add(ped.Handle))
                     {
+                        WatchFx.DropBlip(ped); // no crew dot left on a body
                         // A soldier down: their crew is one short, and they won't forget who did it.
                         CrewState cs = Nemesis.Crew(e.State, g.Crew);
                         // You on foot, your car, or your own people (guards, bodyguards, your crew on the street).
