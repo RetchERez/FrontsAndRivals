@@ -448,7 +448,7 @@ namespace FrontsAndRivals.Attacks
             Rules.Attacks.TakeFront(e.State, e, fs, crewId);
             Rules.Attacks.GracePeriod(e.State, front.Id, _now());
             bool first = e.OwnedCount() == 1 && e.LivingCount() == 0;
-            if (!CheckRuledAll(e)) _banners.Show("front taken", front.Name, true);
+            if (!CheckRuledAll(e)) _banners.Show("Front Taken", front.Name, true);
             Sounds.Play(Cue.FrontTaken);
             if (OnTaken != null) OnTaken(front);
             _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is yours", first
@@ -484,7 +484,7 @@ namespace FrontsAndRivals.Attacks
             if (o.Won)
             {
                 Sounds.Play(Cue.FrontTaken);
-                if (!CheckRuledAll(e)) _banners.Show("front taken", "Your crew took the " + front.Name + " from the " + crew.Name + ".", true);
+                if (!CheckRuledAll(e)) _banners.Show("Front Taken", "Your crew took the " + front.Name + " from the " + crew.Name + ".", true);
                 _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is ours", "The raid worked: the " + crew.Name + " are out of the " + front.ShortName + "." + cost + " Post some guards there.");
             }
             else
@@ -529,7 +529,7 @@ namespace FrontsAndRivals.Attacks
             foreach (FrontDef def in _content.Fronts)
                 if (def.Door.IsSet && !e.PlayerOwns(def.Id)) return false;
             e.State.RuledAll = true;
-            _banners.Show("los santos is yours", "Every front in the city answers to you. The crews won't stay gone.", true);
+            _banners.Show("Los Santos Is Yours", "Every front in the city answers to you. The crews won't stay gone.", true);
             Log.Write("Director: player holds every front");
             return true;
         }

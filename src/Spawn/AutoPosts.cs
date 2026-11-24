@@ -16,7 +16,8 @@ namespace FrontsAndRivals.Spawn
         public const float MinFromDoor = 1.5f;  // don't stand in the doorway
         public const float MaxFromDoor = 18f;   // stay with the building
         public const float MaxHeightDiff = 3f;  // same floor as the door (no rooftops, no basements)
-        public const float RootHeight = 1.0f;   // navmesh gives the ground; a ped's position is about 1 m up
+        public const float RootHeight = 1.0f;
+        public const float GroundMaxRise = 1.5f; // ground-probe posts: within a step or two of the door's level   // navmesh gives the ground; a ped's position is about 1 m up
 
         /// <summary>Idles handed out in order: two stand guard, one smokes, one is on the phone.</summary>
         public static readonly string[] Idles =

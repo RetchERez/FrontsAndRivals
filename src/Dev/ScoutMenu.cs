@@ -221,8 +221,10 @@ namespace FrontsAndRivals.Dev
             Empire e = _empire();
             int guards = 0;
             if (e != null) for (int i = 0; i < FrontDef.MaxPosts; i++) if (e.AtPost(f.Id, i) != null) guards++;
-            _status.AltTitle = (f.Door.IsSet ? "door" : "no door") + " | posts " + f.Posts.Count + "/4 | convoy " + f.ConvoySpawns.Count
-                             + " | " + (e != null ? e.OwnerOf(f.Id) : "?") + " | guards " + guards;
+            _status.AltTitle = "Posts " + f.Posts.Count + "/4";
+            string owner = e == null ? "Unknown" : e.OwnerOf(f.Id) == Owners.Player ? "You" : (_content.Crew(e.OwnerOf(f.Id)) != null ? _content.Crew(e.OwnerOf(f.Id)).Name : "Nobody");
+            _status.Description = (f.Door.IsSet ? "Door set" : "No door yet") + ", " + f.Posts.Count + " of 4 guard posts, " + f.ConvoySpawns.Count + " convoy spawns. Held by "
+                                + (owner == "You" ? "you" : owner == "Nobody" || owner == "Unknown" ? "nobody" : "the " + owner) + ", with " + guards + " of your guards here.";
         }
     }
 }

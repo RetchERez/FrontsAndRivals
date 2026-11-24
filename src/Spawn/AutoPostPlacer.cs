@@ -92,15 +92,16 @@ namespace FrontsAndRivals.Spawn
         /// Always gives the front at least one post.</summary>
         public int PlaceFromGround(FrontDef def)
         {
-            var chosen = new List<PostDef>();
-            int checkedSpots = 0;
+            var chosen = new List<PostDef>(def.Posts); // tops up what the navmesh found; never moves those
+            int had = chosen.Count, checkedSpots = 0;
             for (int pass = 0; pass < 2 && chosen.Count < AutoPosts.Wanted; pass++) // pass 0 off the road, pass 1 anywhere
                 foreach (float[] probe in AutoPosts.GroundProbes(def.Door))
                 {
                     if (chosen.Count >= AutoPosts.Wanted) break;
                     checkedSpots++;
-                    float g = GTA.World.GetGroundHeight(new Vector3(probe[0], probe[1], def.Door.Z + 2f));
-                    if (g == 0f) continue;
+                    // Look down from just above head height, so an awning or a shop sign isn't taken for the ground.
+                    float g = GTA.World.GetGroundHeight(new Vector3(probe[0], probe[1], def.Door.Z + 1.5f));
+                    if (g == 0f || System.Math.Abs(g + AutoPosts.RootHeight - def.Door.Z) > AutoPosts.GroundMaxRise) continue;
                     var spot = new Vector3(probe[0], probe[1], g);
                     if (pass == 0 && Function.Call<bool>(Hash.IS_POINT_ON_ROAD, spot.X, spot.Y, spot.Z, 0)) continue;
                     if (!AutoPosts.Accept(def.Door, chosen, spot.X, spot.Y, spot.Z, 1.0f)) continue;
@@ -111,7 +112,7 @@ namespace FrontsAndRivals.Spawn
                 chosen.Add(new PostDef { X = def.Door.X, Y = def.Door.Y, Z = def.Door.Z, H = def.Door.H, Scenario = AutoPosts.Idles[0] });
             def.Posts.Clear();
             def.Posts.AddRange(chosen);
-            LastReport = chosen.Count + " placed from the ground (" + checkedSpots + " spots checked, the navmesh had none)";
+            LastReport = chosen.Count + " posts after topping up from the ground (" + had + " from the navmesh, " + checkedSpots + " ground spots checked)";
             return chosen.Count;
         }
 

@@ -647,8 +647,11 @@ namespace FrontsAndRivals.Spawn
             var post = new Vector3(p.X, p.Y, p.Z + 0.5f);
             var side = new Vector3((float)Math.Cos(h), (float)Math.Sin(h), 0f);
             var back = new Vector3((float)Math.Sin(h), -(float)Math.Cos(h), 0f);
-            float sign = (i / n) % 2 == 1 ? 1f : -1f;
-            Vector3[] tries = { post + side * (1.6f * sign), post - side * (1.6f * sign), post + back * 1.2f };
+            // Soldier n+1 stands to one side of post 1, 2n+1 to the other, 3n+1 further out, and so on: never two on one spot.
+            int ring = i / n;
+            float sign = ring % 2 == 1 ? 1f : -1f;
+            float step = 1.6f * ((ring + 1) / 2);
+            Vector3[] tries = { post + side * (step * sign), post - side * (step * sign), post + back * (1.2f * ((ring + 1) / 2)) };
             foreach (Vector3 t in tries)
             {
                 RaycastResult r = GTA.World.Raycast(post, t, IntersectFlags.Map, null);

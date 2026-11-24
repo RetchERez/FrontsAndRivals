@@ -103,7 +103,7 @@ namespace FrontsAndRivals.Dev
                 if (loaded) _loadedAt = now;
                 else if (now - _arrivedAt > NavmeshTimeoutMs)
                 {
-                    int g = f.Posts.Count > 0 ? f.Posts.Count : _placer.PlaceFromGround(f);
+                    int g = f.Posts.Count >= AutoPosts.Wanted ? f.Posts.Count : _placer.PlaceFromGround(f);
                     Log.Write("AutoScout: " + f.Id + " navmesh never loaded: " + _placer.LastReport);
                     Finish(f, g, null);
                     return;
@@ -121,7 +121,7 @@ namespace FrontsAndRivals.Dev
                 _loadedAt = now; // more of the area streams in every second; look again after another settle
                 return;
             }
-            if (n == 0) { n = _placer.PlaceFromGround(f); Log.Write("AutoScout: " + f.Id + " fallback: " + _placer.LastReport); }
+            if (n < AutoPosts.Wanted) { n = _placer.PlaceFromGround(f); Log.Write("AutoScout: " + f.Id + " top-up: " + _placer.LastReport); }
             Finish(f, n, null);
         }
 
