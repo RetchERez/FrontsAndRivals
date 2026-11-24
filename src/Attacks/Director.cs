@@ -226,7 +226,7 @@ namespace FrontsAndRivals.Attacks
             if (!_live.Start(a, front, crew, leader, _config.PoliceRespond)) { _liveFailed = a; return false; }
             a.Phase = AttackPhase.Live;
             _streamer.SetFighting(front.Id, true);
-            GTA.UI.Screen.ShowSubtitle("~r~" + crew.Name + "~s~ are coming for the " + front.ShortName + ". Hold the door.", 6000);
+            GTA.UI.Screen.ShowSubtitle("~r~" + crew.Name + "~s~ are coming for the " + front.ShortName + ".", 6000);
             _changed();
             return true;
         }
@@ -335,7 +335,7 @@ namespace FrontsAndRivals.Attacks
 
             if (o.DefendersWon)
             {
-                _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " held", _content.Lines.Pick(rng, "held", tokens));
+                _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " held", _content.Lines.Pick(rng, o.AttackersLost > 0 ? "held" : "heldClean", tokens)); // nobody of theirs went down: they backed off
                 if (wasThere)
                 {
                     // No pay for defending your own front: keeping it is the reward.

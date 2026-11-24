@@ -20,6 +20,11 @@
     "That was a warm-up. - {leader}",
     "You got lucky at the {front}. Luck runs out. - {leader}"
   ],
+  "heldClean": [
+    "{crew} came for the {front}, took one look at {guard} and the others, and backed off.",
+    "{crew} sized up the {front} and thought better of it. Nobody got hurt on their side.",
+    "{crew} rolled up on the {front}, saw who was waiting and drove off again."
+  ],
   "held": [
     "{guard} and the others held the {front}. {crew} lost {lostPeople}.",
     "{crew} hit the {front} and went home lighter. {guard} says it's quiet again.",
