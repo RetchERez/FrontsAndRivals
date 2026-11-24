@@ -45,6 +45,16 @@ static class AttackTests
         T.True("An old save's for-sale front goes back to its crew", me2.OwnerOf("motel_alta") == Owners.Velvet);
 
         T.True("The car wash crew carries pistols and melee only", Enumerable.Range(0, 200).All(i => new[] { "pistol", "bat", "knife", "crowbar" }.Contains(CrewDef.StarterWeapon(i))));
+        bool fit = mcontent.Models.GuardsMale.Concat(mcontent.Models.GuardsFemale).Concat(mcontent.Crews.SelectMany(cr => cr.Models))
+            .All(m => !m.StartsWith("a_m_o_") && !m.StartsWith("a_f_o_") && !m.Contains("fat") && !m.Contains("tramp") && !m.Contains("skidrow") && !m.Contains("meth"));
+        T.True("Guards and crews are fit young adults: no old, overweight, homeless or meth-head models", fit);
+        var oldSave = SaveService.NewEmpire();
+        Nemesis.EnsureCrews(oldSave, mcontent, new Random(3));
+        oldSave.Crews[0].Members[0].Model = "a_m_o_salton_01";
+        oldSave.Guards.Add(new GuardState { Id = 7, Model = "a_f_m_fatbla_01" });
+        int swapped = Nemesis.RefreshModels(oldSave, mcontent);
+        T.True("An older save's dropped models are swapped on load, keeping the gender", swapped == 2
+            && mcontent.Models.GuardsFemale.Contains(oldSave.Guards[0].Model) && mcontent.Crew(oldSave.Crews[0].Id).Models.Contains(oldSave.Crews[0].Members[0].Model));
         T.True("Crew soldiers by size: car wash 3, small 3, mid 5, big 8", FrontDef.CrewSoldiers(mcontent.Front("carwash_handson")) == 3
             && FrontDef.CrewSoldiers(new FrontDef { Tier = 0 }) == 3 && FrontDef.CrewSoldiers(new FrontDef { Tier = 1 }) == 5 && FrontDef.CrewSoldiers(new FrontDef { Tier = 2 }) == 8);
         T.True("A crew with nobody to spare still keeps a skeleton guard: 2 small, 3 mid, 4 big",

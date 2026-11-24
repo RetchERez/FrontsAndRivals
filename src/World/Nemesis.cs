@@ -42,6 +42,31 @@ namespace FrontsAndRivals.Rules
                 foreach (PersonDef p in def.Lieutenants) crew.Members.Add(NewMember(s, def, p, MemberRole.Lieutenant, rng));
                 s.Crews.Add(crew);
             }
+            RefreshModels(s, content);
+        }
+
+        /// <summary>Older saves may hold people on models the mod no longer uses (old, overweight or homeless-looking
+        /// people were dropped from the lists): each one gets a current model of the same gender, the same every load.</summary>
+        public static int RefreshModels(EmpireState s, ContentDb content)
+        {
+            int changed = 0;
+            foreach (CrewState c in s.Crews)
+            {
+                CrewDef def = content.Crew(c.Id);
+                if (def == null || def.Models == null || def.Models.Count == 0) continue;
+                foreach (CrewMember m in c.Members)
+                    if (m.Model == null || !def.Models.Contains(m.Model)) { m.Model = def.Models[Math.Abs(m.Id) % def.Models.Count]; changed++; }
+            }
+            if (content.Models != null && s.Guards != null)
+                foreach (GuardState g in s.Guards)
+                {
+                    bool female = g.Model != null && g.Model.StartsWith("a_f_", StringComparison.OrdinalIgnoreCase);
+                    List<string> list = female && content.Models.GuardsFemale != null && content.Models.GuardsFemale.Count > 0 ? content.Models.GuardsFemale : content.Models.GuardsMale;
+                    if (list == null || list.Count == 0) continue;
+                    if (g.Model == null || (!content.Models.GuardsMale.Contains(g.Model) && (content.Models.GuardsFemale == null || !content.Models.GuardsFemale.Contains(g.Model))))
+                    { g.Model = list[Math.Abs(g.Id) % list.Count]; changed++; }
+                }
+            return changed;
         }
 
         public static CrewState Crew(EmpireState s, string id)
