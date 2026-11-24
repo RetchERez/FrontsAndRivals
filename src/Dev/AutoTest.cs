@@ -36,7 +36,7 @@ namespace FrontsAndRivals.Dev
             public Action Restore;        // puts the copy back and reloads it
         }
 
-        private enum Step { Idle, FreeRoam, GoToFront, WaitSoldiers, WaitTaken, CheckAfterTake, Staff, WaitGuards,
+        private enum Step { Idle, FreeRoam, Boss, WaitBoss, GoToFront, WaitSoldiers, WaitTaken, CheckAfterTake, Staff, WaitGuards,
                             ForceLive, WaitLiveEnd, GoAway, ForceAway, WaitAwayEnd, Raid, WaitRaid, Midnight, WaitMidnight, Save, Done }
 
         private readonly Host _h;
@@ -117,9 +117,38 @@ namespace FrontsAndRivals.Dev
                     Result(running.Count == 0, "Free roam: no mission or activity script running" + (running.Count > 0 ? " (running: " + string.Join(", ", running.ToArray()) + ")" : ""));
                     Log.Write("AutoTest: " + MissionStarts.Count + " mission start blips on the map");
                     foreach (string line in MissionStarts.DumpAll(900)) Log.Write("AutoTest: blip " + line);
-                    _target = PickRivalFront(e, s, me.Position);
-                    if (_target == null) { Result(false, "Taking a front: no small rival front available to test on"); Go(Step.Staff); return; }
-                    Go(Step.GoToFront);
+                    Go(Step.Boss);
+                    return;
+                }
+                case Step.Boss:
+                {
+                    // A crew's boss standing guard at its biggest front, in person.
+                    _bossFront = null;
+                    foreach (string crew in new[] { Owners.CrownKings, Owners.Ironside, Owners.Velvet })
+                    {
+                        string bf = Nemesis.BossFront(s, _h.Content, crew);
+                        if (bf != null) { _bossFront = _h.Content.Front(bf); _bossCrew = crew; break; }
+                    }
+                    if (_bossFront == null) { Result(false, "Boss: no crew has a boss and a front right now"); PickTarget(e, s, me); return; }
+                    double bh = _bossFront.Door.H * Math.PI / 180.0;
+                    Vector3 near = Door(_bossFront) + new Vector3(-(float)Math.Sin(bh) * 40f, (float)Math.Cos(bh) * 40f, 0f);
+                    Vector3 safeNear = GTA.World.GetSafeCoordForPed(near, true);
+                    me.Position = safeNear != Vector3.Zero ? safeNear : near;
+                    Go(Step.WaitBoss);
+                    return;
+                }
+                case Step.WaitBoss:
+                {
+                    CrewState bc = Nemesis.Crew(s, _bossCrew);
+                    string bossName = bc != null && bc.Boss != null ? bc.Boss.DisplayName : null;
+                    bool seen = false;
+                    foreach (Ped p in CrewPeds(Door(_bossFront), 90f, _bossCrew))
+                        if (p.Armor >= 90 && p.MaxHealth > Rules.Stats.CrewHealth) seen = true;
+                    if (seen || Waited > 25000)
+                    {
+                        Result(seen, "Boss: " + (bossName ?? "the boss") + " stands guard at the " + _bossFront.ShortName + " in person, better armed and tougher");
+                        PickTarget(e, s, me);
+                    }
                     return;
                 }
                 case Step.GoToFront:
@@ -320,6 +349,16 @@ namespace FrontsAndRivals.Dev
         {
             foreach (CrewState c in s.Crews) { c.QuietUntilDay = -1; if (c.Manpower < 10) c.Manpower = 10; }
             s.FrontAttackedMs.Clear();
+        }
+
+        private FrontDef _bossFront;
+        private string _bossCrew;
+
+        private void PickTarget(Empire e, EmpireState s, Ped me)
+        {
+            _target = PickRivalFront(e, s, me.Position);
+            if (_target == null) { Result(false, "Taking a front: no small rival front available to test on"); Go(Step.Staff); return; }
+            Go(Step.GoToFront);
         }
 
         private static Vector3 Door(FrontDef f) { return new Vector3(f.Door.X, f.Door.Y, f.Door.Z); }

@@ -748,7 +748,7 @@ namespace FrontsAndRivals.UI
             if (owner == Owners.Player)
             {
                 FrontState fsHist = e.Find(def.Id);
-                if (fsHist != null && fsHist.LastAttackDay >= 0 && fsHist.LastAttackDay >= fsHist.HeldSinceDay)
+                if (fsHist != null && fsHist.LastAttackCrew != null && fsHist.LastAttackDay >= fsHist.HeldSinceDay) // older saves have no record (crew null), never a made-up attack
                 {
                     CrewDef by = _content.Crew(fsHist.LastAttackCrew);
                     int ago = e.State.Day - fsHist.LastAttackDay;
