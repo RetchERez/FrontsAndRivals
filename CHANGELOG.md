@@ -3,6 +3,7 @@
 ## 3.0.0 (in progress)
 
 - No more cash bonus for defending your own front in person: keeping it is the reward
+- Alerts show as general notifications instead of text messages, and long ones are never cut off
 
 ## 2.2.0 (2026-11-23)
 

@@ -62,6 +62,11 @@ static class SettingsTests
         var flood = new NotifyQueue();
         for (int i = 0; i < 30; i++) flood.Enqueue(N(i == 29 ? NoteKind.AttackResult : NoteKind.StreetWord, "m" + i), set, i);
         T.Check("A flood is capped at 12 queued", flood.Count, NotifyQueue.MaxQueued, 0);
+        string longText = "~h~Car Wash under attack~h~~n~The ~r~Dead Kings~s~ are hitting the Car Wash right now. Your people can hold about 4 minutes. Get there and fight beside them, or leave it to them. Route's on your GPS.";
+        var pieces = NotifyQueue.Pieces(longText, 99, 10);
+        T.True("Long alerts are sent whole, in pieces of 99 characters or less", string.Concat(pieces) == longText && pieces.TrueForAll(x => x.Length <= 99) && pieces.Count >= 2);
+        T.True("...never split inside a colour code", pieces.TrueForAll(x => (x.Length - x.Replace("~", "").Length) % 2 == 0));
+        T.True("A short alert is one piece", NotifyQueue.Pieces("Waypoint set.", 99, 10).Count == 1);
         T.Equal("...and the important one survived the cap", flood.Next(set, 100).Message, "m29");
 
         var nogap = new NoteSettings { MinSecondsBetween = 0 };

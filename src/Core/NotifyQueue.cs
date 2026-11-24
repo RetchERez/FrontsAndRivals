@@ -120,5 +120,28 @@ namespace FrontsAndRivals.Core
         public void MarkSent(long nowMs) { _lastSent = nowMs; }
 
         public void Clear() { _queue.Clear(); }
+
+        /// <summary>Splits text into pieces of at most max characters, breaking at spaces and never inside a ~x~ code.</summary>
+        public static System.Collections.Generic.List<string> Pieces(string text, int max, int most)
+        {
+            var list = new System.Collections.Generic.List<string>();
+            int at = 0;
+            while (at < text.Length && list.Count < most)
+            {
+                int len = Math.Min(max, text.Length - at);
+                if (at + len < text.Length)
+                {
+                    int cut = text.LastIndexOf(' ', at + len - 1, len);
+                    if (cut > at + max / 2) len = cut - at + 1;
+                    int open = text.LastIndexOf('~', at + len - 1, len);
+                    if (open >= at && text.Substring(at, open - at + 1).Split('~').Length % 2 == 0) len = open - at; // inside a code: stop before it
+                }
+                if (len <= 0) len = Math.Min(max, text.Length - at);
+                list.Add(text.Substring(at, len));
+                at += len;
+            }
+            return list;
+        }
+
     }
 }
