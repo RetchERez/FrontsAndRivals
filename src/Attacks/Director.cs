@@ -332,6 +332,7 @@ namespace FrontsAndRivals.Attacks
             foreach (GuardState g in e.State.Guards) if (g.Front == a.Front && g.Status != GuardStatus.Dead) { guardName = g.ShortName; break; }
             var tokens = Tokens(crew, front, leader, guardName);
             tokens["lost"] = o.AttackersLost.ToString();
+            tokens["lostPeople"] = o.AttackersLost <= 0 ? "no one" : o.AttackersLost == 1 ? "one of their people" : o.AttackersLost + " of their people";
 
             if (o.DefendersWon)
             {

@@ -21,9 +21,9 @@
     "You got lucky at the {front}. Luck runs out. - {leader}"
   ],
   "held": [
-    "{guard} and the others held the {front}. {crew} left {lost} behind.",
+    "{guard} and the others held the {front}. {crew} lost {lostPeople}.",
     "{crew} hit the {front} and went home lighter. {guard} says it's quiet again.",
-    "{front} is still ours. {guard} counted {lost} of theirs on the pavement."
+    "The {front} is still ours, and {crew} lost {lostPeople} trying."
   ],
   "lost": [
     "We lost the {front}. {leader} is running it now.",
