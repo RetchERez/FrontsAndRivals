@@ -213,9 +213,7 @@ namespace FrontsAndRivals.Attacks
                 _holdBar.Title = ((front != null ? front.ShortName : "FRONT") + " holds").ToUpperInvariant();
                 _holdBar.Info = (left / 60000) + ":" + ((left / 1000) % 60).ToString("00");
             }
-            _holdBars.Visible = show;
-            if (show) LiveDefense.HideCornerText();
-            _holdPool.Process();
+            if (show) UI.FightHud.Draw(_holdBar.Title + " " + _holdBar.Info); // top centre, like a mission timer
         }
 
         // ---------------------------------------------------------------- live defense

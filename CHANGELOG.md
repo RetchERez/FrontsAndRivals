@@ -12,6 +12,8 @@
   and when a front is best taken in person; a raid rolls the odds you were shown, even if night falls on the way
 - One midnight report instead of a text for each thing; front pages show the last attack
 - A little more crew life deep in their own turf
+- Fight info sits at the top centre of the screen, like a mission timer ("ATTACKERS 3   FRONT 85%", "CAR WASH HOLDS
+  3:42"), so nothing covers the bottom-right corner
 - Crews wear uniforms: every Dead King in the same Dark Green hoodie, every Hellfire MC biker in the same Orange vinyl
   cut, every Vinewood Elite member in the same black long suit with blue trousers, with the same trousers and shoes
   across the crew; your crew wears the uniform of the style you pick when it comes in your colour

@@ -555,8 +555,7 @@ namespace FrontsAndRivals.Attacks
         /// <summary>Every tick: draw the timer bars.</summary>
         public void Draw()
         {
-            if (_bars.Visible) HideCornerText();
-            _barsPool.Process();
+            if (_bars.Visible) UI.FightHud.Draw("ATTACKERS " + _attackersBar.Info + "      FRONT " + (int)System.Math.Round(_integrityBar.Progress) + "%");
         }
 
         /// <summary>The bars sit where GTA writes the vehicle name, area name, vehicle class and street name: hide those

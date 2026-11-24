@@ -194,6 +194,7 @@ def main():
         parts.append({'c': 4, 'd': trousers['d'], 't': trousers['t']})
         look['parts'] = parts
         look['legs'] = None   # the coloured trousers are part of the look
+        if g == 'f': look['under'] = 'plain'  # the plain White Shirt: the White Blouse's collar flares out of this jacket
     for pstyle, crew in PLAYER_UNIFORM.items():
         for look in styles[pstyle]:
             look.pop('uniform', None)
