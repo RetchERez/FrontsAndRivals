@@ -4,8 +4,8 @@ FRONTS & RIVALS 2.2
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
 Not affiliated with or endorsed by Rockstar Games.
 
-Take real Los Santos businesses from rival crews, post guards with names, faces, skills
-and ranks, and hold them against three rival crews who already own most of the
+Take real Los Santos businesses from rival crews, post guards with names, faces,
+skills and ranks, and hold them against three rival crews who already own most of the
 city and fight each other for the rest. Attacks play out on their own while
 you're away and turn into real fights when you're close. Michael, Franklin and
 Trevor share one empire, and it runs alongside the whole story.
@@ -47,7 +47,8 @@ LemonUI 2.2 and iFruitAddon2 3.1.1. After a GTA V update, wait for Script Hook V
 to update before playing or reporting bugs.
 
 Playing on the older Legacy edition? It should work but hasn't been tested there
-yet. Use the Script Hook V .NET nightly build instead (3.6.0-nightly.89 or later):
+yet. Use the Script Hook V .NET nightly build instead (3.6.0-nightly.89 or
+later):
       https://github.com/scripthookvdotnet/scripthookvdotnet-nightly/releases
 
 
