@@ -424,11 +424,10 @@ namespace FrontsAndRivals.Attacks
             {
                 _leaderFleeing = true;
                 _leaderFleeStart = Game.GameTime;
-                _leader.Task.ClearAll();
-                _leader.Task.FleeFrom(Game.Player.Character, -1);
+                Retreat(new List<Ped> { _leader }); // a car if there's one close, on foot if not
                 Log.Write("LiveDefense: leader is running");
             }
-            if (_leaderFleeing && (_leader.Position.DistanceTo(_door) > LeaderGoneRange || Game.GameTime - _leaderFleeStart > LeaderFleeMaxMs))
+            if (_leaderFleeing && (_leader.Position.DistanceTo(_door) > LeaderGoneRange || (Game.GameTime - _leaderFleeStart > LeaderFleeMaxMs && !_leader.IsOnScreen))) // got away: far off, or out of sight after a while
             {
                 _result.LeaderEscaped = true;
                 _counted.Add(_leader);
@@ -517,20 +516,79 @@ namespace FrontsAndRivals.Attacks
             foreach (Blip b in _pedBlips) if (b != null && b.Exists()) b.Delete();
             _pedBlips.Clear();
             if (_incident != 0) { Function.Call(Hash.DELETE_INCIDENT, _incident); _incident = 0; }
-            // Survivors leave; bodies and wrecks are cleaned up as the front streams out (registry owns them all).
-            foreach (Ped p in _attackers)
-            {
-                if (p == null || !p.Exists()) continue;
-                if (p.IsDead) continue;
-                p.Task.ClearAll();
-                p.Task.FleeFrom(_door, -1);
-            }
+            // Survivors get away: into the nearest car they can (their own, or anyone's), or on foot. Bodies and wrecks
+            // are cleaned up as the front streams out (registry owns them all).
+            var survivors = new List<Ped>();
+            foreach (Ped p in _attackers) if (p != null && p.Exists() && !p.IsDead) survivors.Add(p);
+            Retreat(survivors);
             _streamer.SetFighting(_front.Id, false);
             _streamer.LiveFrontId = null;
-            _cleanupAfter = Game.GameTime + 60000;
+            _cleanupAfter = Game.GameTime + 90000;
         }
 
         private int _cleanupAfter;
+
+        /// <summary>Survivors trying to get away: each car they can reach (their own first, then the nearest drivable car
+        /// anyone has left on the street, pulling the driver out if they must) takes as many as it seats, the first in
+        /// drives off; whoever is left runs. Never your car.</summary>
+        private void Retreat(List<Ped> people)
+        {
+            Ped me = Game.Player.Character;
+            Vehicle mine = me.CurrentVehicle ?? me.LastVehicle;
+            var cars = new List<Vehicle>();
+            foreach (Vehicle v in _cars) if (v != null && v.Exists() && v.IsDriveable && !v.IsDead) cars.Add(v);
+            var seats = new Dictionary<int, int>();
+            foreach (Ped p in people)
+            {
+                if (p == null || !p.Exists() || p.IsDead) continue;
+                p.Task.ClearAll();
+                p.BlockPermanentEvents = true; // getting away, not fighting
+                if (p.IsInVehicle() && p.CurrentVehicle.IsDriveable && p.CurrentVehicle.Driver == p)
+                {
+                    p.Task.CruiseWithVehicle(p.CurrentVehicle, 35f, DrivingStyle.Rushed);
+                    continue;
+                }
+                Vehicle car = NearestFreeCar(p, cars, seats, mine);
+                if (car == null) { p.Task.FleeFrom(me, -1); continue; }
+                int taken;
+                seats.TryGetValue(car.Handle, out taken);
+                seats[car.Handle] = taken + 1;
+                var flags = EnterVehicleFlags.ResumeIfInterupted | EnterVehicleFlags.AllowJacking;
+                if (taken == 0)
+                {
+                    using (var seq = new TaskSequence())
+                    {
+                        seq.AddTask.EnterVehicle(car, VehicleSeat.Driver, 15000, 2f, flags);
+                        seq.AddTask.CruiseWithVehicle(car, 35f, DrivingStyle.Rushed);
+                        seq.Close();
+                        p.Task.PerformSequence(seq);
+                    }
+                }
+                else p.Task.EnterVehicle(car, VehicleSeat.Any, 15000, 2f, flags);
+                if (!cars.Contains(car)) cars.Add(car);
+            }
+        }
+
+        /// <summary>Their own convoy cars first, then any drivable car within 40 m; one with a seat left; never yours, a
+        /// police car or a wreck.</summary>
+        private Vehicle NearestFreeCar(Ped p, List<Vehicle> own, Dictionary<int, int> seats, Vehicle mine)
+        {
+            Vehicle best = null;
+            float bestD = float.MaxValue;
+            var pool = new List<Vehicle>(own);
+            foreach (Vehicle v in GTA.World.GetNearbyVehicles(p.Position, 40f)) if (!pool.Contains(v)) pool.Add(v);
+            foreach (Vehicle v in pool)
+            {
+                if (v == null || !v.Exists() || v.IsDead || !v.IsDriveable || v == mine) continue;
+                if (Function.Call<bool>(Hash.IS_VEHICLE_SIREN_ON, v) || v.ClassType == VehicleClass.Emergency) continue;
+                int taken;
+                seats.TryGetValue(v.Handle, out taken);
+                if (taken >= v.PassengerCapacity + 1) continue;
+                float d = v.Position.DistanceTo(p.Position) - (own.Contains(v) ? 15f : 0f); // their own car counts as closer
+                if (d < bestD && v.Position.DistanceTo(p.Position) < 60f) { bestD = d; best = v; }
+            }
+            return best;
+        }
 
         /// <summary>Every 0.5 s: removes the fight's leftovers once they're off screen or a minute has passed.</summary>
         public void Cleanup()
@@ -542,13 +600,16 @@ namespace FrontsAndRivals.Attacks
             {
                 Ped p = _attackers[i];
                 if (p == null || !p.Exists()) { _attackers.RemoveAt(i); continue; }
-                if (late || !p.IsOnScreen) { _registry.Despawn(p); _attackers.RemoveAt(i); }
+                float far = p.Position.DistanceTo(Game.Player.Character.Position);
+                // Gone once they've got away: well clear of you, or out of sight at a distance (never right beside you).
+                if (late || far > 150f || (!p.IsOnScreen && far > 60f) || p.IsDead && !p.IsOnScreen) { _registry.Despawn(p); _attackers.RemoveAt(i); }
             }
             for (int i = _cars.Count - 1; i >= 0; i--)
             {
                 Vehicle v = _cars[i];
                 if (v == null || !v.Exists()) { _cars.RemoveAt(i); continue; }
-                if (late || !v.IsOnScreen) { _registry.Despawn(v); _cars.RemoveAt(i); }
+                float vfar = v.Position.DistanceTo(Game.Player.Character.Position);
+                if (late || vfar > 150f || (!v.IsOnScreen && vfar > 60f)) { _registry.Despawn(v); _cars.RemoveAt(i); }
             }
         }
 

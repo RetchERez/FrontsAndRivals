@@ -12,6 +12,9 @@
   and when a front is best taken in person; a raid rolls the odds you were shown, even if night falls on the way
 - One midnight report instead of a text for each thing; front pages show the last attack
 - A little more crew life deep in their own turf
+- Survivors of a fight get away for real: back into their car, or any car nearby (pulling the driver out if they must),
+  or on foot, and a fleeing leader does the same; nobody vanishes in front of you
+- An attack that costs the crew nobody reads as them backing off
 - Fight info sits at the top centre of the screen, like a mission timer ("ATTACKERS 3   FRONT 85%", "CAR WASH HOLDS
   3:42"), so nothing covers the bottom-right corner
 - Crews wear uniforms: every Dead King in the same Dark Green hoodie, every Hellfire MC biker in the same Orange vinyl
