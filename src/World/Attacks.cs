@@ -328,6 +328,7 @@ namespace FrontsAndRivals.Rules
 
             s.LastAttackMs = nowMs;
             s.FrontAttackedMs[attack.Front] = nowMs;
+            if (front != null) { front.LastAttackDay = s.Day; front.LastAttackCrew = attack.Crew; front.LastAttackHeld = o.DefendersWon; }
             s.Attack = null;
             return o;
         }

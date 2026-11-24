@@ -92,6 +92,10 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "dugInUntilDay", Order = 9)] public int DugInUntilDay;
         /// <summary>The day you last took or bought it: income grows the longer you keep it (Economy.EstablishedFactor).</summary>
         [DataMember(Name = "heldSinceDay", Order = 10)] public int HeldSinceDay;
+        /// <summary>The last attack on this front while it was yours: the day, the crew, and whether it held (-1 = never).</summary>
+        [DataMember(Name = "lastAttackDay", Order = 11)] public int LastAttackDay = -1;
+        [DataMember(Name = "lastAttackCrew", Order = 12)] public string LastAttackCrew;
+        [DataMember(Name = "lastAttackHeld", Order = 13)] public bool LastAttackHeld;
     }
 
     public static class GuardStatus

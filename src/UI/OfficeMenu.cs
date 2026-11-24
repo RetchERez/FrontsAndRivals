@@ -744,6 +744,16 @@ namespace FrontsAndRivals.UI
 
             if (owner == Owners.Player)
             {
+                FrontState fsHist = e.Find(def.Id);
+                if (fsHist != null && fsHist.LastAttackDay >= 0 && fsHist.LastAttackDay >= fsHist.HeldSinceDay)
+                {
+                    CrewDef by = _content.Crew(fsHist.LastAttackCrew);
+                    int ago = e.State.Day - fsHist.LastAttackDay;
+                    string when = ago <= 0 ? "Today" : ago == 1 ? "Yesterday" : ago + " days ago";
+                    NativeItem last = Info("Last Attack", (by != null ? by.Name : "A crew") + " hit it " + when.ToLowerInvariant() + (fsHist.LastAttackHeld ? ", and your people held." : ", and took it for a while."), when + (fsHist.LastAttackHeld ? ", held" : ""));
+                    _detail.Add(last);
+                }
+                else _detail.Add(Info("Last Attack", "Nobody has hit it since it became yours.", "None yet"));
                 AddQuickActions(e, def);
                 for (int post = 0; post < def.Capacity; post++) _detail.Add(PostRow(e, def, post));
             }
@@ -756,6 +766,13 @@ namespace FrontsAndRivals.UI
                     : "Too big for you yet: you can take it once you hold " + need + " fronts. You hold " + e.OwnedCount() + ".", e.Trusted(def) ? "" : "Hold " + need);
                 held.Enabled = false;
                 _detail.Add(held);
+                CrewState holder = Rules.Nemesis.Crew(e.State, owner);
+                if (holder != null && holder.Boss != null && Rules.Nemesis.BossFront(e.State, _content, owner) == def.Id)
+                {
+                    NativeItem bossRow = Row("Their Boss Is Here", holder.Boss.DisplayName + " runs " + OwnerLabel(owner) + " from this front and stands guard in person: better armed and harder to put down. Take him out and they'll lie low while a new boss takes over.", "");
+                    bossRow.Enabled = false;
+                    _detail.Add(bossRow);
+                }
                 if (_config.Raids) AddRaidRow(e, def);
             }
 
