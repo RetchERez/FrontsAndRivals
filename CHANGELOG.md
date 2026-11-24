@@ -11,6 +11,8 @@
   Vinewood Elite royal blue trilbies, ties and aviators; anyone under a hat gets a short cut so hair never pokes through
 - Crews hitting your fronts cover up their own way: Dead Kings pull up green bandanas, Hellfire MC skull bandanas, and
   the Vinewood Elite don't hide their faces
+- Map icons match the uniforms: Vinewood Elite fronts and fighters show in a deeper blue to match their trousers, and
+  every crew icon (fronts, soldiers, street crews, attackers) takes its colour from one place
 - Bosses and lieutenants dress a step up (gold watch, shades), so you can pick them out in a fight
 - No more cash bonus for defending your own front in person: keeping it is the reward
 - Long texts from the Office and the crews are never cut off any more

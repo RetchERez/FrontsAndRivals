@@ -31,7 +31,7 @@ namespace FrontsAndRivals.Data
             new CrewColor { Name = "Forest Green", Key = "forest", Blip = 52, Text = "~g~", R = 30, G = 95, B = 45 }, // GreenDark
             new CrewColor { Name = "Teal", Key = "teal", Blip = 53, Text = "~b~", R = 0, G = 140, B = 140 },
             new CrewColor { Name = "Light Blue", Key = "lightblue", Blip = 53, Text = "~b~", R = 90, G = 170, B = 235 },
-            new CrewColor { Name = "Royal Blue", Key = "blue", Blip = 3, Text = "~b~", R = 30, G = 70, B = 200 },
+            new CrewColor { Name = "Royal Blue", Key = "blue", Blip = 54, Text = "~b~", R = 30, G = 70, B = 200 }, // BlueDark: the blue of the Vinewood Elite's trousers (Blue 3 is a pale sky blue)
             new CrewColor { Name = "Purple", Key = "purple", Blip = 50, Text = "~p~", R = 120, G = 40, B = 170 },
             new CrewColor { Name = "Pink", Key = "pink", Blip = 61, Text = "~q~", R = 230, G = 80, B = 160 },
             new CrewColor { Name = "Burgundy", Key = "burgundy", Blip = 76, Text = "~r~", R = 110, G = 20, B = 35 },
