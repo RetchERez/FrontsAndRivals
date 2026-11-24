@@ -138,22 +138,31 @@
      {
       "c": 11,
       "d": 140,
-      "t": {
-       "blue": 4,
-       "purple": 11,
-       "pink": 12,
-       "black": 6,
-       "grey": 2
-      }
+      "t0": 6
      },
      {
       "c": 3,
       "d": 4,
       "t0": 0
+     },
+     {
+      "c": 4,
+      "d": 27,
+      "t": {
+       "white": 3,
+       "red": 4,
+       "orange": 2,
+       "yellow": 0,
+       "green": 10,
+       "forest": 10,
+       "lightblue": 5,
+       "blue": 1,
+       "brightblue": 1
+      }
      }
     ],
     "under": "shirt",
-    "legs": "vs",
+    "legs": null,
     "shoes": "vs",
     "uniform": true
    },
@@ -163,22 +172,30 @@
      {
       "c": 11,
       "d": 137,
-      "t": {
-       "blue": 4,
-       "purple": 11,
-       "pink": 12,
-       "black": 6,
-       "grey": 2
-      }
+      "t0": 6
      },
      {
       "c": 3,
       "d": 7,
       "t0": 0
+     },
+     {
+      "c": 4,
+      "d": 23,
+      "t": {
+       "white": 0,
+       "red": 7,
+       "yellow": 6,
+       "lightblue": 3,
+       "blue": 1,
+       "purple": 2,
+       "pink": 8,
+       "brightblue": 1
+      }
      }
     ],
     "under": "shirt",
-    "legs": "vs",
+    "legs": null,
     "shoes": "vs",
     "uniform": true
    }
@@ -410,22 +427,31 @@
      {
       "c": 11,
       "d": 140,
-      "t": {
-       "blue": 4,
-       "purple": 11,
-       "pink": 12,
-       "black": 6,
-       "grey": 2
-      }
+      "t0": 6
      },
      {
       "c": 3,
       "d": 4,
       "t0": 0
+     },
+     {
+      "c": 4,
+      "d": 27,
+      "t": {
+       "white": 3,
+       "red": 4,
+       "orange": 2,
+       "yellow": 0,
+       "green": 10,
+       "forest": 10,
+       "lightblue": 5,
+       "blue": 1,
+       "brightblue": 1
+      }
      }
     ],
     "under": "shirt",
-    "legs": "vs",
+    "legs": null,
     "shoes": "vs",
     "uniform": true
    },
@@ -435,22 +461,30 @@
      {
       "c": 11,
       "d": 137,
-      "t": {
-       "blue": 4,
-       "purple": 11,
-       "pink": 12,
-       "black": 6,
-       "grey": 2
-      }
+      "t0": 6
      },
      {
       "c": 3,
       "d": 7,
       "t0": 0
+     },
+     {
+      "c": 4,
+      "d": 23,
+      "t": {
+       "white": 0,
+       "red": 7,
+       "yellow": 6,
+       "lightblue": 3,
+       "blue": 1,
+       "purple": 2,
+       "pink": 8,
+       "brightblue": 1
+      }
      }
     ],
     "under": "shirt",
-    "legs": "vs",
+    "legs": null,
     "shoes": "vs",
     "uniform": true
    },

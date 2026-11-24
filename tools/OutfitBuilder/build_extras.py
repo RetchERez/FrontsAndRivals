@@ -23,7 +23,7 @@ FILES = {
 # The mod's colour keys and the words the game's clothing names use for them, best match first.
 COLOUR_WORDS = {
     'white': ['White'], 'red': ['Red'], 'orange': ['Orange'], 'yellow': ['Yellow'], 'green': ['Green'],
-    'forest': ['Dark Green', 'Forest', 'Green'], 'teal': ['Teal'], 'lightblue': ['Sky Blue', 'Light Blue'],
+    'forest': ['Dark Green', 'Forest', 'Green'], 'teal': ['Teal'], 'lightblue': ['Sky Blue', 'Light Blue', 'Baby Blue'],
     'blue': ['Royal Blue', 'Blue'], 'purple': ['Purple'], 'pink': ['Pink'], 'burgundy': ['Burgundy'], 'gold': ['Gold'],
     'cyan': ['Cyan'], 'lime': ['Lime'], 'lavender': ['Lavender'], 'brightblue': ['Blue', 'Royal Blue'],
     'black': ['Black'], 'grey': ['Gray', 'Grey'],
@@ -180,6 +180,20 @@ def main():
                 kept.append(look)
         assert len(kept) == 2, (crew, len(kept))
         styles[crew] = kept
+    # Vinewood Elite: a black long suit jacket for everyone, the colour in the trousers (blue chinos for men, the blue
+    # suit trousers for women), a shirt and a tie in the colour.
+    tops_m = load(folder, 'male_tops'); tops_f = load(folder, 'female_tops')
+    legs_m = load(folder, 'male_legs'); legs_f = load(folder, 'female_legs')
+    for look in styles['VS']:
+        g = look['g']
+        jacket = by_name(tops_m if g == 'm' else tops_f, 'Black Long Suit')
+        trousers = coloured(legs_m, 'Chinos') if g == 'm' else coloured(legs_f, 'Suit')
+        assert jacket and trousers and 'blue' in trousers['t'], (g, jacket, trousers)
+        parts = [p for p in look['parts'] if p['c'] not in (11, 4)]
+        parts.insert(0, {'c': 11, 'd': jacket[0], 't0': jacket[1]})
+        parts.append({'c': 4, 'd': trousers['d'], 't': trousers['t']})
+        look['parts'] = parts
+        look['legs'] = None   # the coloured trousers are part of the look
     for pstyle, crew in PLAYER_UNIFORM.items():
         for look in styles[pstyle]:
             look.pop('uniform', None)

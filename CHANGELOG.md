@@ -3,7 +3,7 @@
 ## 3.0.0 (in progress)
 
 - Crews wear uniforms: every Dead King in the same Dark Green hoodie, every Hellfire MC biker in the same Orange vinyl
-  cut, every Vinewood Elite member in the same Blue long suit with black trousers, with the same trousers and shoes
+  cut, every Vinewood Elite member in the same black long suit with blue trousers, with the same trousers and shoes
   across the crew; your crew wears the uniform of the style you pick when it comes in your colour
 - Faces make them individuals: a wide range of haircuts, beards on most of the men, varied eyebrows, and ages from
   their twenties to around Michael's age, with a touch of grey for some of the older ones
