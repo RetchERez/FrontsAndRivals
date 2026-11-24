@@ -424,7 +424,7 @@ namespace FrontsAndRivals.Attacks
             {
                 _leaderFleeing = true;
                 _leaderFleeStart = Game.GameTime;
-                Retreat(new List<Ped> { _leader }); // a car if there's one close, on foot if not
+                try { Retreat(new List<Ped> { _leader }); } catch (Exception ex) { Log.Error("Leader retreat", ex); _leader.Task.FleeFrom(Game.Player.Character, -1); } // a car if there's one close, on foot if not
                 Log.Write("LiveDefense: leader is running");
             }
             if (_leaderFleeing && (_leader.Position.DistanceTo(_door) > LeaderGoneRange || (Game.GameTime - _leaderFleeStart > LeaderFleeMaxMs && !_leader.IsOnScreen))) // got away: far off, or out of sight after a while
@@ -520,7 +520,7 @@ namespace FrontsAndRivals.Attacks
             // are cleaned up as the front streams out (registry owns them all).
             var survivors = new List<Ped>();
             foreach (Ped p in _attackers) if (p != null && p.Exists() && !p.IsDead) survivors.Add(p);
-            Retreat(survivors);
+            try { Retreat(survivors); } catch (Exception ex) { Log.Error("Retreat", ex); } // the fight always ends cleanly
             _streamer.SetFighting(_front.Id, false);
             _streamer.LiveFrontId = null;
             _cleanupAfter = Game.GameTime + 90000;
