@@ -76,6 +76,19 @@ namespace FrontsAndRivals.Spawn
             if (DefenseRating.IsNight(hour)) return Torch;
             return string.IsNullOrEmpty(postScenario) ? GuardStand : postScenario;
         }
+        // ---------------- morale in a live fight ----------------
+
+        /// <summary>An attacker this badly hurt (health left, as a share of full) makes a run for it.</summary>
+        public const double BreakHealth = 0.25;
+
+        public static bool Hurt(int health, int maxHealth) { return maxHealth > 0 && health > 0 && health <= maxHealth * BreakHealth; }
+
+        /// <summary>The rest break and run together: outnumbered two to one by you and your people, once they're out of
+        /// their cars and in the fight, and only when they're down to a few.</summary>
+        public static bool Rout(int defenders, int attackersFighting, bool inTheFight)
+        {
+            return inTheFight && attackersFighting > 0 && attackersFighting <= 3 && defenders >= attackersFighting * 2;
+        }
     }
 
     /// <summary>Laying low: with stars within 250 m of a front, its guards go inside. They come back

@@ -282,6 +282,9 @@ static class FrontTests
         T.True("Your crew wears the uniform of your style when it comes in your colour, the nearest look otherwise", Enumerable.Range(0, 100).All(i => OutfitRules.Choose(od, "player_smart", "blue", i).Look.Uniform)
             && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od, "player_smart", "black", i); return x != null && !x.Look.Uniform; }));
         T.True("The same guard always looks the same", OutfitRules.Choose(od, "player_street", "red", 42).Hair == OutfitRules.Choose(od, "player_street", "red", 42).Hair);
+        T.True("Morale: an attacker down to a quarter of his health runs, a healthy one stays", StreamRules.Hurt(100, 400) && !StreamRules.Hurt(150, 400) && !StreamRules.Hurt(0, 400));
+        T.True("Morale: outnumbered two to one, the last few break and run", StreamRules.Rout(4, 2, true) && StreamRules.Rout(2, 1, true) && !StreamRules.Rout(3, 2, true));
+        T.True("...but never a full squad, and never before they're out of their cars", !StreamRules.Rout(12, 5, true) && !StreamRules.Rout(6, 2, false) && !StreamRules.Rout(6, 0, true));
         T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));
         be2.SetOwner("carwash_handson", Owners.Velvet); // lost it to another crew
         bs2.LastHeldDay = 3; bs2.Day = 4;

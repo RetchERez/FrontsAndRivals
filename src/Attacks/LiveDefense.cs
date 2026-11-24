@@ -80,6 +80,11 @@ namespace FrontsAndRivals.Attacks
         private readonly HashSet<Ped> _counted = new HashSet<Ped>();
         private Ped _leader;
         private bool _leaderFleeing;
+        private readonly HashSet<Ped> _fleeing = new HashSet<Ped>(); // broke and ran: out of the fight, getting away
+        private int _lastMorale;
+        private bool _routed;
+
+        private bool Fleeing(Ped p) { return _fleeing.Contains(p) || (p == _leader && _leaderFleeing); }
         private int _incident;
         private float _integrity = 100f;
         private readonly Result _result = new Result();
@@ -157,6 +162,7 @@ namespace FrontsAndRivals.Attacks
             _result.Finished = false; _result.DefendersWon = false; _result.AttackersLost = 0; _result.AttackersLeft = 0;
             _result.LeaderKilled = false; _result.LeaderEscaped = false; _result.KillsByGuard.Clear();
             _cars.Clear(); _attackers.Clear(); _counted.Clear(); _leader = null; _leaderFleeing = false; _incident = 0; _integrity = 100f;
+            _fleeing.Clear(); _lastMorale = 0; _routed = false;
             _stuckSince.Clear(); _lastPush = 0; _leaderFleeStart = 0;
         }
 
@@ -226,6 +232,8 @@ namespace FrontsAndRivals.Attacks
             if (Game.GameTime - _started > FightTimeoutMs) return Abort("ran too long");
             if (_police && _incident == 0 && Game.GameTime - _started > PoliceAfterMs) CallPolice();
             UpdateLeader(alive);
+            try { UpdateMorale(); } catch (Exception ex) { Log.Error("Morale", ex); }
+            alive = AliveAttackers();
             UpdateIntegrity();
 
             if (alive == 0) return Finish(true);
@@ -349,7 +357,7 @@ namespace FrontsAndRivals.Attacks
             _lastPush = Game.GameTime;
             foreach (Ped p in _attackers)
             {
-                if (p == null || !p.Exists() || p.IsDead || p == _leader && _leaderFleeing) continue;
+                if (p == null || !p.Exists() || p.IsDead || Fleeing(p)) continue;
                 if (p.IsInVehicle()) continue;
                 if (p.Position.DistanceTo(_door) > PushRange)
                 {
@@ -385,7 +393,7 @@ namespace FrontsAndRivals.Attacks
         private int AliveAttackers()
         {
             int n = 0;
-            foreach (Ped p in _attackers) if (p != null && p.Exists() && !p.IsDead) n++;
+            foreach (Ped p in _attackers) if (p != null && p.Exists() && !p.IsDead && !Fleeing(p)) n++; // still fighting
             return n;
         }
 
@@ -435,6 +443,46 @@ namespace FrontsAndRivals.Attacks
             }
         }
 
+        /// <summary>Once a second: a badly hurt attacker makes a run for it, and when you and your people outnumber the
+        /// last few two to one they all break and run. Anyone who runs gets away by car (theirs or any nearby) or on foot,
+        /// and is out of the fight: when nobody's left fighting, the front has held.</summary>
+        private void UpdateMorale()
+        {
+            if (Game.GameTime - _lastMorale < 1000) return;
+            _lastMorale = Game.GameTime;
+            var runners = new List<Ped>();
+            foreach (Ped p in _attackers)
+            {
+                if (p == null || !p.Exists() || p.IsDead || Fleeing(p) || p == _leader) continue; // the leader has his own rule
+                if (p.IsInVehicle()) continue; // still arriving
+                if (StreamRules.Hurt(p.Health, p.MaxHealth)) runners.Add(p);
+            }
+            int fighting = AliveAttackers() - runners.Count;
+            if (!_routed && StreamRules.Rout(Defenders(), fighting, _stage == Stage.Fighting))
+            {
+                _routed = true;
+                foreach (Ped p in _attackers)
+                    if (p != null && p.Exists() && !p.IsDead && !Fleeing(p) && !runners.Contains(p)) runners.Add(p);
+                if (_leader != null && runners.Contains(_leader)) { _leaderFleeing = true; _leaderFleeStart = Game.GameTime; }
+                GTA.UI.Screen.ShowSubtitle(_crew.Name + " are breaking. They're running.", 4000);
+                Log.Write("LiveDefense: outnumbered, the rest broke and ran");
+            }
+            if (runners.Count == 0) return;
+            foreach (Ped p in runners) _fleeing.Add(p);
+            Retreat(runners);
+            Log.Write("LiveDefense: " + runners.Count + " running");
+        }
+
+        /// <summary>You (if you're in it) and your living guards and bodyguards near the front.</summary>
+        private int Defenders()
+        {
+            Ped me = Game.Player.Character;
+            int n = me.IsAlive && me.Position.DistanceTo(_door) < 90f ? 1 : 0;
+            foreach (Ped p in GTA.World.GetNearbyPeds(_door, 90f))
+                if (p != null && p.Exists() && !p.IsDead && p.RelationshipGroup == Factions.Guards && _registry.Owns(p)) n++;
+            return n;
+        }
+
         private void UpdateIntegrity()
         {
             int now = Game.GameTime;
@@ -442,7 +490,7 @@ namespace FrontsAndRivals.Attacks
             float seconds = (now - _lastIntegrityTick) / 1000f;
             _lastIntegrityTick = now;
             int near = 0;
-            foreach (Ped p in _attackers) if (p.Exists() && !p.IsDead && p.Position.DistanceTo(_door) < DoorRadius) near++;
+            foreach (Ped p in _attackers) if (p.Exists() && !p.IsDead && !Fleeing(p) && p.Position.DistanceTo(_door) < DoorRadius) near++;
             if (near == 0) return;
             foreach (KeyValuePair<GuardState, Ped> kv in _streamer.GuardPedsAt(_front.Id))
                 if (kv.Value.Position.DistanceTo(_door) < GuardRadius) return; // a guard is holding the door

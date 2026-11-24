@@ -12,6 +12,8 @@
   and when a front is best taken in person; a raid rolls the odds you were shown, even if night falls on the way
 - One midnight report instead of a text for each thing; front pages show the last attack
 - A little more crew life deep in their own turf
+- Morale in a fight: a badly hurt attacker makes a run for it, and when you and your people outnumber the last few two
+  to one they break and run; when nobody's left fighting, the front has held
 - Survivors of a fight get away for real: back into their car, or any car nearby (pulling the driver out if they must),
   or on foot, and a fleeing leader does the same; nobody vanishes in front of you
 - An attack that costs the crew nobody reads as them backing off
