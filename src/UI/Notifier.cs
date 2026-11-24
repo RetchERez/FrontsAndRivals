@@ -56,6 +56,9 @@ namespace FrontsAndRivals.UI
 
         public void UseSettings(Func<NoteSettings> settings) { _settings = settings; }
 
+        /// <summary>This kind of message gets through the current settings.</summary>
+        public bool Allows(NoteKind kind) { return NotifyQueue.Allowed(kind, _settings()); }
+
         /// <summary>Queue a message from the world (warnings, results, texts). Filtered and spaced out by the settings.</summary>
         public void Send(NoteKind kind, string sender, string subject, string message)
         {

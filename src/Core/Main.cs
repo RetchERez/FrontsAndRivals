@@ -686,6 +686,7 @@ namespace FrontsAndRivals.Core
                 }
                 // The city moves on its own: crews grab fronts for sale and take each other's. One text a night at most.
                 bool told = false;
+                var report = new System.Collections.Generic.List<string>(); // one midnight report instead of a text for each thing
                 string turfFreq = string.IsNullOrEmpty(_state.TurfFrequency) ? _config.TurfFrequency.ToString() : _state.TurfFrequency;
                 foreach (Turf.Move move in _empire.InTheGame() ? Turf.Nightly(_state, _content, _rng, Turf.ChanceFor(turfFreq)) : new System.Collections.Generic.List<Turf.Move>()) // quiet until your first front
                 {
@@ -699,7 +700,7 @@ namespace FrontsAndRivals.Core
                         { "crew", mover.Name }, { "front", where.ShortName }, { "area", where.Area },
                         { "rival", move.FromCrew != null ? _content.Crew(move.FromCrew).Name : "" }
                     };
-                    _notifier.Send(NoteKind.StreetWord, "Street word", where.Area, _content.Lines.Pick(_rng, move.FromCrew != null ? "turfWar" : "turfGrab", t));
+                    report.Add(_content.Lines.Pick(_rng, move.FromCrew != null ? "turfWar" : "turfGrab", t));
                     told = true;
                 }
                 if (_empire.BrokerRescue())
@@ -708,25 +709,36 @@ namespace FrontsAndRivals.Core
                     _notifier.Send(NoteKind.Broker, "Street Word", "Car Wash", "Word is the Dead Kings pulled most of their people off the Hands On Car Wash. Go take it back.");
                 }
                 Economy.Payout pay = Economy.Midnight(_state, _content, Game.Player.Money, _config.IncomeMultiplier, _config.WageMultiplier);
+                var promoted = new System.Collections.Generic.List<string>();
                 foreach (GuardState up in _empire.DayOnDuty())
                 {
                     Log.Write("Midnight: " + up.FullName + " promoted to " + Economy.RankName((Rank)up.Rank));
-                    _notifier.Send(NoteKind.Staff, up.ShortName, "Promoted", "Made " + Economy.RankName((Rank)up.Rank) + ". "
-                        + (Economy.MaxWeapon((Rank)up.Rank) > Economy.MaxWeapon((Rank)(up.Rank - 1)) ? "Trusted with " + Economy.WithArticle(Economy.MaxWeapon((Rank)up.Rank)) + " now." : "Thanks for the faith, boss."));
+                    promoted.Add(up.ShortName + " (" + Economy.RankName((Rank)up.Rank) + ")");
                 }
+                var quit = new System.Collections.Generic.List<string>();
                 foreach (GuardState q in pay.Quit)
                 {
                     Log.Write("Midnight: " + q.FullName + " quit over unpaid wages");
-                    _notifier.Send(NoteKind.Staff, q.ShortName, "Unpaid", "No money, no me. I'm out.");
+                    quit.Add(q.ShortName);
                 }
-                if (pay.Income == 0 && pay.Wages == 0) continue;
+                if (promoted.Count > 0) report.Add("Promoted: " + string.Join(", ", promoted.ToArray()) + ".");
+                if (quit.Count > 0)
+                {
+                    string q = "Quit over unpaid wages: " + string.Join(", ", quit.ToArray()) + ".";
+                    if (_notifier.Allows(NoteKind.Midnight)) report.Add(q); else _notifier.Send(NoteKind.Staff, "The Office", "Unpaid", q); // never missed
+                }
+                if (pay.Income == 0 && pay.Wages == 0)
+                {
+                    if (report.Count > 0) _notifier.Send(NoteKind.Midnight, "The Office", "Midnight report", string.Join(" ", report.ToArray()));
+                    continue;
+                }
                 // Never below zero: only Loyal guards are left waiting for their money if it doesn't cover them.
                 Game.Player.Money = (int)Math.Max(0L, (long)Game.Player.Money + pay.Net);
                 _state.LastNet = pay.Net;
                 Log.Write("Midnight day " + _state.Day + ": income " + pay.Income + ", wages " + pay.Wages + ", net " + pay.Net);
                 if (pay.Net > 0) Sounds.Play(Cue.MidnightTake);
-                _notifier.Send(NoteKind.Midnight, "The Office", "Midnight take",
-                    "Fronts brought in $" + pay.Income.ToString("N0") + ". Wages $" + pay.Wages.ToString("N0") + ". Net " + (pay.Net < 0 ? "-$" : "$") + Math.Abs(pay.Net).ToString("N0") + ".");
+                report.Insert(0, "Fronts brought in $" + pay.Income.ToString("N0") + ", wages $" + pay.Wages.ToString("N0") + ", net " + (pay.Net < 0 ? "-$" : "$") + Math.Abs(pay.Net).ToString("N0") + ".");
+                _notifier.Send(NoteKind.Midnight, "The Office", "Midnight report", string.Join(" ", report.ToArray()));
                 changed = true;
             }
             if (nights > 0) EmpireChanged(); // quitters leave their posts
