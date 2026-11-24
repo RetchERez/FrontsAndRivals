@@ -19,6 +19,11 @@ namespace FrontsAndRivals.Spawn
         private const int FlagPavement = 1, FlagNotInterior = 4, FlagNotWater = 8;
 
         private readonly Dictionary<string, long> _nextTry = new Dictionary<string, long>();
+        private readonly Dictionary<string, int> _fails = new Dictionary<string, int>();
+
+        /// <summary>After this many tries with the navmesh, a front gets posts from the ground itself instead, so no front
+        /// is ever left without soldiers (and so can never be taken).</summary>
+        public const int TriesBeforeFallback = 2;
 
         /// <summary>Why probes were rejected on the last Place call (for the log).</summary>
         public string LastReport { get; private set; }
@@ -35,14 +40,20 @@ namespace FrontsAndRivals.Spawn
                 long next;
                 if (_nextTry.TryGetValue(def.Id, out next) && nowMs < next) continue;
 
+                int fails;
+                _fails.TryGetValue(def.Id, out fails);
                 int n = Place(def, false);
+                if (n == 0 && fails + 1 >= TriesBeforeFallback && def.Door.DistanceTo(p.X, p.Y, p.Z) < FallbackRange)
+                    n = PlaceFromGround(def);
                 if (n > 0)
                 {
                     filled++;
+                    _fails.Remove(def.Id);
                     Log.Write("AutoPosts: " + def.Id + " got " + n + " posts automatically (" + LastReport + ")");
                 }
                 else
                 {
+                    _fails[def.Id] = fails + 1;
                     _nextTry[def.Id] = nowMs + RetryMs; // navmesh not loaded yet, or nothing usable; try again later
                     Log.Write("AutoPosts: no usable spots around " + def.Id + " yet (" + LastReport + "), retrying in 30 s");
                 }
@@ -70,6 +81,38 @@ namespace FrontsAndRivals.Spawn
                 def.Posts.AddRange(chosen);
             }
             return def.Posts.Count;
+        }
+
+        /// <summary>Close enough that the ground and buildings around the door are loaded (ground probes need them).</summary>
+        public const float FallbackRange = 60f;
+
+        /// <summary>The fallback when the navmesh gives nothing usable (some doors sit where the game has no walkable
+        /// mesh): probe the ground itself in rings around the door, keeping spots on the door's level with a clear line to
+        /// it and headroom, off the road where possible. If even that finds nothing, one post right at the door.
+        /// Always gives the front at least one post.</summary>
+        public int PlaceFromGround(FrontDef def)
+        {
+            var chosen = new List<PostDef>();
+            int checkedSpots = 0;
+            for (int pass = 0; pass < 2 && chosen.Count < AutoPosts.Wanted; pass++) // pass 0 off the road, pass 1 anywhere
+                foreach (float[] probe in AutoPosts.GroundProbes(def.Door))
+                {
+                    if (chosen.Count >= AutoPosts.Wanted) break;
+                    checkedSpots++;
+                    float g = GTA.World.GetGroundHeight(new Vector3(probe[0], probe[1], def.Door.Z + 2f));
+                    if (g == 0f) continue;
+                    var spot = new Vector3(probe[0], probe[1], g);
+                    if (pass == 0 && Function.Call<bool>(Hash.IS_POINT_ON_ROAD, spot.X, spot.Y, spot.Z, 0)) continue;
+                    if (!AutoPosts.Accept(def.Door, chosen, spot.X, spot.Y, spot.Z, 1.0f)) continue;
+                    if (!CanSeeDoor(def.Door, spot) || !GoodFooting(spot)) continue;
+                    chosen.Add(AutoPosts.MakePost(def.Door, chosen.Count, spot.X, spot.Y, spot.Z));
+                }
+            if (chosen.Count == 0)
+                chosen.Add(new PostDef { X = def.Door.X, Y = def.Door.Y, Z = def.Door.Z, H = def.Door.H, Scenario = AutoPosts.Idles[0] });
+            def.Posts.Clear();
+            def.Posts.AddRange(chosen);
+            LastReport = chosen.Count + " placed from the ground (" + checkedSpots + " spots checked, the navmesh had none)";
+            return chosen.Count;
         }
 
         private static void Fill(FrontDef def, List<PostDef> chosen, int flags, int[] reasons)
@@ -118,7 +161,7 @@ namespace FrontsAndRivals.Spawn
         }
 
         /// <summary>Forget every retry timer (a new empire's clock starts again at zero).</summary>
-        public void ResetAll() { _nextTry.Clear(); }
+        public void ResetAll() { _nextTry.Clear(); _fails.Clear(); }
 
         /// <summary>Forget retry timers (dev tools: "Re-place posts").</summary>
         public void ResetTimer(string frontId) { _nextTry.Remove(frontId); }

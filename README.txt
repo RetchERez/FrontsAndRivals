@@ -1,4 +1,4 @@
-FRONTS & RIVALS 2.1
+FRONTS & RIVALS 2.2
 ===================
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
@@ -88,7 +88,7 @@ GETTING STARTED
                        yours on the spot, or send a crew from the Office
 
 
-WHAT'S IN 2.1
+WHAT'S IN 2.2
 -------------
 
   FRONTS

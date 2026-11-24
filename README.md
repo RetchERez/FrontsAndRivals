@@ -1,4 +1,4 @@
-# Fronts & Rivals 2.1
+# Fronts & Rivals 2.2
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
@@ -43,7 +43,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
 - **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
-## What's in 2.1
+## What's in 2.2
 
 ### Fronts
 

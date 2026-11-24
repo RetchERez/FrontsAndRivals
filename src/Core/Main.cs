@@ -18,7 +18,7 @@ namespace FrontsAndRivals.Core
 {
     public sealed class Main : Script
     {
-        public const string ModVersion = "2.1.0";
+        public const string ModVersion = "2.2.0";
         private const int SaveEveryMs = 120000;          // one in-game hour = 2 real minutes
         private const long InjuryRecoveryMs = 96L * 60000; // 2 in-game days = 96 real minutes of free roam
 
@@ -187,7 +187,7 @@ namespace FrontsAndRivals.Core
             _scheduler.Add("Banners", "banners", 0, () => { _banners.Process(); _live.Draw(); }, runWhilePaused: true);
             _scheduler.Add("Prompts", "prompts", 0, PromptsTick);
             _scheduler.Add("HoldBar", "attack timer", 0, () => _director.DrawHold());
-            _scheduler.Add("Shot", "purchase shot", 0, () => _shot.Update(_gate == PauseReason.None), runWhilePaused: true);
+            _scheduler.Add("Shot", "purchase shot", 0, () => { try { _shot.Update(_gate == PauseReason.None); } catch { _shot.End(); throw; } }, runWhilePaused: true); // a failure always hands the camera back
             _scheduler.Add("Waypoint", "map waypoint", 1000, WaypointTick);
             _scheduler.Add("Clock", "income and recruits", 2000, ClockTick);
             if (_dev != null)
@@ -367,7 +367,10 @@ namespace FrontsAndRivals.Core
             if (_placer.Update(_content, ActiveNow()) > 0)
             {
                 _content.SaveFronts();
-                WorldChanged();
+                _empire.EnsureFronts();
+                _streamer.Rebuild(); // the front had no posts, so it wasn't streamed: nothing else needs to respawn
+                _blips.Refresh(_empire, _content);
+                SaveNow();
             }
         }
 

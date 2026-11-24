@@ -51,6 +51,8 @@ namespace FrontsAndRivals.Rules
         public sealed class Outcome
         {
             public bool Won;
+            /// <summary>No fight: the front changed hands while they were on the way, or nobody could go.</summary>
+            public bool Aborted;
             public string FrontId, CrewId;
             public List<GuardState> Dead = new List<GuardState>();
             public List<GuardState> Injured = new List<GuardState>();
@@ -65,6 +67,7 @@ namespace FrontsAndRivals.Rules
             RaidState raid = s.Raid;
             var o = new Outcome();
             if (raid == null) return o;
+            if (raid.Hour.HasValue) hour = raid.Hour.Value; // the odds you were shown were for the hour they left
             s.Raid = null;
             o.FrontId = raid.Front;
             o.CrewId = raid.Crew;
@@ -84,7 +87,7 @@ namespace FrontsAndRivals.Rules
                 records.Add(Empire.Record(g));
             }
             // Someone else took it meanwhile, or nobody could go: the crew comes home.
-            if (team.Count == 0 || fs.Owner != raid.Crew) return o;
+            if (team.Count == 0 || fs.Owner != raid.Crew) { o.Aborted = true; return o; }
 
             int soldiers = Soldiers(def, fs, crew, s.Day);
             double power = TeamPower(records, hour), defense = FrontDefense(crewDef, def, soldiers, s.Heat) * Difficulty.Strength(s.Difficulty);

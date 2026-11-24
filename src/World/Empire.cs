@@ -389,7 +389,7 @@ namespace FrontsAndRivals.Rules
         public bool StartRaid(FrontDef def, long nowMs, int hour)
         {
             if (RaidBlocked(def) != null) return false;
-            var raid = new RaidState { Front = def.Id, Crew = OwnerOf(def.Id), EndsMs = nowMs + Raids.RaidMs, Odds = RaidOdds(def, hour) };
+            var raid = new RaidState { Front = def.Id, Crew = OwnerOf(def.Id), EndsMs = nowMs + Raids.RaidMs, Odds = RaidOdds(def, hour), Hour = hour };
             foreach (GuardState g in RaidTeam()) raid.GuardIds.Add(g.Id);
             _s.Raid = raid;
             _s.LastRaidDay = _s.Day;

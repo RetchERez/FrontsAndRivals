@@ -440,7 +440,7 @@ namespace FrontsAndRivals.Spawn
             {
                 FrontState fs = _empire.Find(f.Def.Id);
                 int c = f.Def.Posts != null && f.Def.Posts.Count > 0 ? Raids.Soldiers(f.Def, fs, cs, _empire.State.Day) : 0;
-                f.CrewCount = Math.Min(Math.Min(c, FrontDef.MaxCrew), Math.Max(0, cs.Manpower));
+                f.CrewCount = Math.Min(c, FrontDef.MaxCrew); // Raids.Soldiers already counts the crew's people, above the skeleton guard
             }
             int count = f.CrewCount;
             if (count == 0) return; // only a front with no posts: every crew keeps a skeleton guard, so never a free front

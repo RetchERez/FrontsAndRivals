@@ -469,6 +469,14 @@ namespace FrontsAndRivals.Attacks
             FrontDef front = _content.Front(o.FrontId);
             CrewDef crew = _content.Crew(o.CrewId);
             if (front == null || crew == null) { _changed(); return; }
+            if (o.Aborted)
+            {
+                e.State.LastRaidDay = -1; // nobody fought, so today's raid isn't used up
+                _notifierPost(NoteKind.AttackResult, "The Office", "Raid called off", "The " + front.ShortName + " changed hands before your people got there, so they came home. You can send another raid today.");
+                Log.Write("Director: raid on " + o.FrontId + " called off (the front changed hands or nobody could go)");
+                _changed();
+                return;
+            }
             var lost = new List<string>();
             foreach (GuardState g in o.Dead) lost.Add(g.ShortName + " (dead)");
             foreach (GuardState g in o.Injured) lost.Add(g.ShortName + " (hurt)");

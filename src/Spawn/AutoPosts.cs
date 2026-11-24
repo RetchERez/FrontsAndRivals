@@ -48,12 +48,28 @@ namespace FrontsAndRivals.Spawn
             }
         }
 
+        /// <summary>Ground probes for the fallback: rings of 8 at 3, 5, 7 and 10 m round the door, in front first.</summary>
+        public static List<float[]> GroundProbes(Spot door)
+        {
+            var list = new List<float[]>(32);
+            float[] radii = { 3f, 5f, 7f, 10f };
+            for (int r = 0; r < radii.Length; r++)
+                for (int i = 0; i < 8; i++)
+                {
+                    double rad = (door.H + r * 22.5 + i * 45.0) * Math.PI / 180.0;
+                    list.Add(new[] { door.X - (float)Math.Sin(rad) * radii[r], door.Y + (float)Math.Cos(rad) * radii[r], door.Z });
+                }
+            return list;
+        }
+
         /// <summary>Is this navmesh spot usable as a post, given the ones already chosen?</summary>
-        public static bool Accept(Spot door, IList<PostDef> chosen, float x, float y, float groundZ)
+        public static bool Accept(Spot door, IList<PostDef> chosen, float x, float y, float groundZ) { return Accept(door, chosen, x, y, groundZ, MinFromDoor); }
+
+        public static bool Accept(Spot door, IList<PostDef> chosen, float x, float y, float groundZ, float minFromDoor)
         {
             float dx = x - door.X, dy = y - door.Y;
             float flat = (float)Math.Sqrt(dx * dx + dy * dy);
-            if (flat < MinFromDoor || flat > MaxFromDoor) return false;
+            if (flat < minFromDoor || flat > MaxFromDoor) return false;
             if (Math.Abs(groundZ + RootHeight - door.Z) > MaxHeightDiff) return false;
             foreach (PostDef p in chosen)
             {

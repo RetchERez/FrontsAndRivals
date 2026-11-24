@@ -268,6 +268,8 @@ namespace FrontsAndRivals.Data
         /// <summary>Free-roam ms when word comes back.</summary>
         [DataMember(Name = "endsMs", Order = 3)] public long EndsMs;
         [DataMember(Name = "odds", Order = 4)] public double Odds;
+        /// <summary>The hour the raid set off (the odds shown were worked out for it). Null in older saves.</summary>
+        [DataMember(Name = "hour", Order = 5)] public int? Hour;
     }
 
     [DataContract]

@@ -101,7 +101,13 @@ namespace FrontsAndRivals.Dev
                 bool loaded = Function.Call<bool>(Hash.IS_NAVMESH_LOADED_IN_AREA,
                     f.Door.X - NavBox, f.Door.Y - NavBox, f.Door.Z - 10f, f.Door.X + NavBox, f.Door.Y + NavBox, f.Door.Z + 10f);
                 if (loaded) _loadedAt = now;
-                else if (now - _arrivedAt > NavmeshTimeoutMs) { Finish(f, f.Posts.Count, "navmesh never loaded"); return; }
+                else if (now - _arrivedAt > NavmeshTimeoutMs)
+                {
+                    int g = f.Posts.Count > 0 ? f.Posts.Count : _placer.PlaceFromGround(f);
+                    Log.Write("AutoScout: " + f.Id + " navmesh never loaded: " + _placer.LastReport);
+                    Finish(f, g, null);
+                    return;
+                }
                 else return;
             }
             if (now - _loadedAt < SettleMs) return;
@@ -115,7 +121,8 @@ namespace FrontsAndRivals.Dev
                 _loadedAt = now; // more of the area streams in every second; look again after another settle
                 return;
             }
-            Finish(f, n, n == 0 ? "no usable ground near the door (" + _placer.LastReport + ")" : null);
+            if (n == 0) { n = _placer.PlaceFromGround(f); Log.Write("AutoScout: " + f.Id + " fallback: " + _placer.LastReport); }
+            Finish(f, n, null);
         }
 
         private void Finish(FrontDef f, int posts, string why)
@@ -123,6 +130,10 @@ namespace FrontsAndRivals.Dev
             if (posts > 0) { _done++; _report.Add(f.Id + ": " + posts + " posts"); }
             else { _failed++; _report.Add(f.Id + ": FAILED (" + why + ")"); }
             Log.Write("AutoScout: " + f.Id + (posts > 0 ? " -> " + posts + " posts" : " failed: " + why));
+            foreach (PostDef p in f.Posts) // every post, so each location can be checked from the log
+                Log.Write(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "AutoScout:   post {0:0.0} m from the door, {1:+0.0;-0.0} m up, at {2:0.00}, {3:0.00}, {4:0.00}",
+                    f.Door.DistanceTo(p.X, p.Y, p.Z), p.Z - f.Door.Z, p.X, p.Y, p.Z));
             Next();
         }
 

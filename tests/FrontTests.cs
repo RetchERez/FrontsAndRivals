@@ -128,6 +128,19 @@ static class FrontTests
             if (ts.Raid != null) won -= 1000;
         }
         T.True("Raids resolve, a win hands you the front (" + won + " of " + trials + " won)", won > trials * 0.5 && won < trials);
+        {
+            var ts = SaveService.NewEmpire();
+            var te = new Empire(ts, content);
+            Nemesis.EnsureCrews(ts, content, new Random(5));
+            te.SetOwner("carwash_handson", Owners.Player);
+            for (int i = 0; i < 4; i++) { GuardState rg = te.Recruit(rng); rg.Rank = (int)Rank.Veteran; rg.Weapon = (int)Weapon.CarbineRifle; }
+            te.StartRaid(target, 0, 20);
+            T.True("A raid remembers the hour it set off, so it rolls the odds you were shown", ts.Raid.Hour == 20);
+            string other = te.OwnerOf(target.Id) == Owners.Velvet ? Owners.Ironside : Owners.Velvet;
+            te.SetOwner(target.Id, other); // another crew took it while they were on the way
+            Raids.Outcome ro = Raids.Resolve(ts, content, te, new Random(1), 2, 200000, true, 1000);
+            T.True("The front changed hands mid-raid: called off, not a failed raid, nobody hurt", ro.Aborted && !ro.Won && ro.Dead.Count == 0 && ro.Injured.Count == 0);
+        }
 
         T.Section("Difficulty and resetting the city");
         T.True("Difficulty: Normal is x1, Brutal pushes harder and sooner, Relaxed eases off",
@@ -350,6 +363,11 @@ static class FrontTests
         T.True("Standing in the doorway is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100.5f, 200.5f, 29f));
         T.True("More than 18 m away is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 219f, 29f));
         T.True("A rooftop 6 m up is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 205f, 35f));
+        var ground = AutoPosts.GroundProbes(door);
+        T.Check("Ground fallback: 32 probes (four rings of 8)", ground.Count, 32, 0);
+        T.Check("...the first 3 m straight out front", ground[0][1] - door.Y, 3, 0.01);
+        T.True("...all within 10 m of the door, so a soldier stays with the building", ground.All(g => Math.Sqrt((g[0] - door.X) * (g[0] - door.X) + (g[1] - door.Y) * (g[1] - door.Y)) <= 10.01));
+        T.True("Ground fallback allows a spot 1.2 m from the door that the navmesh pass wouldn't", AutoPosts.Accept(door, new List<PostDef>(), 100f, 201.2f, 29f, 1.0f) && !AutoPosts.Accept(door, new List<PostDef>(), 100f, 201.2f, 29f));
 
         PostDef p = chosen[0];
         T.Check("Post stands 1 m above the ground the navmesh gave", p.Z, 30, 0.001);

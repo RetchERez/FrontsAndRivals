@@ -22,7 +22,7 @@ namespace FrontsAndRivals.UI
         public void Play(FrontDef def)
         {
             End();
-            if (def == null || !def.Door.IsSet) return;
+            if (def == null || !def.Door.IsSet || PhoneOut()) return; // a scripted camera blows the phone up to full screen
             Ped me = Game.Player.Character;
             var door = new Vector3(def.Door.X, def.Door.Y, def.Door.Z);
             Vector3 look = door + new Vector3(0f, 0f, 1.5f);
@@ -62,9 +62,20 @@ namespace FrontsAndRivals.UI
                 && (Game.IsControlJustPressed(Control.FrontendAccept) || Game.IsControlJustPressed(Control.FrontendCancel)
                     || Game.IsControlJustPressed(Control.Context) || Game.IsControlJustPressed(Control.Attack)
                     || Game.IsControlJustPressed(Control.Jump) || Game.IsControlJustPressed(Control.Sprint));
-            if (!gateOpen || skip || Game.GameTime >= _endsAt) { End(); return; }
+            if (!gateOpen || skip || Game.GameTime >= _endsAt || PhoneOut()) { End(); return; }
             Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
             Game.DisableAllControlsThisFrame();
+        }
+
+        /// <summary>The phone is up (or coming up): GTA draws it full screen under a scripted camera, so no shot then.</summary>
+        private static bool PhoneOut()
+        {
+            try
+            {
+                return Function.Call<bool>(Hash.CAN_PHONE_BE_SEEN_ON_SCREEN)
+                       || Function.Call<bool>(Hash.IS_PED_RUNNING_MOBILE_PHONE_TASK, Game.Player.Character);
+            }
+            catch { return false; }
         }
 
         /// <summary>Back to the gameplay camera. Safe to call any time, any number of times.</summary>
