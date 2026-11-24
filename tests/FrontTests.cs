@@ -278,7 +278,7 @@ static class FrontTests
             int gone = OutfitRules.PruneExtras(od3, (f, c, d, t) => true, (f, prop, d, t) => prop != 0); // pretend the game has no hats
             T.True("The outfit check drops extras the game rejects", gone > 0 && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od3, "CK", "forest", i); return x == null || !x.Extras.Any(e => e.Slot == "hat"); }));
         }
-        T.True("Vinewood Elite all wear the blue long suit", Enumerable.Range(0, 200).All(i => { var x = OutfitRules.Choose(od, "VS", "blue", i); return x.Look.Uniform && x.Look.Under == "shirt"; }));
+        T.True("Vinewood Elite all wear the black long suit, the men with a shirt and tie, the women in a plain white shirt", Enumerable.Range(0, 200).All(i => { var x = OutfitRules.Choose(od, "VS", "blue", i); return x.Look.Uniform && x.Look.Under == (x.Female ? "plain" : "shirt"); }));
         T.True("Your crew wears the uniform of your style when it comes in your colour, the nearest look otherwise", Enumerable.Range(0, 100).All(i => OutfitRules.Choose(od, "player_smart", "blue", i).Look.Uniform)
             && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od, "player_smart", "black", i); return x != null && !x.Look.Uniform; }));
         T.True("The same guard always looks the same", OutfitRules.Choose(od, "player_street", "red", 42).Hair == OutfitRules.Choose(od, "player_street", "red", 42).Hair);
