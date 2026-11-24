@@ -1,4 +1,4 @@
-# Fronts & Rivals 2.2
+# Fronts & Rivals 3.0
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
@@ -43,7 +43,18 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
 - **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
-## What's in 2.2
+## What's in 3.0
+
+### New in 3.0
+
+- Only in free roam: everything pauses and clears away during story missions, Strangers and Freaks, heists, side jobs, minigames, friend activities and Director Mode, and nothing starts next to a mission's start
+- Crew uniforms: every Dead King in the same dark green hoodie, every Hellfire MC biker in the same orange vest, every Vinewood Elite member in the same black suit with blue trousers
+- Faces make them people: dozens of haircuts, beards, eyebrows and ages from their twenties to their forties, with each crew's own hats, shades and attack masks
+- The turf map: every front's block shaded in its owner's colour on GTA's own map, so you can see who holds what at a glance
+- Bosses in person: each crew's boss stands guard at its biggest front, named on the map in a fight, and taking him out sends the crew into hiding while a new boss takes over
+- Raids that stay worth sending: a bigger party as your empire grows, and honest advice when a front is best taken yourself
+- One midnight report instead of a text for each thing, and texts that are never cut off
+
 
 ### Fronts
 

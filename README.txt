@@ -1,4 +1,4 @@
-FRONTS & RIVALS 2.2
+FRONTS & RIVALS 3.0
 ===================
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode).
@@ -89,8 +89,28 @@ GETTING STARTED
                        yours on the spot, or send a crew from the Office
 
 
-WHAT'S IN 2.2
+WHAT'S IN 3.0
 -------------
+
+  NEW IN 3.0
+ - Only in free roam: everything pauses and clears away during story
+   missions, Strangers and Freaks, heists, side jobs, minigames, friend
+   activities and Director Mode, and nothing starts next to a mission's start
+ - Crew uniforms: every Dead King in the same dark green hoodie, every
+   Hellfire MC biker in the same orange vest, every Vinewood Elite member in
+   the same black suit with blue trousers
+ - Faces make them people: dozens of haircuts, beards, eyebrows and ages from
+   their twenties to their forties, with each crew's own hats, shades and
+   attack masks
+ - The turf map: every front's block shaded in its owner's colour on GTA's
+   own map, so you can see who holds what at a glance
+ - Bosses in person: each crew's boss stands guard at its biggest front,
+   named on the map in a fight, and taking him out sends the crew into hiding
+   while a new boss takes over
+ - Raids that stay worth sending: a bigger party as your empire grows, and
+   honest advice when a front is best taken yourself
+ - One midnight report instead of a text for each thing, and texts that are
+   never cut off
 
   FRONTS
  - 29 real businesses across Los Santos: bars, clubs, liquor stores, motels,

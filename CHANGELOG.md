@@ -1,7 +1,17 @@
 # Changelog
 
-## 3.0.0 (in progress)
+## 3.0.0 (2026-11-23)
 
+- Only in free roam: the mod pauses and clears away during story missions, Strangers and Freaks, heists, side jobs,
+  minigames, friend activities, Director Mode and when you're not Michael, Franklin or Trevor; street crews and fights
+  never start next to a mission's start
+- The turf map: every front's block shaded in its owner's colour on GTA's map (Office > Settings > Turf Map)
+- Bosses in person: each crew's boss stands guard at its biggest front, named on the map in a fight; taking him out
+  feeds the nemesis loop and the crew lies low for a couple of days
+- Raids: a bigger party as you grow (5 guards at 10 fronts, 6 at 20); the Office says when a crew is short of people
+  and when a front is best taken in person; a raid rolls the odds you were shown, even if night falls on the way
+- One midnight report instead of a text for each thing; front pages show the last attack
+- A little more crew life deep in their own turf
 - Crews wear uniforms: every Dead King in the same Dark Green hoodie, every Hellfire MC biker in the same Orange vinyl
   cut, every Vinewood Elite member in the same black long suit with blue trousers, with the same trousers and shoes
   across the crew; your crew wears the uniform of the style you pick when it comes in your colour

@@ -18,7 +18,7 @@ namespace FrontsAndRivals.Core
 {
     public sealed class Main : Script
     {
-        public const string ModVersion = "2.2.0";
+        public const string ModVersion = "3.0.0";
         private const int SaveEveryMs = 120000;          // one in-game hour = 2 real minutes
         private const long InjuryRecoveryMs = 96L * 60000; // 2 in-game days = 96 real minutes of free roam
 

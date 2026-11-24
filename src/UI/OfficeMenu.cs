@@ -268,7 +268,10 @@ namespace FrontsAndRivals.UI
                 { "Street Heat", "Every front you take heats the streets, and every night cools them. The hotter it is, the sooner the crews hit back. Lie low for a night or two to cool off." },
                 { "Crew Anger", "Killing a crew's people makes that crew angrier, from Calm to Vendetta (see Rivals). Angry crews hit harder and barely warn you. Anger fades a little every day." },
                 { "Warnings", "Walk up to a crew on foot and they raise their guns and tell you to leave. Walk away, or start the fight on your terms. Driving past never bothers them." },
-                { "Sneaking", "Crews only notice what they can see. Crouch, or come at night, to get closer, and use a silenced gun to stay quiet." }
+                { "Sneaking", "Crews only notice what they can see. Crouch, or come at night, to get closer, and use a silenced gun to stay quiet." },
+                { "Turf Map", "Every front's block is shaded in its owner's colour on the pause map. Change it under Settings > Turf Map (pause map, map and radar, or off)." },
+                { "Bosses", "Each crew's boss stands guard at its biggest front, better armed and tougher. Take him out and the crew lies low for a couple of days while a new boss takes over." },
+                { "Free Roam Only", "Everything pauses and clears away during missions, side jobs, minigames and heists, and picks up again when you're back in free roam." }
             };
             for (int i = 0; i < lines.GetLength(0); i++) _detail.Add(Info(lines[i, 0], lines[i, 1], ""));
             _detail.SelectedIndex = 0;
@@ -676,7 +679,7 @@ namespace FrontsAndRivals.UI
                 AddListRow(dev, null, false);
             }
 
-            AddListRow(Row("How It Works", "A quick guide to the Office, taking fronts, attacks, street heat, crew anger, warnings and sneaking.", ""), HowItWorks, true);
+            AddListRow(Row("How It Works", "A quick guide to the Office, taking fronts, attacks, street heat, crew anger, warnings, sneaking, the turf map and bosses.", ""), HowItWorks, true);
 
             NativeItem tips = Row("Show Tips Again", "The short first-time tips (the Office, posting guards, attacks, bodyguards, crew warnings) show again when they come up.", "");
             tips.Activated += (s, a) => { Tips.Reset(); Changed(false); GTA.UI.Notification.Show("Tips will show again."); };
