@@ -137,6 +137,7 @@ namespace FrontsAndRivals.Spawn
                 Vector3 want = p + new Vector3((float)Math.Cos(a) * r, (float)Math.Sin(a) * r, 0f);
                 Vector3 spot = kind == HangoutKind.Cruise ? GTA.World.GetNextPositionOnStreet(want, true) : GTA.World.GetNextPositionOnSidewalk(want);
                 if (spot == Vector3.Zero) continue;
+                if (MissionStarts.Near(spot)) continue; // never by a mission's start
                 float fromMe = spot.DistanceTo(p);
                 if (fromMe < HangoutRules.SpawnMin * 0.8f || fromMe > HangoutRules.SpawnMax * 1.3f) continue;
                 bool crowded = false;
@@ -207,7 +208,7 @@ namespace FrontsAndRivals.Spawn
             if (!HangoutRules.Fits(_registry.PedCount, a.Size + size, Registry.MaxPeds)) return;
             double ang = _rng.NextDouble() * Math.PI * 2.0;
             Vector3 there = GTA.World.GetNextPositionOnSidewalk(spot + new Vector3((float)Math.Cos(ang) * HangoutRules.ClashGap, (float)Math.Sin(ang) * HangoutRules.ClashGap, 0f));
-            if (there == Vector3.Zero || there.DistanceTo(spot) > 40f) return;
+            if (there == Vector3.Zero || there.DistanceTo(spot) > 40f || MissionStarts.Near(there)) return;
             var b = new Group { Crew = other, Kind = HangoutKind.HangOut, Spot = there, Heading = (float)(_rng.NextDouble() * 360.0), Size = size, Seed = _rng.Next(), RequestedAt = Game.GameTime };
             for (int k = 0; k < size; k++)
             {

@@ -323,7 +323,8 @@ namespace FrontsAndRivals.Core
 
                 if (!_gateKnown || gate != _gate)
                 {
-                    Log.Write("Pause gate: " + (_gateKnown ? _gate.ToString() : "start") + " -> " + gate);
+                    Log.Write("Pause gate: " + (_gateKnown ? _gate.ToString() : "start") + " -> " + gate
+                              + (gate == PauseReason.SideJob && PauseGate.LastScript != null ? " (" + PauseGate.LastScript + ")" : ""));
                     if (PauseGate.ClearsWorld(gate)) ClearWorld("gate " + gate);
                     // Franklin's first mission (Franklin and Lamar) just ended: the moment to introduce the mod.
                     if (_gate == PauseReason.Mission && gate == PauseReason.None && Game.Player.Character.Model == new Model(PedHash.Franklin)) _franklinDone = true;

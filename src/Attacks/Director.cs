@@ -102,7 +102,8 @@ namespace FrontsAndRivals.Attacks
             {
                 Vector3 p = Game.Player.Character.Position;
                 bool liveOn = _config.LiveDefense && !State.LiveDefenseOff;
-                bool near = liveOn && front.IsScouted && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.LiveRange;
+                bool near = liveOn && front.IsScouted && front.Door.DistanceTo(p.X, p.Y, p.Z) < Rules.Attacks.LiveRange
+                            && !MissionStarts.Near(new GTA.Math.Vector3(front.Door.X, front.Door.Y, front.Door.Z)); // a fight by a mission start plays out off-screen
                 if (near && _liveFailed != a && StartLive(e, a, front)) return;
                 float dist = front.Door.DistanceTo(p.X, p.Y, p.Z);
                 if (now >= a.WindowEnds && liveOn && !a.Waited && _liveFailed != a && front.IsScouted

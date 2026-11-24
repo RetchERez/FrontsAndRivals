@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Globalization;
 using System.Threading;
 using FrontsAndRivals.Core;
@@ -10,11 +11,25 @@ static class CoreTests
     public static void Run()
     {
         FailureWindowTests();
+        FreeRoamTests();
         SchedulerTests();
         RngTests();
         ConfigTests();
         MarkerTests();
         DevFormatTests();
+    }
+
+    static void FreeRoamTests()
+    {
+        T.Section("Free roam only");
+        var block = new System.Collections.Generic.HashSet<string>(FreeRoamRules.Blocking);
+        T.True("Story missions, heists and Strangers and Freaks pause the mod", block.Contains("franklin1") && block.Contains("jewelry_heist") && block.Contains("rural_bank_prep1") && block.Contains("nigel1") && block.Contains("bailbond1") && block.Contains("assassin_valet"));
+        T.True("Side jobs and minigames pause it", block.Contains("taxiservice") && block.Contains("towing") && block.Contains("golf") && block.Contains("darts") && block.Contains("triathlonsp") && block.Contains("rampage3") && block.Contains("friendactivity") && block.Contains("director_mode"));
+        T.True("Always-on controllers, launchers and ambient watchers never do (or the mod would never run)",
+            FreeRoamRules.Blocking.All(n => !n.StartsWith("launcher_") && !n.StartsWith("controller_") && !n.EndsWith("_controller") && !n.EndsWith("amb") && !n.EndsWith("_ambient") && n != "main" && n != "blip_controller"));
+        T.True("No name twice", block.Count == FreeRoamRules.Blocking.Length);
+        T.True("Only Michael, Franklin and Trevor count as you", FreeRoamRules.Protagonists.Length == 3 && FreeRoamRules.Protagonists.Contains("player_one"));
+        T.True("Franklin's mission letters and Strangers and Freaks mark mission starts; a safehouse doesn't", FreeRoamRules.IsMissionStartSprite(212) && FreeRoamRules.IsMissionStartSprite(66) && !FreeRoamRules.IsMissionStartSprite(40));
     }
 
     static void FailureWindowTests()
