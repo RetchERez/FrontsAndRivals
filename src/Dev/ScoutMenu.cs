@@ -130,7 +130,8 @@ namespace FrontsAndRivals.Dev
             Vector3 p = Game.Player.Character.Position;
             if (f.Door.DistanceTo(p.X, p.Y, p.Z) > AutoPostPlacer.PlaceRange) { DevTools.Notify("Get within 100 m of the door first."); return; }
             int n = _placer.Place(f, true);
-            if (n == 0) { DevTools.Notify("No usable ground found near the door. Try again in a few seconds."); return; }
+            if (n < AutoPosts.Wanted) n = _placer.PlaceFromGround(f); // same top-up as the auto-scout
+            Log.Write("Scout: " + f.Id + " auto-place: " + _placer.LastReport);
             Saved(n + " posts placed automatically");
         }
 

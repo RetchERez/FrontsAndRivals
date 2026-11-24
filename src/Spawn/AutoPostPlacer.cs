@@ -74,8 +74,8 @@ namespace FrontsAndRivals.Spawn
             LastReport = chosen.Count + " placed; rejected: " + reasons[0] + " no walkable spot, " + reasons[1] + " road, "
                        + reasons[2] + " distance/height, " + reasons[3] + " spacing, " + reasons[4] + " out of sight of the door, "
                        + reasons[5] + " bad ground/overhead";
-            if (chosen.Count == 0) return def.Posts.Count;
             if (replace && chosen.Count == 0) def.Posts.Clear(); // redoing: old spots never survive a redo; the ground top-up fills in
+            if (chosen.Count == 0) return def.Posts.Count;
             if (replace || chosen.Count >= def.Posts.Count)
             {
                 def.Posts.Clear();
