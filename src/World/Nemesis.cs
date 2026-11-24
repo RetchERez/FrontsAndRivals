@@ -173,6 +173,27 @@ namespace FrontsAndRivals.Rules
             return true;
         }
 
+        /// <summary>Days a crew lies low after losing its boss, while the new one takes over.</summary>
+        public const int ShakenDays = 2;
+
+        /// <summary>The front a crew's boss stands at in person: its biggest (largest size, then best takings, then by
+        /// id so it never flickers). Null if the crew holds no fronts or has no boss.</summary>
+        public static string BossFront(EmpireState s, ContentDb content, string crewId)
+        {
+            CrewState crew = Crew(s, crewId);
+            if (crew == null || crew.Boss == null) return null;
+            FrontDef best = null;
+            foreach (FrontState f in s.Fronts)
+            {
+                if (f.Owner != crewId) continue;
+                FrontDef d = content.Front(f.Id);
+                if (d == null || !d.IsScouted) continue;
+                if (best == null || d.Tier > best.Tier || (d.Tier == best.Tier && (d.Income > best.Income || (d.Income == best.Income && string.CompareOrdinal(d.Id, best.Id) < 0))))
+                    best = d;
+            }
+            return best != null ? best.Id : null;
+        }
+
         /// <summary>After a member dies: grudge goes up, the empty chair is filled, or the crew collapses.
         /// Returns the story events to text the player about.</summary>
         public static List<Event> OnMemberDied(EmpireState s, ContentDb content, CrewState crew, CrewMember dead, string frontName, Random rng, int day)
@@ -195,6 +216,7 @@ namespace FrontsAndRivals.Rules
                 }
                 heir.Role = MemberRole.Boss;
                 heir.AddLog("Took over " + crewName + ".");
+                crew.QuietUntilDay = Math.Max(crew.QuietUntilDay, day + ShakenDays); // shaken while the new boss takes over
                 events.Add(Ev("newBoss", "leader", heir.DisplayName, "crew", crewName));
             }
             if (def != null && crew.Lieutenants().Count < 3)

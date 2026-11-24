@@ -20,6 +20,7 @@ namespace FrontsAndRivals.Spawn
     {
         public delegate void GuardDownHandler(GuardState guard, Ped ped, FrontDef front);
         public delegate void CrewGuardDownHandler(FrontDef front, string crewId, Ped ped, bool lastOne, bool byYou);
+        public delegate void CrewLeaderDownHandler(FrontDef front, string crewId, int memberId, bool byYou);
 
         private const float DoorReachedDistance = 2.5f;
         private const int LeaveTimeoutMs = 20000;
@@ -43,6 +44,7 @@ namespace FrontsAndRivals.Spawn
             public bool PatrolWalking;
             public int PatrolSince, PatrolNext; // game time
             public string Colour;        // the crew colour this guard was dressed in
+            public int MemberId;         // a crew leader standing this post in person (0 = an ordinary soldier)
         }
 
         private sealed class StreamedFront
@@ -97,6 +99,8 @@ namespace FrontsAndRivals.Spawn
         public string LiveFrontId;
         /// <summary>Raised when a rival crew's soldier at one of their fronts dies.</summary>
         public CrewGuardDownHandler OnCrewGuardDown;
+        /// <summary>Raised when a crew's boss, standing guard at their biggest front, dies.</summary>
+        public CrewLeaderDownHandler OnCrewLeaderDown;
 
         public Streamer(Registry registry, ContentDb content, Func<long> activeClock, GuardDownHandler onGuardDown)
         {
@@ -459,6 +463,8 @@ namespace FrontsAndRivals.Spawn
                         try { byCar = StreamRules.VehicleKill((int)body.CauseOfDeath, body.Killer is Vehicle); } catch { }
                         WatchFx.DropBlip(body); // no crew dot left on a body
                         if (ByYou(body)) f.KilledByYou = true;
+                        if (slot.MemberId > 0 && OnCrewLeaderDown != null) OnCrewLeaderDown(f.Def, f.Owner, slot.MemberId, ByYou(body));
+                        slot.MemberId = 0;
                         if (slot.Body != null) _registry.Despawn(slot.Body);
                         slot.Body = body;
                         slot.Ped = null;
@@ -477,7 +483,9 @@ namespace FrontsAndRivals.Spawn
                 }
                 if (slot.Killed) { killed++; continue; }
                 int pick = Markers.Hash(f.Def.Id) + post * 7;
-                Dressing dress = Wardrobe.ForCrew(f.Owner, pick); // in the crew's colour
+                // The boss stands the first post at the crew's biggest front, in person (in place of a soldier).
+                CrewMember boss = post == 0 && f.Def.Id == Nemesis.BossFront(_empire.State, _content, f.Owner) ? cs.Boss : null;
+                Dressing dress = boss != null ? Wardrobe.ForCrew(f.Owner, 7000 + boss.Id, true) : Wardrobe.ForCrew(f.Owner, pick); // in the crew's colour
                 string model = dress != null ? Wardrobe.ModelName(dress) : crew.Models[Math.Abs(f.Def.Id.GetHashCode() + post * 7) % crew.Models.Count];
                 int tier = f.Def.Tier, grudge = cs.Grudge + Heat.ExtraGrudge(_empire.State.Heat); // on alert: heavier guns
                 int index = post;
@@ -486,6 +494,7 @@ namespace FrontsAndRivals.Spawn
                 Load(slot, model, -1, 0, () =>
                 {
                     SpawnCrewGuard(slot, crew, CrewSpot(front.Def, index), hour, pick, tier, grudge, starter);
+                    if (slot.Ped != null && boss != null) MakeBoss(slot, boss);
                     if (slot.Ped != null) Wardrobe.Apply(slot.Ped, dress);
                     if (front.Alerted && slot.Ped != null) { slot.Ped.BlockPermanentEvents = false; slot.Ped.Task.FightAgainstHatedTargets(60f); }
                     else if (front.Watch == Watch.Warning && slot.Ped != null) { WatchFx.Raise(slot.Ped); WatchFx.Blip(_content, slot.Ped, front.Owner); } // joins the warning
@@ -762,6 +771,7 @@ namespace FrontsAndRivals.Spawn
                 {
                     WatchFx.Raise(p);
                     WatchFx.Blip(_content, p, f.Owner);
+                    if (s.MemberId > 0) WatchFx.NameBlip(p, BossName(f, s));
                     continue;
                 }
                 WatchFx.DropBlip(p);
@@ -794,8 +804,30 @@ namespace FrontsAndRivals.Spawn
                 s.Ped.BlockPermanentEvents = false;
                 s.Ped.Task.FightAgainstHatedTargets(60f);
                 WatchFx.Blip(_content, s.Ped, f.Owner); // a small blip in the crew's colour on every soldier in the fight
+                if (s.MemberId > 0) WatchFx.NameBlip(s.Ped, BossName(f, s));
             }
             Log.Write("Streamer: crew at " + f.Def.Id + " alerted");
+        }
+
+        /// <summary>The crew's boss in person: the best gun, a full vest, half again the health, and his name on the map
+        /// once the fight starts.</summary>
+        private static void MakeBoss(Slot slot, CrewMember boss)
+        {
+            slot.MemberId = boss.Id;
+            slot.Ped.Weapons.RemoveAll();
+            slot.Ped.Weapons.Give(WeaponHash.CarbineRifle, 400, false, true);
+            slot.Ped.Armor = 100;
+            slot.Ped.MaxHealth = Rules.Stats.CrewHealth * 3 / 2;
+            slot.Ped.Health = slot.Ped.MaxHealth;
+            slot.Ped.Accuracy = Math.Max(slot.Ped.Accuracy, 45);
+        }
+
+        /// <summary>The boss's name, for his map dot in a fight.</summary>
+        private string BossName(StreamedFront f, Slot s)
+        {
+            CrewState cs = Nemesis.Crew(_empire.State, f.Owner);
+            CrewMember m = cs != null ? cs.Member(s.MemberId) : null;
+            return m != null ? m.DisplayName + " (boss)" : null;
         }
 
         private void SpawnCrewGuard(Slot slot, CrewDef crew, PostDef post, int hour, int pick, int tier, int grudge, bool starter)
@@ -882,6 +914,7 @@ namespace FrontsAndRivals.Spawn
                 Slot s = f.Slots[i];
                 CancelPending(s);
                 s.Killed = false;
+                s.MemberId = 0;
                 if (i == 0)
                 {
                     foreach (Ped p in f.Backup) if (p != null && p.Exists()) _registry.Despawn(p);

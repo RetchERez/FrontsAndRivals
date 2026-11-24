@@ -39,6 +39,7 @@ namespace FrontsAndRivals.Attacks
             _content = content; _config = config; _empire = empire; _rng = rng; _now = now; _sinceLoad = sinceLoad;
             _changed = changed; _banners = banners; _notifier = notifier; _streamer = streamer; _live = live;
             _streamer.OnCrewGuardDown = OnCrewGuardDown;
+            _streamer.OnCrewLeaderDown = OnCrewLeaderDown;
         }
 
         /// <summary>Dev tools: start an attack on one of your fronts right away.</summary>
@@ -180,8 +181,8 @@ namespace FrontsAndRivals.Attacks
             Tips.Show(Tip.Attack);
             int minutes = (int)Math.Max(1, Math.Round((a.WindowEnds - now) / (double)Rules.Attacks.Minute));
             bool live = _config.LiveDefense && !s.LiveDefenseOff;
-            string text = crew.Name + " are hitting the " + front.ShortName + " right now. Your people can hold about " + minutes
-                + (minutes == 1 ? " minute." : " minutes.");
+            string text = crew.Name + " are hitting the " + front.ShortName + " right now" + (leader != null ? ", led by " + leader.DisplayName : "")
+                + ". Your people can hold about " + minutes + (minutes == 1 ? " minute." : " minutes.");
             if (live) text += " Get there and fight beside them, or leave it to them." + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS.");
             _notifierPost(NoteKind.AttackWarning, "The Office", front.ShortName + " under attack", text);
             if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
@@ -438,6 +439,28 @@ namespace FrontsAndRivals.Attacks
         }
 
         private const float ClaimNear = 100f;
+
+        /// <summary>A crew's boss went down at their own front: the nemesis loop takes over (a lieutenant steps up and the
+        /// crew lies low a couple of days, or it collapses).</summary>
+        private void OnCrewLeaderDown(FrontDef front, string crewId, int memberId, bool byYou)
+        {
+            Empire e = _empire();
+            if (e == null) return;
+            CrewState cs = Nemesis.Crew(e.State, crewId);
+            CrewDef crew = _content.Crew(crewId);
+            CrewMember boss = cs != null ? cs.Member(memberId) : null;
+            if (boss == null || !boss.Alive || crew == null) return;
+            boss.Alive = false;
+            boss.AddLog("Killed at the " + front.ShortName + ".");
+            if (byYou) { _banners.Show("NEMESIS KILLED", boss.DisplayName + " won't be back."); Sounds.Play(Cue.NemesisKilled); }
+            foreach (Nemesis.Event ev in Nemesis.OnMemberDied(e.State, _content, cs, boss, front.ShortName, _rng(), e.State.Day))
+            {
+                string line = _content.Lines.Pick(_rng(), ev.Moment, ev.Tokens);
+                if (!string.IsNullOrEmpty(line)) _notifierPost(KindFor(ev.Moment), crew.Name, Title(ev.Moment), line);
+            }
+            Log.Write("Director: " + crewId + " boss " + boss.DisplayName + " killed at " + front.Id + (byYou ? " by you" : ""));
+            _changed();
+        }
 
         private string CrewName(string id) { CrewDef c = _content.Crew(id); return c != null ? c.Name : "crew"; }
 

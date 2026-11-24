@@ -128,6 +128,18 @@ namespace FrontsAndRivals.Spawn
             catch (Exception ex) { Log.Error("Crew blip", ex); }
         }
 
+        /// <summary>A leader's dot: bigger, and named, so you can find the boss in a fight.</summary>
+        public static void NameBlip(Ped p, string name)
+        {
+            try
+            {
+                if (name == null || p.AttachedBlip == null || !p.AttachedBlip.Exists()) return;
+                p.AttachedBlip.Name = name;
+                p.AttachedBlip.Scale = 0.95f;
+            }
+            catch { }
+        }
+
         public static void DropBlip(Ped p)
         {
             try { if (p.AttachedBlip != null && p.AttachedBlip.Exists()) p.AttachedBlip.Delete(); } catch { }

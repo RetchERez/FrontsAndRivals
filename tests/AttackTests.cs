@@ -55,6 +55,21 @@ static class AttackTests
         int swapped = Nemesis.RefreshModels(oldSave, mcontent);
         T.True("An older save's dropped models are swapped on load, keeping the gender", swapped == 2
             && mcontent.Models.GuardsFemale.Contains(oldSave.Guards[0].Model) && mcontent.Crew(oldSave.Crews[0].Id).Models.Contains(oldSave.Crews[0].Members[0].Model));
+        {
+            var ls = SaveService.NewEmpire();
+            var le = new Empire(ls, mcontent);
+            Nemesis.EnsureCrews(ls, mcontent, new Random(4));
+            string bf = Nemesis.BossFront(ls, mcontent, "VS");
+            FrontDef bd = bf != null ? mcontent.Front(bf) : null;
+            T.True("A crew's boss stands guard at its biggest front", bd != null && le.OwnerOf(bf) == "VS"
+                && mcontent.Fronts.Where(f => le.OwnerOf(f.Id) == "VS" && f.IsScouted).All(f => f.Tier <= bd.Tier));
+            T.True("...the same front every time", Nemesis.BossFront(ls, mcontent, "VS") == bf);
+            CrewState vsc = Nemesis.Crew(ls, "VS");
+            CrewMember oldBoss = vsc.Boss;
+            oldBoss.Alive = false;
+            Nemesis.OnMemberDied(ls, mcontent, vsc, oldBoss, "Club", new Random(1), ls.Day);
+            T.True("Lose the boss: a lieutenant takes over and the crew lies low a couple of days", vsc.Boss != null && vsc.Boss != oldBoss && Nemesis.IsQuiet(vsc, ls.Day) && !Nemesis.IsQuiet(vsc, ls.Day + Nemesis.ShakenDays));
+        }
         T.True("Crew soldiers by size: car wash 3, small 3, mid 5, big 8", FrontDef.CrewSoldiers(mcontent.Front("carwash_handson")) == 3
             && FrontDef.CrewSoldiers(new FrontDef { Tier = 0 }) == 3 && FrontDef.CrewSoldiers(new FrontDef { Tier = 1 }) == 5 && FrontDef.CrewSoldiers(new FrontDef { Tier = 2 }) == 8);
         T.True("A crew with nobody to spare still keeps a skeleton guard: 2 small, 3 mid, 4 big",
