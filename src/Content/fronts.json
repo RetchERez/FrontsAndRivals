@@ -74,8 +74,8 @@
     "posts": [
       { "x": 58.65, "y": -256.28, "z": 49.00, "h": 105.9, "scenario": "WORLD_HUMAN_GUARD_STAND" },
       { "x": 60.21, "y": -260.38, "z": 49.00, "h": 152.8, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": 64.14, "y": -253.95, "z": 49.00, "h": 313.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 60.48, "y": -251.07, "z": 49.00, "h": 31.8, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": 64.92, "y": -248.18, "z": 49.00, "h": 344.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 54.91, "y": -257.88, "z": 49.75, "h": 109.3, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -94,8 +94,8 @@
     "posts": [
       { "x": -1177.61, "y": -1271.20, "z": 6.75, "h": 130.9, "scenario": "WORLD_HUMAN_GUARD_STAND" },
       { "x": -1175.66, "y": -1260.89, "z": 8.00, "h": 58.1, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": -1172.27, "y": -1264.49, "z": 7.75, "h": 89.8, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": -1168.98, "y": -1267.37, "z": 6.20, "h": 197.0, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": -1171.27, "y": -1267.15, "z": 6.20, "h": 152.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": -1172.51, "y": -1263.09, "z": 7.01, "h": 62.0, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -113,9 +113,9 @@
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
     "posts": [
       { "x": 100.58, "y": -1308.66, "z": 30.25, "h": 296.5, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 98.58, "y": -1304.84, "z": 30.25, "h": 3.9, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": 96.58, "y": -1308.90, "z": 30.25, "h": 75.5, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 92.31, "y": -1311.32, "z": 30.25, "h": 105.4, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": 90.60, "y": -1308.27, "z": 30.25, "h": 81.5, "scenario": "WORLD_HUMAN_SMOKING" },
+      { "x": 86.98, "y": -1306.13, "z": 30.13, "h": 74.2, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 96.36, "y": -1311.09, "z": 29.29, "h": 122.0, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -132,10 +132,10 @@
     "door": { "x": 130.90, "y": -1771.80, "z": 29.70, "h": 320.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
     "posts": [
-      { "x": 135.16, "y": -1769.08, "z": 30.13, "h": 302.6, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 130.67, "y": -1764.78, "z": 30.13, "h": 1.9, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": 125.33, "y": -1760.59, "z": 30.13, "h": 26.4, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 143.94, "y": -1774.76, "z": 30.13, "h": 257.2, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": 132.50, "y": -1764.85, "z": 30.13, "h": 347.1, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 140.13, "y": -1771.42, "z": 30.13, "h": 272.4, "scenario": "WORLD_HUMAN_SMOKING" },
+      { "x": 129.25, "y": -1761.49, "z": 30.13, "h": 9.1, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 128.74, "y": -1766.80, "z": 30.25, "h": 23.4, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -169,11 +169,13 @@
     "income": 5000,
     "startOwner": "CK",
     "starter": false,
-    "door": { "x": 225.60, "y": -1749.90, "z": 29.30, "h": 33.0 },
+    "door": { "x": 226.04, "y": -1747.21, "z": 29.21, "h": 161.7 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
     "posts": [
-      { "x": 222.67, "y": -1749.28, "z": 31.77, "h": 78.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 226.22, "y": -1746.97, "z": 31.97, "h": 348.0, "scenario": "WORLD_HUMAN_SMOKING" }
+      { "x": 226.27, "y": -1744.04, "z": 30.00, "h": 355.9, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 229.12, "y": -1741.89, "z": 30.13, "h": 330.0, "scenario": "WORLD_HUMAN_SMOKING" },
+      { "x": 234.93, "y": -1738.82, "z": 30.00, "h": 313.3, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 217.39, "y": -1744.00, "z": 29.88, "h": 69.7, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -313,7 +315,7 @@
       { "x": 754.92, "y": -1353.20, "z": 27.25, "h": 79.1, "scenario": "WORLD_HUMAN_GUARD_STAND" },
       { "x": 770.72, "y": -1354.69, "z": 27.25, "h": 274.0, "scenario": "WORLD_HUMAN_SMOKING" },
       { "x": 761.88, "y": -1355.78, "z": 26.43, "h": 103.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 765.47, "y": -1358.02, "z": 27.88, "h": 193.0, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": 767.34, "y": -1356.69, "z": 26.47, "h": 238.0, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -350,10 +352,10 @@
     "door": { "x": 1168.80, "y": -290.90, "z": 69.00, "h": 329.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
     "posts": [
-      { "x": 1171.97, "y": -281.01, "z": 69.88, "h": 342.2, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 1178.62, "y": -290.51, "z": 70.00, "h": 272.3, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": 1181.16, "y": -287.53, "z": 69.88, "h": 285.3, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 1172.11, "y": -277.36, "z": 69.88, "h": 346.2, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": 1175.78, "y": -286.41, "z": 69.88, "h": 302.8, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 1181.76, "y": -292.30, "z": 69.88, "h": 263.8, "scenario": "WORLD_HUMAN_SMOKING" },
+      { "x": 1172.11, "y": -277.36, "z": 69.88, "h": 346.2, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 1170.94, "y": -286.58, "z": 69.88, "h": 333.7, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -372,8 +374,8 @@
     "posts": [
       { "x": 1239.45, "y": -369.98, "z": 70.00, "h": 147.6, "scenario": "WORLD_HUMAN_GUARD_STAND" },
       { "x": 1245.74, "y": -372.21, "z": 70.00, "h": 221.6, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": 1234.02, "y": -367.12, "z": 70.00, "h": 89.7, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": 1245.49, "y": -375.81, "z": 69.88, "h": 206.1, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": 1245.49, "y": -375.81, "z": 69.88, "h": 206.1, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": 1231.99, "y": -367.72, "z": 70.00, "h": 93.5, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -430,10 +432,10 @@
     "door": { "x": -84.96, "y": 235.74, "z": 100.56, "h": 2.0 },
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
     "posts": [
-      { "x": -79.27, "y": 240.95, "z": 102.00, "h": 312.5, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": -89.64, "y": 241.80, "z": 100.75, "h": 37.7, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": -76.01, "y": 245.33, "z": 102.38, "h": 317.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": -89.74, "y": 236.65, "z": 101.50, "h": 79.2, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": -87.19, "y": 240.98, "z": 101.00, "h": 23.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": -91.99, "y": 242.95, "z": 100.50, "h": 44.3, "scenario": "WORLD_HUMAN_SMOKING" },
+      { "x": -70.87, "y": 238.62, "z": 101.50, "h": 281.5, "scenario": "WORLD_HUMAN_GUARD_STAND" },
+      { "x": -87.96, "y": 235.64, "z": 100.56, "h": 92.0, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -493,7 +495,7 @@
       { "x": -1304.41, "y": -926.71, "z": 12.25, "h": 312.5, "scenario": "WORLD_HUMAN_GUARD_STAND" },
       { "x": -1305.63, "y": -923.01, "z": 12.25, "h": 337.3, "scenario": "WORLD_HUMAN_SMOKING" },
       { "x": -1304.72, "y": -919.08, "z": 12.25, "h": 340.4, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": -1313.09, "y": -930.21, "z": 14.25, "h": 81.4, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": -1307.34, "y": -933.79, "z": 13.50, "h": 208.1, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
     ],
     "convoySpawns": []
   },
@@ -511,9 +513,7 @@
     "ownerSpot": { "x": 0.00, "y": 0.00, "z": 0.00, "h": 0.0 },
     "posts": [
       { "x": -1492.80, "y": -385.55, "z": 40.63, "h": 137.8, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": -1486.05, "y": -377.16, "z": 40.16, "h": 330.0, "scenario": "WORLD_HUMAN_SMOKING" },
-      { "x": -1490.15, "y": -378.26, "z": 40.16, "h": 60.0, "scenario": "WORLD_HUMAN_GUARD_STAND" },
-      { "x": -1489.05, "y": -382.36, "z": 40.16, "h": 150.0, "scenario": "WORLD_HUMAN_STAND_MOBILE" }
+      { "x": -1486.77, "y": -382.66, "z": 40.16, "h": 195.0, "scenario": "WORLD_HUMAN_SMOKING" }
     ],
     "convoySpawns": []
   },

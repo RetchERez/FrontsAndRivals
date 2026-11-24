@@ -39,7 +39,7 @@ namespace FrontsAndRivals.Dev
         private readonly NativeMenu _menu;
         private readonly GTA.UI.TextElement _counter;
         private readonly List<PendingSpawn> _pending = new List<PendingSpawn>();
-        private bool _showCounter = false; // the on-screen counter only shows when ticked in the dev menu
+        private bool _showCounter = true; // dev tools only: nothing here exists with DevTools=false (the release)
         private bool _openPending; // opened from the Office: wait until Select is let go
 
         /// <summary>Other dev panels (ScoutMenu) hang off this pool and menu.</summary>
