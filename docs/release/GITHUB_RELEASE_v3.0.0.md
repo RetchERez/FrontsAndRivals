@@ -10,6 +10,8 @@ A big update. Your empire carries over (a copy of it is kept first, as always).
 - The turf map: every front's block shaded in its owner's colour on GTA's own map, so you can see who holds what at a glance
 - Bosses in person: each crew's boss stands guard at its biggest front, named on the map in a fight, and taking him out sends the crew into hiding while a new boss takes over
 - Raids that stay worth sending: a bigger party as your empire grows, and honest advice when a front is best taken yourself
+- Fights feel alive: badly hurt attackers make a run for it, an outnumbered crew breaks and runs, and anyone who runs gets away in their own car, any car nearby, or on foot
+- Street crews aren't trigger-happy: they look at you and tell you to move along, and only fight if you shoot near them, aim at one or hurt one
 - One midnight report instead of a text for each thing, and texts that are never cut off
 
 The full list, with every fix, is in the changelog and at the end of README.txt.

@@ -53,6 +53,8 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - The turf map: every front's block shaded in its owner's colour on GTA's own map, so you can see who holds what at a glance
 - Bosses in person: each crew's boss stands guard at its biggest front, named on the map in a fight, and taking him out sends the crew into hiding while a new boss takes over
 - Raids that stay worth sending: a bigger party as your empire grows, and honest advice when a front is best taken yourself
+- Fights feel alive: badly hurt attackers make a run for it, an outnumbered crew breaks and runs, and anyone who runs gets away in their own car, any car nearby, or on foot
+- Street crews aren't trigger-happy: they look at you and tell you to move along, and only fight if you shoot near them, aim at one or hurt one
 - One midnight report instead of a text for each thing, and texts that are never cut off
 
 
@@ -89,7 +91,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 - Back off and they go back to work
 - Tempers vary: small fronts warn longest, hot streets and angry crews barely warn, and Hellfire MC have the shortest fuse
 - Sneak up if you'd rather: they only notice what they can see, crouching and darkness let you get much closer, and silenced shots are only heard up close
-- Street crews hanging out on their turf warn you off the same way before they fight
+- Street crews hanging out on their turf tell you to move along if you get in their face, and only fight if you start it
 
 ### Street Life
 

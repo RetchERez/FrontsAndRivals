@@ -109,6 +109,11 @@ WHAT'S IN 3.0
    while a new boss takes over
  - Raids that stay worth sending: a bigger party as your empire grows, and
    honest advice when a front is best taken yourself
+ - Fights feel alive: badly hurt attackers make a run for it, an outnumbered
+   crew breaks and runs, and anyone who runs gets away in their own car, any
+   car nearby, or on foot
+ - Street crews aren't trigger-happy: they look at you and tell you to move
+   along, and only fight if you shoot near them, aim at one or hurt one
  - One midnight report instead of a text for each thing, and texts that are
    never cut off
 
@@ -168,8 +173,8 @@ WHAT'S IN 3.0
  - Sneak up if you'd rather: they only notice what they can see, crouching
    and darkness let you get much closer, and silenced shots are only heard up
    close
- - Street crews hanging out on their turf warn you off the same way before
-   they fight
+ - Street crews hanging out on their turf tell you to move along if you get in
+   their face, and only fight if you start it
 
   STREET LIFE
  - Crews on their streets, like Saints Row: they hang out, walk the block or
