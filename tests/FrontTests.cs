@@ -280,7 +280,7 @@ static class FrontTests
         }
         T.True("Vinewood Elite all wear the blue long suit", Enumerable.Range(0, 200).All(i => { var x = OutfitRules.Choose(od, "VS", "blue", i); return x.Look.Uniform && x.Look.Under == "shirt"; }));
         T.True("Your crew wears the uniform of your style when it comes in your colour, the nearest look otherwise", Enumerable.Range(0, 100).All(i => OutfitRules.Choose(od, "player_smart", "blue", i).Look.Uniform)
-            && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od, "player_smart", "red", i); return x != null && !x.Look.Uniform; }));
+            && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od, "player_smart", "black", i); return x != null && !x.Look.Uniform; }));
         T.True("The same guard always looks the same", OutfitRules.Choose(od, "player_street", "red", 42).Hair == OutfitRules.Choose(od, "player_street", "red", 42).Hair);
         T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));
         be2.SetOwner("carwash_handson", Owners.Velvet); // lost it to another crew
