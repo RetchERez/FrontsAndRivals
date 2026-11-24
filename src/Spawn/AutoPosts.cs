@@ -15,9 +15,11 @@ namespace FrontsAndRivals.Spawn
         public const float MinSpacing = 3.5f;   // metres between two guards
         public const float MinFromDoor = 1.5f;  // don't stand in the doorway
         public const float MaxFromDoor = 18f;   // stay with the building
-        public const float MaxHeightDiff = 3f;  // same floor as the door (no rooftops, no basements)
-        public const float RootHeight = 1.0f;
-        public const float GroundMaxRise = 1.5f; // ground-probe posts: within a step or two of the door's level   // navmesh gives the ground; a ped's position is about 1 m up
+        public const float MaxHeightDiff = 2f;  // same floor as the door (no rooftops, ledges or basements)
+        public const float WallClearance = 0.7f; // nothing solid this close round a guard at chest height (about 2 ft)
+        public const float LedgeCheck = 1.0f;    // the ground this far out all round (about 3 ft)...
+        public const float MaxStep = 0.6f;       // ...is no more than this above or below: no ledge, drop or wall top
+        public const float RootHeight = 1.0f;   // navmesh gives the ground; a ped's position is about 1 m up
 
         /// <summary>Idles handed out in order: two stand guard, one smokes, one is on the phone.</summary>
         public static readonly string[] Idles =

@@ -363,6 +363,8 @@ static class FrontTests
         T.True("Standing in the doorway is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100.5f, 200.5f, 29f));
         T.True("More than 18 m away is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 219f, 29f));
         T.True("A rooftop 6 m up is refused", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 205f, 35f));
+        T.True("A ledge 2.5 m above the door's level is refused, a step of 1.5 m is fine", !AutoPosts.Accept(door, new List<PostDef>(), 100f, 205f, 31.5f) && AutoPosts.Accept(door, new List<PostDef>(), 100f, 205f, 30.5f));
+        T.True("Wall and ledge rule: 0.7 m clear all round, ground within 0.6 m for 1 m out", AutoPosts.WallClearance == 0.7f && AutoPosts.LedgeCheck == 1.0f && AutoPosts.MaxStep == 0.6f);
         var ground = AutoPosts.GroundProbes(door);
         T.Check("Ground fallback: 32 probes (four rings of 8)", ground.Count, 32, 0);
         T.Check("...the first 3 m straight out front", ground[0][1] - door.Y, 3, 0.01);

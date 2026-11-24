@@ -75,6 +75,7 @@ namespace FrontsAndRivals.Spawn
                        + reasons[2] + " distance/height, " + reasons[3] + " spacing, " + reasons[4] + " out of sight of the door, "
                        + reasons[5] + " bad ground/overhead";
             if (chosen.Count == 0) return def.Posts.Count;
+            if (replace && chosen.Count == 0) def.Posts.Clear(); // redoing: old spots never survive a redo; the ground top-up fills in
             if (replace || chosen.Count >= def.Posts.Count)
             {
                 def.Posts.Clear();
@@ -101,7 +102,7 @@ namespace FrontsAndRivals.Spawn
                     checkedSpots++;
                     // Look down from just above head height, so an awning or a shop sign isn't taken for the ground.
                     float g = GTA.World.GetGroundHeight(new Vector3(probe[0], probe[1], def.Door.Z + 1.5f));
-                    if (g == 0f || System.Math.Abs(g + AutoPosts.RootHeight - def.Door.Z) > AutoPosts.GroundMaxRise) continue;
+                    if (g == 0f || System.Math.Abs(g + AutoPosts.RootHeight - def.Door.Z) > AutoPosts.MaxHeightDiff) continue;
                     var spot = new Vector3(probe[0], probe[1], g);
                     if (pass == 0 && Function.Call<bool>(Hash.IS_POINT_ON_ROAD, spot.X, spot.Y, spot.Z, 0)) continue;
                     if (!AutoPosts.Accept(def.Door, chosen, spot.X, spot.Y, spot.Z, 1.0f)) continue;
@@ -153,12 +154,32 @@ namespace FrontsAndRivals.Spawn
 
         /// <summary>Solid ground right under the spot (not floating over a drop), and 2 m of clear headroom
         /// (not tucked under stairs, an awning edge or a low overhang).</summary>
-        private static bool GoodFooting(Vector3 ground)
+        public static bool GoodFooting(Vector3 ground)
         {
             float g = GTA.World.GetGroundHeight(new Vector3(ground.X, ground.Y, ground.Z + 1.5f));
             if (g == 0f || System.Math.Abs(g - ground.Z) > 1.0f) return false;
             RaycastResult up = GTA.World.Raycast(ground + new Vector3(0f, 0f, 0.3f), ground + new Vector3(0f, 0f, 2.2f), Solid, Game.Player.Character);
-            return !up.DidHit;
+            if (up.DidHit) return false;
+            return Clear(new Vector3(ground.X, ground.Y, g));
+        }
+
+        /// <summary>The general rule for anywhere a guard stands: no wall, fence or prop within WallClearance at chest
+        /// height in any of 8 directions, and the ground LedgeCheck out all round within MaxStep of theirs (no ledge edge,
+        /// drop, raised kerb top or wall top). ground = the ground under them.</summary>
+        public static bool Clear(Vector3 ground)
+        {
+            Vector3 chest = ground + new Vector3(0f, 0f, 1.2f);
+            for (int k = 0; k < 8; k++)
+            {
+                double a = k * System.Math.PI / 4.0;
+                var dir = new Vector3((float)System.Math.Cos(a), (float)System.Math.Sin(a), 0f);
+                RaycastResult wall = GTA.World.Raycast(chest, chest + dir * AutoPosts.WallClearance, Solid, Game.Player.Character);
+                if (wall.DidHit) return false;
+                Vector3 out1 = ground + dir * AutoPosts.LedgeCheck;
+                float og = GTA.World.GetGroundHeight(new Vector3(out1.X, out1.Y, ground.Z + 1.5f));
+                if (og == 0f || System.Math.Abs(og - ground.Z) > AutoPosts.MaxStep) return false;
+            }
+            return true;
         }
 
         /// <summary>Forget every retry timer (a new empire's clock starts again at zero).</summary>

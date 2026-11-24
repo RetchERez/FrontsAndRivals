@@ -657,8 +657,9 @@ namespace FrontsAndRivals.Spawn
                 RaycastResult r = GTA.World.Raycast(post, t, IntersectFlags.Map, null);
                 if (r.DidHit) continue;
                 float g = GTA.World.GetGroundHeight(new Vector3(t.X, t.Y, p.Z + 1.5f));
-                if (g <= 0f || Math.Abs(g - p.Z) > 1.2f) continue;
-                return new PostDef { X = t.X, Y = t.Y, Z = g, H = p.H, Scenario = i % 2 == 0 ? "WORLD_HUMAN_SMOKING" : p.Scenario };
+                if (g <= 0f || Math.Abs(g + AutoPosts.RootHeight - p.Z) > AutoPosts.MaxStep) continue; // the post's own level
+                if (!AutoPostPlacer.Clear(new Vector3(t.X, t.Y, g))) continue; // same wall and ledge rule as the posts
+                return new PostDef { X = t.X, Y = t.Y, Z = g + AutoPosts.RootHeight, H = p.H, Scenario = i % 2 == 0 ? "WORLD_HUMAN_SMOKING" : p.Scenario };
             }
             return p == null ? null : new PostDef { X = p.X + 0.6f * sign, Y = p.Y, Z = p.Z, H = p.H, Scenario = "WORLD_HUMAN_SMOKING" };
         }
