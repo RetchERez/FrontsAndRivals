@@ -39,7 +39,7 @@ namespace FrontsAndRivals.UI
             {
                 case Tip.Office: return "This is the Office. ~INPUT_FRONTEND_ACCEPT~ opens a section, ~INPUT_FRONTEND_CANCEL~ goes back. Fronts lists every business, Guards your people, Hire Recruits today's new faces.";
                 case Tip.Posting: return "New hires wait in the reserve. Open one of your fronts and choose Fill Empty Posts, or pick a post on the guard's own page.";
-                case Tip.Attack: return "One of your fronts is under attack. Your guards hold for a few minutes (the timer, bottom right): get there to fight it yourself for a bonus, or leave it to them.";
+                case Tip.Attack: return "One of your fronts is under attack. Your guards hold for a few minutes (the timer, bottom right): get there to fight beside them, or leave it to them.";
                 case Tip.BuyAtDoor: return "Clear a rival front's soldiers, then stand at the door to claim it.";
                 case Tip.Warned: return "Rival crews usually warn you before they shoot. Walk away, or start the fight on your terms. Crouch and stay out of sight to get closer before they notice you. Settings > How It Works explains it all.";
                 case Tip.Bodyguard: return "Your bodyguard follows you everywhere, even into your car. Untick Bodyguard on their page to send them back to their post.";

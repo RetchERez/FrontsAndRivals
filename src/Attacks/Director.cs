@@ -182,8 +182,7 @@ namespace FrontsAndRivals.Attacks
             bool live = _config.LiveDefense && !s.LiveDefenseOff;
             string text = "The " + crew.Name + " are hitting the " + front.ShortName + " right now. Your people can hold about " + minutes
                 + (minutes == 1 ? " minute." : " minutes.");
-            if (live) text += " Get there and hold the door yourself for a $" + Economy.DefendBonus(e.FrontIncome(front.Id), _config.IncomeMultiplier).ToString("N0") + " bonus."
-                + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS.");
+            if (live) text += " Get there and fight beside them, or leave it to them." + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS.");
             _notifierPost(NoteKind.AttackWarning, "The Office", front.ShortName + " under attack", text);
             if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
                 _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(_rng(), "taunt", tokens));
@@ -339,10 +338,9 @@ namespace FrontsAndRivals.Attacks
                 _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " held", _content.Lines.Pick(rng, "held", tokens));
                 if (wasThere)
                 {
-                    int bonus = Economy.DefendBonus(e.FrontIncome(front.Id), _config.IncomeMultiplier);
-                    Game.Player.Money += bonus;
-                    _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ". Holding it yourself paid $" + bonus.ToString("N0") + ".");
-                    Log.Write("Director: defended in person, bonus $" + bonus);
+                    // No pay for defending your own front: keeping it is the reward.
+                    _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ".");
+                    Log.Write("Director: defended in person");
                 }
                 Sounds.Play(Cue.FrontDefended);
                 if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat && leader.Alive)

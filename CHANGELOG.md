@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0 (in progress)
+
+- No more cash bonus for defending your own front in person: keeping it is the reward
+
 ## 2.2.0 (2026-11-23)
 
 Fixes from player reports:

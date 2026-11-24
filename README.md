@@ -88,7 +88,7 @@ Windows may need to let mods create files in the GTA V folder; the mod saves to 
 
 ### Fights
 
-- Attacks with no warning: one alert, a timer showing how long your guards can hold (about 5 minutes, more with Cameras), a GPS route and a bonus for holding the door yourself
+- Attacks with no warning: one alert, a timer showing how long your guards can hold (about 5 minutes, more with Cameras), a GPS route if you want to fight beside your guards
 - Live defenses within 300 m: crews arrive in convoys in their own vehicles (Hellfire MC on motorcycles), with their own guns and the odd explosive
 - Everyone in a fight, yours and theirs, has twice an ordinary person's health, so fights last
 - Running soldiers over counts, but the whole front opens fire on your car and calls for backup

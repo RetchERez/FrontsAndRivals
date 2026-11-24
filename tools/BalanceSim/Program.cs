@@ -174,7 +174,7 @@ static class Sim
                 if (kind == 0) { st.AttEmpty++; if (o.DefendersWon) st.AttEmptyWon++; }
                 else if (kind == 1) { st.AttPartial++; if (o.DefendersWon) st.AttPartialWon++; }
                 else { st.AttFull++; if (o.DefendersWon) st.AttFullWon++; }
-                if (o.DefendersWon) { st.AttacksWon++; if (live == true) cash += Economy.DefendBonus(e.FrontIncome(a.Front), 1.0); }
+                if (o.DefendersWon) st.AttacksWon++; // no pay for defending your own front
                 if (o.FrontLost) { st.FrontsLost++; st.LossStreak++; st.LongestLossStreak = Math.Max(st.LongestLossStreak, st.LossStreak); }
                 else st.LossStreak = 0;
                 st.LastEventDay = s.Day;
