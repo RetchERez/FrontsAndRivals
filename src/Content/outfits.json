@@ -3147,51 +3147,23 @@
   "IR": [
    {
     "slot": "hat",
-    "chance": 0.35,
+    "chance": 0.4,
     "m": [
      {
-      "d": 183,
-      "t": {
-       "orange": 9,
-       "forest": 18,
-       "teal": 14,
-       "lightblue": 16,
-       "blue": 12,
-       "purple": 24,
-       "burgundy": 6,
-       "cyan": 15,
-       "lime": 21,
-       "lavender": 23,
-       "brightblue": 13,
-       "black": 0,
-       "grey": 2
-      }
+      "d": 85,
+      "t0": 0
      }
     ],
     "f": [
      {
-      "d": 182,
-      "t": {
-       "orange": 9,
-       "forest": 18,
-       "teal": 14,
-       "lightblue": 16,
-       "blue": 12,
-       "purple": 24,
-       "burgundy": 6,
-       "cyan": 15,
-       "lime": 21,
-       "lavender": 23,
-       "brightblue": 13,
-       "black": 0,
-       "grey": 2
-      }
+      "d": 84,
+      "t0": 0
      }
     ]
    },
    {
     "slot": "glasses",
-    "chance": 0.5,
+    "chance": 0.55,
     "m": [
      {
       "d": 1,
@@ -3216,34 +3188,36 @@
     "m": [
      {
       "d": 51,
-      "t": {
-       "yellow": 8,
-       "green": 5,
-       "forest": 4,
-       "purple": 6,
-       "black": 0
-      },
-      "t0": 0,
-      "fallback": true
+      "t0": 1
      }
     ],
     "f": [
      {
       "d": 51,
-      "t": {
-       "yellow": 8,
-       "green": 5,
-       "forest": 4,
-       "purple": 6,
-       "black": 0
-      },
-      "t0": 0,
-      "fallback": true
+      "t0": 1
      }
     ]
    }
   ],
   "VS": [
+   {
+    "slot": "hat",
+    "chance": 0.35,
+    "m": [
+     {
+      "d": 29,
+      "t": {
+       "white": 2,
+       "red": 4,
+       "blue": 7,
+       "brightblue": 7,
+       "black": 1,
+       "grey": 0
+      }
+     }
+    ],
+    "f": []
+   },
    {
     "slot": "neck",
     "chance": 1.0,
@@ -3369,42 +3343,14 @@
     "chance": 0.35,
     "m": [
      {
-      "d": 183,
-      "t": {
-       "orange": 9,
-       "forest": 18,
-       "teal": 14,
-       "lightblue": 16,
-       "blue": 12,
-       "purple": 24,
-       "burgundy": 6,
-       "cyan": 15,
-       "lime": 21,
-       "lavender": 23,
-       "brightblue": 13,
-       "black": 0,
-       "grey": 2
-      }
+      "d": 85,
+      "t0": 0
      }
     ],
     "f": [
      {
-      "d": 182,
-      "t": {
-       "orange": 9,
-       "forest": 18,
-       "teal": 14,
-       "lightblue": 16,
-       "blue": 12,
-       "purple": 24,
-       "burgundy": 6,
-       "cyan": 15,
-       "lime": 21,
-       "lavender": 23,
-       "brightblue": 13,
-       "black": 0,
-       "grey": 2
-      }
+      "d": 84,
+      "t0": 0
      }
     ]
    },
@@ -3430,6 +3376,24 @@
    }
   ],
   "player_smart": [
+   {
+    "slot": "hat",
+    "chance": 0.3,
+    "m": [
+     {
+      "d": 29,
+      "t": {
+       "white": 2,
+       "red": 4,
+       "blue": 7,
+       "brightblue": 7,
+       "black": 1,
+       "grey": 0
+      }
+     }
+    ],
+    "f": []
+   },
    {
     "slot": "neck",
     "chance": 1.0,

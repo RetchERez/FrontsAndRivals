@@ -253,8 +253,14 @@ static class FrontTests
             T.True("...and their beanie is the Dark Green one", many.Where(x => !x.Female).SelectMany(x => x.Extras).Where(e => e.Slot == "hat").All(e => e.Texture == ck.Textures["forest"]));
             var ir = Enumerable.Range(0, 400).Select(i => OutfitRules.Choose(od, "IR", "orange", i)).Where(x => x != null).ToList();
             var irMask = od.Extras["IR"].First(e => e.Slot == "mask").Male[0];
-            T.True("Hellfire MC: orange beanies, black bandanas (there's no orange one)", ir.SelectMany(x => x.Extras).Where(e => e.Slot == "mask").All(e => e.Texture == irMask.FixedTexture) && ir.Any(x => x.Extras.Any(e => e.Slot == "glasses")));
+            T.True("Hellfire MC: biker skull caps, wraparounds and skull bandanas", ir.SelectMany(x => x.Extras).Where(e => e.Slot == "mask").All(e => e.Texture == irMask.FixedTexture) && ir.Any(x => x.Extras.Any(e => e.Slot == "glasses"))
+                && ir.SelectMany(x => x.Extras).Where(e => e.Slot == "hat").All(e => e.Drawable == (od.Extras["IR"].First(h => h.Slot == "hat").Male[0].Drawable) || e.Drawable == od.Extras["IR"].First(h => h.Slot == "hat").Female[0].Drawable));
+            var ckMask = many.SelectMany(x => x.Extras).First(e => e.Slot == "mask");
+            T.True("Every crew has its own look: Dead Kings' green bandana isn't Hellfire's skull one, and nobody shares a hat",
+                ckMask.Texture != irMask.FixedTexture && od.Extras["CK"].First(e => e.Slot == "hat").Male[0].Drawable != od.Extras["IR"].First(e => e.Slot == "hat").Male[0].Drawable
+                && od.Extras["VS"].First(e => e.Slot == "hat").Male[0].Drawable != od.Extras["CK"].First(e => e.Slot == "hat").Male[0].Drawable);
             var vs = Enumerable.Range(0, 400).Select(i => OutfitRules.Choose(od, "VS", "blue", i)).Where(x => x != null).ToList();
+            T.True("Vinewood Elite: some of the men in a royal blue trilby", vs.Any(x => x.Extras.Any(e => e.Slot == "hat" && e.Texture == od.Extras["VS"].First(h => h.Slot == "hat").Male[0].Textures["blue"])) && vs.Where(x => x.Female).All(x => !x.Extras.Any(e => e.Slot == "hat")));
             T.True("Vinewood Elite: a tie only with a shirt, never masked", vs.All(x => !x.Extras.Any(e => e.Slot == "neck") || x.Look.Under == "shirt") && vs.Any(x => x.Extras.Any(e => e.Slot == "neck")) && vs.All(x => !x.Extras.Any(e => e.Slot == "mask")));
             var boss = OutfitRules.Choose(od, "CK", "forest", 5, false, true);
             T.True("Bosses and lieutenants wear a gold chain, a watch and shades", boss.Extras.Any(e => e.Slot == "watch") && boss.Extras.Any(e => e.Slot == "glasses") && boss.Extras.Any(e => e.Slot == "neck"));

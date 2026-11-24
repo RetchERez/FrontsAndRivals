@@ -2,10 +2,11 @@
 
 ## 3.0.0 (in progress)
 
-- Gang wardrobes: Dead Kings in green beanies and chains, Hellfire MC in orange beanies and black wraparounds,
-  Vinewood Elite in royal blue ties and aviators; your crew gets the same in your colour
-- Crews hitting your fronts pull bandanas up (green for the Dead Kings, black for the rest); the Vinewood Elite don't
-  hide their faces
+- Gang wardrobes, a look of their own for each crew: Dead Kings in green beanies and chains, Hellfire MC in biker
+  skull caps and black wraparounds, Vinewood Elite in royal blue trilbies, blue ties and aviators; your crew gets the
+  same in your colour and style
+- Crews hitting your fronts cover up their own way: Dead Kings pull up green bandanas, Hellfire MC skull bandanas, and
+  the Vinewood Elite don't hide their faces
 - Bosses and lieutenants dress a step up (gold chain, gold watch, shades), so you can pick them out in a fight
 - No more cash bonus for defending your own front in person: keeping it is the reward
 - Long texts from the Office and the crews are never cut off any more

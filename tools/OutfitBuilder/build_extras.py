@@ -96,6 +96,9 @@ def main():
     watch = both(lambda g: fixed(D[('watch', g)], 'Gold Watch') if g == 'm' else fixed(D[('watch', g)], 'Gold Fashion'))
     tie = both(lambda g: [coloured(D[('neck', g)], 'Tie')] if g == 'm' else [coloured(D[('neck', g)], 'Skinny Tie')])
     mask_colour = both(lambda g: [coloured(D[('mask', g)], 'Face Bandana', fallback='black')])
+    mask_skull = both(lambda g: fixed(D[('mask', g)], 'Skull Face Bandana'))
+    skull_cap = both(lambda g: fixed(D[('hat', g)], 'Skull Cap'))
+    trilby = both(lambda g: [coloured(D[('hat', g)], 'Trilby')] if g == 'm' else [])
 
     def clean(items):
         return {g: [x for x in v if x] for g, v in items.items()}
@@ -108,16 +111,18 @@ def main():
         return p
 
     extras = {
-        # Dead Kings: street. A green beanie, chains, and green bandanas pulled up when they come for your fronts.
+        # Each crew looks like nobody else:
+        # Dead Kings: street. A green beanie, chains, and a plain green face bandana pulled up for a hit.
         'CK': [piece('hat', 0.45, beanie), piece('neck', 0.35, chain), piece('mask', 1.0, mask_colour, when='attack')],
-        # Hellfire MC: bikers. An orange beanie, black wraparounds, black bandanas for a hit.
-        'IR': [piece('hat', 0.35, beanie), piece('glasses', 0.5, shades_biker), piece('mask', 1.0, mask_colour, when='attack')],
-        # Vinewood Elite: suits. A royal blue tie with every shirt, aviators. No masks: they don't hide.
-        'VS': [piece('neck', 1.0, tie, only='shirt'), piece('glasses', 0.5, shades_smart)],
+        # Hellfire MC: bikers. A biker skull cap (half helmet), black wraparounds, and a skull-print bandana for a hit.
+        'IR': [piece('hat', 0.4, skull_cap), piece('glasses', 0.55, shades_biker), piece('mask', 1.0, mask_skull, when='attack')],
+        # Vinewood Elite: money. A royal blue trilby on some of the men, a blue tie with every shirt, aviators.
+        # No masks: they don't hide their faces.
+        'VS': [piece('hat', 0.35, trilby), piece('neck', 1.0, tie, only='shirt'), piece('glasses', 0.5, shades_smart)],
         # Your crew, in your colour.
         'player_street': [piece('hat', 0.4, beanie), piece('neck', 0.3, chain)],
-        'player_biker': [piece('hat', 0.35, beanie), piece('glasses', 0.5, shades_biker)],
-        'player_smart': [piece('neck', 1.0, tie, only='shirt'), piece('glasses', 0.4, shades_smart)],
+        'player_biker': [piece('hat', 0.35, skull_cap), piece('glasses', 0.5, shades_biker)],
+        'player_smart': [piece('hat', 0.3, trilby), piece('neck', 1.0, tie, only='shirt'), piece('glasses', 0.4, shades_smart)],
         'player_mixed': [piece('hat', 0.3, beanie), piece('glasses', 0.3, shades_smart), piece('neck', 0.2, chain)],
         # Bosses and lieutenants: a step up, so you can pick them out in a fight.
         'lead': [piece('neck', 1.0, gold_chain), piece('watch', 1.0, watch), piece('glasses', 1.0, shades_smart)],
