@@ -553,7 +553,18 @@ namespace FrontsAndRivals.Attacks
         }
 
         /// <summary>Every tick: draw the timer bars.</summary>
-        public void Draw() { _barsPool.Process(); }
+        public void Draw()
+        {
+            if (_bars.Visible) HideCornerText();
+            _barsPool.Process();
+        }
+
+        /// <summary>The bars sit where GTA writes the vehicle name, area name, vehicle class and street name: hide those
+        /// while a bar is up, as the game's own missions do, so the text never lands on top of each other.</summary>
+        public static void HideCornerText()
+        {
+            foreach (int c in new[] { 6, 7, 8, 9 }) GTA.Native.Function.Call(GTA.Native.Hash.HIDE_HUD_COMPONENT_THIS_FRAME, c);
+        }
 
         /// <summary>A mission started or the script stopped: drop everything (the registry deletes the entities).</summary>
         public void ForceClear()

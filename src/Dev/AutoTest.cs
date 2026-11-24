@@ -214,15 +214,17 @@ namespace FrontsAndRivals.Dev
                 case Step.GoAway:
                 {
                     if (s.Attack != null) { if (Waited > 30000) { s.Attack.WindowEnds = _h.Now(); } return; } // let a leftover attack finish first
-                    Vector3 away = Door(_target) + new Vector3(700f, 0f, 0f);
-                    Vector3 safe = GTA.World.GetSafeCoordForPed(away, true);
-                    me.Position = safe != Vector3.Zero ? safe : _returnPos;
+                    // Far enough that the attack can't turn live: the airport, or the beach at Vespucci if the front is near it.
+                    Vector3 away = new Vector3(-1037f, -2738f, 13.8f);
+                    if (away.DistanceTo(Door(_target)) < 1200f) away = new Vector3(1700f, 3290f, 41f);
+                    me.Position = away;
                     Go(Step.ForceAway);
                     return;
                 }
                 case Step.ForceAway:
                 {
-                    if (Waited < 3000) return; // let the front stream out
+                    if (Waited < 5000) return; // let the area load and the front stream out
+                    if (me.Position.DistanceTo(Door(_target)) < Rules.Attacks.OnTheWayRange) { Result(false, "Attack while you're away: couldn't get far enough away to test it"); Go(Step.Raid); return; }
                     ReadyCrews(s);
                     _sawAttack = false;
                     _h.Director.RequestForcedAttack();
