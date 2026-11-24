@@ -608,6 +608,7 @@ namespace FrontsAndRivals.Core
             Log.Write("NETWORK_IS_SESSION_STARTED is true. Fronts & Rivals is switching itself off (single-player only).");
             ClearWorld("online");
             _blips.DeleteAll();
+            _blips.RestoreGameBlips();
             SaveNow();
             _shutDown = true;
         }
@@ -772,6 +773,7 @@ namespace FrontsAndRivals.Core
             // Cleanup first: nothing may be left behind for the game to deal with.
             ClearWorld("script stopped");
             try { _blips.DeleteAll(); } catch (Exception ex) { Log.Error("Blips on abort", ex); }
+            try { _blips.RestoreGameBlips(); } catch (Exception ex) { Log.Error("Game blips on abort", ex); }
             try { SaveNow(); } catch (Exception ex) { Log.Error("Save on abort", ex); }
             Log.Write("==== Fronts & Rivals stopped");
         }

@@ -311,7 +311,7 @@ namespace FrontsAndRivals.Data
             switch (id)
             {
                 case "carwash_handson": return "Car Wash";
-                case "liquor_brewersdrop": return "Liquor Store";
+                case "liquor_brewersdrop": return "Brewer's Drop";
                 case "jewelry_discountjewels": return "Jewelers";
                 case "bar_mirrorpark": return "Tavern";
                 case "autoshop_atomic": return "Auto Shop";

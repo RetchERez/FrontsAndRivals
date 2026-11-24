@@ -23,6 +23,7 @@ namespace FrontsAndRivals.UI
         }
 
         private readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
+        private readonly Dictionary<int, int> _hiddenGameBlips = new Dictionary<int, int>(); // game blip handle -> its display before
         private readonly Dictionary<string, KeyValuePair<string, Blip>> _turf = new Dictionary<string, KeyValuePair<string, Blip>>();
         public bool ShowRivalFronts = true;
         public bool ShowForSaleFronts = true;
@@ -68,7 +69,7 @@ namespace FrontsAndRivals.UI
                 bool route = want.EndsWith("+route");
                 switch (route ? want.Substring(0, want.Length - 6) : want)
                 {
-                    case "yours": b.Color = (BlipColor)CrewColors.Get(empire.State.CrewColor ?? CrewColors.DefaultPlayer).Blip; break;
+                    case "yours": b.Color = (BlipColor)CrewColors.Get(empire.State.CrewColor ?? CrewColors.DefaultPlayer).Blip; b.Name = def.Name + " (Yours)"; break;
                     case "threat": b.Color = BlipColor.Yellow; b.IsFlashing = true; break;
                     case "attack":
                         b.Color = BlipColor.Red; b.IsFlashing = true;
@@ -94,6 +95,49 @@ namespace FrontsAndRivals.UI
                 en.Blip = b;
             }
             try { RefreshTurf(empire, content, attack); } catch (System.Exception ex) { FrontsAndRivals.Core.Log.Error("Turf map", ex); }
+            try { if (empire.State.HideBlips) RestoreGameBlips(); else HideGameDuplicates(content); } catch (System.Exception ex) { FrontsAndRivals.Core.Log.Error("Game blips", ex); }
+        }
+
+        /// <summary>Where the game has its own icon of the same kind at one of our fronts (its car wash icon at the Hands On
+        /// Car Wash), that icon is hidden while the mod runs, so the map never shows the business twice. The game's
+        /// service still works; its icon comes back when the mod stops (RestoreGameBlips).</summary>
+        private void HideGameDuplicates(ContentDb content)
+        {
+            var ours = new HashSet<int>();
+            foreach (Entry en in _entries.Values) if (en.Blip != null && en.Blip.Exists()) ours.Add(en.Blip.Handle);
+            foreach (FrontDef def in content.Fronts)
+            {
+                if (!def.Door.IsSet) continue;
+                int sprite = FrontsAndRivals.Spawn.WorkerRules.MapIcon(def.Id, false);
+                int h = GTA.Native.Function.Call<int>(GTA.Native.Hash.GET_FIRST_BLIP_INFO_ID, sprite);
+                int guard = 0;
+                while (h != 0 && guard++ < 64)
+                {
+                    if (!ours.Contains(h) && !_hiddenGameBlips.ContainsKey(h))
+                    {
+                        Vector3 at = GTA.Native.Function.Call<Vector3>(GTA.Native.Hash.GET_BLIP_INFO_ID_COORD, h);
+                        if (def.Door.DistanceTo(at.X, at.Y, at.Z) < DuplicateRange)
+                        {
+                            _hiddenGameBlips[h] = GTA.Native.Function.Call<int>(GTA.Native.Hash.GET_BLIP_INFO_ID_DISPLAY, h);
+                            GTA.Native.Function.Call(GTA.Native.Hash.SET_BLIP_DISPLAY, h, 0);
+                            FrontsAndRivals.Core.Log.Write("Map: hid the game's own icon (sprite " + sprite + ") at " + def.Id + ", the front's icon shows it");
+                        }
+                    }
+                    h = GTA.Native.Function.Call<int>(GTA.Native.Hash.GET_NEXT_BLIP_INFO_ID, sprite);
+                }
+            }
+        }
+
+        private const float DuplicateRange = 60f;
+
+        /// <summary>Puts back every game icon HideGameDuplicates hid.</summary>
+        public void RestoreGameBlips()
+        {
+            foreach (KeyValuePair<int, int> kv in _hiddenGameBlips)
+            {
+                try { if (GTA.Native.Function.Call<bool>(GTA.Native.Hash.DOES_BLIP_EXIST, kv.Key)) GTA.Native.Function.Call(GTA.Native.Hash.SET_BLIP_DISPLAY, kv.Key, kv.Value); } catch { }
+            }
+            _hiddenGameBlips.Clear();
         }
 
         /// <summary>The turf map: each front's block shaded in its owner's colour on GTA's own map (a translucent radius
