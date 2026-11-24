@@ -12,7 +12,8 @@ namespace FrontsAndRivals.Core
         /// <summary>Scripts that only run while you're doing something: a mission, job, activity or minigame.
         /// Always-on controllers and launchers (blip_controller, launcher_golf, controller_taxi...) are never here,
         /// or the mod would never run; nor are the "ambient" heist-prep watchers, hunting's ambient script or the pier
-        /// rides, which can run in plain free roam.</summary>
+        /// rides, which can run in plain free roam. Nor is the strip club's script: it runs whenever you're near the Vanilla Unicorn
+        /// (Brewer's Drop Liquor is next door), and Amanda's tennis scene runs at Michael's house.</summary>
         public static readonly string[] Blocking = Build();
 
         private static string[] Build()
@@ -51,9 +52,9 @@ namespace FrontsAndRivals.Core
                 "pm_defend", "pm_delivery", "pm_gang_attack", "pm_plane_promotion", "pm_recover_stolen",
                 "rampage1", "rampage2", "rampage3", "rampage4", "rampage5" });
             // Minigames and activities
-            list.AddRange(new[] { "golf", "golf_ai_foursome", "golf_ai_foursome_putting", "tennis", "tennis_family", "darts", "yoga",
+            list.AddRange(new[] { "golf", "golf_ai_foursome", "golf_ai_foursome_putting", "tennis", "darts", "yoga",
                 "triathlonsp", "offroad_races", "country_race", "stunt_plane_races", "pilot_school", "range_modern",
-                "bj", "stripclub", "friendactivity" });
+                "bj", "friendactivity" });
             // Director Mode (its script only runs while you're in it)
             list.Add("director_mode");
             return list.ToArray();

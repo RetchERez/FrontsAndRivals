@@ -28,6 +28,7 @@ static class CoreTests
         T.True("Always-on controllers, launchers and ambient watchers never do (or the mod would never run)",
             FreeRoamRules.Blocking.All(n => !n.StartsWith("launcher_") && !n.StartsWith("controller_") && !n.EndsWith("_controller") && !n.EndsWith("amb") && !n.EndsWith("_ambient") && n != "main" && n != "blip_controller"));
         T.True("No name twice", block.Count == FreeRoamRules.Blocking.Length);
+        T.True("Scripts that run just from being nearby never pause it (the strip club next to Brewer's Drop, tennis at Michael's)", !block.Contains("stripclub") && !block.Contains("tennis_family"));
         T.True("Only Michael, Franklin and Trevor count as you", FreeRoamRules.Protagonists.Length == 3 && FreeRoamRules.Protagonists.Contains("player_one"));
         T.True("Franklin's mission letters and Strangers and Freaks mark mission starts; a safehouse doesn't", FreeRoamRules.IsMissionStartSprite(212) && FreeRoamRules.IsMissionStartSprite(66) && !FreeRoamRules.IsMissionStartSprite(40));
     }
