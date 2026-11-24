@@ -244,6 +244,27 @@ static class FrontTests
         T.True("A look the game can't fully show is swapped for a whole one in the same colour and gender",
             swap != null && swap != hoodie.Look && swap.Gender == "m" && swap.Wears("red"));
         T.True("No whole look at all: none is offered (default clothes instead)", OutfitRules.FindWhole(od, true, "red", null, l => false) == null);
+        {
+            // Gang wardrobes: extras on top of each look
+            var many = Enumerable.Range(0, 400).Select(i => OutfitRules.Choose(od, "CK", "forest", i)).Where(x => x != null).ToList();
+            T.True("Dead Kings: some wear a green beanie, some a chain", many.Any(x => x.Extras.Any(e => e.Slot == "hat")) && many.Any(x => x.Extras.Any(e => e.Slot == "neck")) && many.Any(x => !x.Extras.Any(e => e.Slot == "hat")));
+            T.True("Dead Kings pull up a bandana for attacks only", many.All(x => x.Extras.Where(e => e.Slot == "mask").All(e => e.AttackOnly)) && many.Any(x => x.Extras.Any(e => e.Slot == "mask")));
+            var ck = od.Extras["CK"].First(e => e.Slot == "hat").Male[0];
+            T.True("...and their beanie is the Dark Green one", many.Where(x => !x.Female).SelectMany(x => x.Extras).Where(e => e.Slot == "hat").All(e => e.Texture == ck.Textures["forest"]));
+            var ir = Enumerable.Range(0, 400).Select(i => OutfitRules.Choose(od, "IR", "orange", i)).Where(x => x != null).ToList();
+            var irMask = od.Extras["IR"].First(e => e.Slot == "mask").Male[0];
+            T.True("Hellfire MC: orange beanies, black bandanas (there's no orange one)", ir.SelectMany(x => x.Extras).Where(e => e.Slot == "mask").All(e => e.Texture == irMask.FixedTexture) && ir.Any(x => x.Extras.Any(e => e.Slot == "glasses")));
+            var vs = Enumerable.Range(0, 400).Select(i => OutfitRules.Choose(od, "VS", "blue", i)).Where(x => x != null).ToList();
+            T.True("Vinewood Elite: a tie only with a shirt, never masked", vs.All(x => !x.Extras.Any(e => e.Slot == "neck") || x.Look.Under == "shirt") && vs.Any(x => x.Extras.Any(e => e.Slot == "neck")) && vs.All(x => !x.Extras.Any(e => e.Slot == "mask")));
+            var boss = OutfitRules.Choose(od, "CK", "forest", 5, false, true);
+            T.True("Bosses and lieutenants wear a gold chain, a watch and shades", boss.Extras.Any(e => e.Slot == "watch") && boss.Extras.Any(e => e.Slot == "glasses") && boss.Extras.Any(e => e.Slot == "neck"));
+            T.True("The same person always wears the same extras", OutfitRules.Choose(od, "IR", "orange", 77).Extras.Count == OutfitRules.Choose(od, "IR", "orange", 77).Extras.Count);
+            var red = Enumerable.Range(0, 300).Select(i => OutfitRules.Choose(od, "player_street", "red", i)).Where(x => x != null).ToList();
+            T.True("Your crew never wears a hat in someone else's colour (there's no red beanie)", red.All(x => !x.Extras.Any(e => e.Slot == "hat")));
+            var od3 = OutfitData.Load(System.IO.Path.Combine(content.ContentDir, "outfits.json"));
+            int gone = OutfitRules.PruneExtras(od3, (f, c, d, t) => true, (f, prop, d, t) => prop != 0); // pretend the game has no hats
+            T.True("The outfit check drops extras the game rejects", gone > 0 && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od3, "CK", "forest", i); return x == null || !x.Extras.Any(e => e.Slot == "hat"); }));
+        }
         T.True("Vinewood Elite are mostly suits", Enumerable.Range(0, 200).Count(i => OutfitRules.Choose(od, "VS", "blue", i).Look.Shoes == "formal") == 200);
         T.True("The same guard always looks the same", OutfitRules.Choose(od, "player_street", "red", 42).Hair == OutfitRules.Choose(od, "player_street", "red", 42).Hair);
         T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));

@@ -26,3 +26,4 @@ empire.bak*
 
 # Release output
 dist/
+tools/OutfitBuilder/cache/

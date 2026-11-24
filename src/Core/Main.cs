@@ -182,6 +182,9 @@ namespace FrontsAndRivals.Core
                     Gate = () => _gate, SaveNow = SaveNow, SavePath = () => _saves.MainPath,
                     Snapshot = TestSnapshot, Restore = TestRestore
                 });
+                var lineup = new WardrobeLineup(_registry);
+                _dev.AddAction("Wardrobe Lineup", "Four rows in front of you: Dead Kings, Hellfire MC, Vinewood Elite and your crew, each with three everyday looks, a masked attacker and a leader. Stand somewhere open.", lineup.Show);
+                _dev.AddAction("Clear Lineup", "Removes the wardrobe lineup.", lineup.Clear);
                 _dev.AddAction("Auto-Test", "Plays through taking a front, staffing it, a live defense, an attack while away, a raid, midnight and a save on its own, about 5 minutes, then puts your empire, cash, place and time back. Results in autotest-report.txt.", _autoTest.Start);
                 _dev.ExtraStatus = () => "streams in " + _streamer.StreamIns + " / out " + _streamer.StreamOuts
                                        + "   leftovers " + _streamer.Leftovers;

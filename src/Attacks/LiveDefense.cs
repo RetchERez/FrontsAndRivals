@@ -124,7 +124,7 @@ namespace FrontsAndRivals.Attacks
             for (int i = 0; i < attack.Squad; i++)
             {
                 // Everyone in the crew's colour, the leader too.
-                Dressing dr = Wardrobe.ForCrew(crew.Id, front.Number * 53 + i * 7 + attack.Squad);
+                Dressing dr = Wardrobe.ForCrew(crew.Id, front.Number * 53 + i * 7 + attack.Squad, i == 0 && leader != null); // the leader dressed a step up
                 _dress.Add(dr);
                 _models.Add(new Model(dr != null ? Wardrobe.ModelName(dr) : (i == 0 && leader != null && leader.Model != null ? leader.Model : crew.Models[i % crew.Models.Count])));
             }
@@ -265,7 +265,7 @@ namespace FrontsAndRivals.Attacks
                     if (!pm.IsLoaded) pm = _models[pedModel];
                     Ped ped = GTA.World.CreatePed(pm, pos + new Vector3(0, 0, 2f), _spawnHeading);
                     if (ped == null) continue;
-                    if (placed < _dress.Count && pm == _models[pedModel + placed]) Wardrobe.Apply(ped, _dress[placed]);
+                    if (placed < _dress.Count && pm == _models[pedModel + placed]) Wardrobe.Apply(ped, _dress[placed], placed > 0 || _leaderMember == null); // masks up, except the leader: you see who's leading
                     ped.RelationshipGroup = Factions.CrewGroup(_crew.Id);
                     _registry.Track(ped);
                     ped.SetIntoVehicle(v, seat == 0 ? VehicleSeat.Driver : (VehicleSeat)(seat - 1));

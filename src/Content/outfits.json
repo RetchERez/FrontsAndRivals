@@ -3048,5 +3048,583 @@
   "player_smart": 0.4,
   "player_biker": 0.4,
   "player_mixed": 0.4
+ },
+ "extras": {
+  "CK": [
+   {
+    "slot": "hat",
+    "chance": 0.45,
+    "m": [
+     {
+      "d": 183,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ],
+    "f": [
+     {
+      "d": 182,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ]
+   },
+   {
+    "slot": "neck",
+    "chance": 0.35,
+    "m": [
+     {
+      "d": 1,
+      "t0": 1
+     },
+     {
+      "d": 1,
+      "t0": 0
+     }
+    ],
+    "f": []
+   },
+   {
+    "slot": "mask",
+    "chance": 1.0,
+    "when": "attack",
+    "m": [
+     {
+      "d": 51,
+      "t": {
+       "yellow": 8,
+       "green": 5,
+       "forest": 4,
+       "purple": 6,
+       "black": 0
+      },
+      "t0": 0,
+      "fallback": true
+     }
+    ],
+    "f": [
+     {
+      "d": 51,
+      "t": {
+       "yellow": 8,
+       "green": 5,
+       "forest": 4,
+       "purple": 6,
+       "black": 0
+      },
+      "t0": 0,
+      "fallback": true
+     }
+    ]
+   }
+  ],
+  "IR": [
+   {
+    "slot": "hat",
+    "chance": 0.35,
+    "m": [
+     {
+      "d": 183,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ],
+    "f": [
+     {
+      "d": 182,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ]
+   },
+   {
+    "slot": "glasses",
+    "chance": 0.5,
+    "m": [
+     {
+      "d": 1,
+      "t0": 1
+     },
+     {
+      "d": 2,
+      "t0": 0
+     }
+    ],
+    "f": [
+     {
+      "d": 11,
+      "t0": 3
+     }
+    ]
+   },
+   {
+    "slot": "mask",
+    "chance": 1.0,
+    "when": "attack",
+    "m": [
+     {
+      "d": 51,
+      "t": {
+       "yellow": 8,
+       "green": 5,
+       "forest": 4,
+       "purple": 6,
+       "black": 0
+      },
+      "t0": 0,
+      "fallback": true
+     }
+    ],
+    "f": [
+     {
+      "d": 51,
+      "t": {
+       "yellow": 8,
+       "green": 5,
+       "forest": 4,
+       "purple": 6,
+       "black": 0
+      },
+      "t0": 0,
+      "fallback": true
+     }
+    ]
+   }
+  ],
+  "VS": [
+   {
+    "slot": "neck",
+    "chance": 1.0,
+    "only": "shirt",
+    "m": [
+     {
+      "d": 10,
+      "t": {
+       "white": 0,
+       "red": 5,
+       "orange": 7,
+       "yellow": 8,
+       "green": 6,
+       "forest": 6,
+       "blue": 3,
+       "purple": 9,
+       "brightblue": 3,
+       "black": 2,
+       "grey": 1
+      }
+     }
+    ],
+    "f": [
+     {
+      "d": 21,
+      "t": {
+       "white": 0,
+       "black": 2,
+       "grey": 1
+      }
+     }
+    ]
+   },
+   {
+    "slot": "glasses",
+    "chance": 0.5,
+    "m": [
+     {
+      "d": 5,
+      "t0": 0
+     },
+     {
+      "d": 2,
+      "t0": 3
+     }
+    ],
+    "f": [
+     {
+      "d": 11,
+      "t0": 6
+     },
+     {
+      "d": 11,
+      "t0": 3
+     }
+    ]
+   }
+  ],
+  "player_street": [
+   {
+    "slot": "hat",
+    "chance": 0.4,
+    "m": [
+     {
+      "d": 183,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ],
+    "f": [
+     {
+      "d": 182,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ]
+   },
+   {
+    "slot": "neck",
+    "chance": 0.3,
+    "m": [
+     {
+      "d": 1,
+      "t0": 1
+     },
+     {
+      "d": 1,
+      "t0": 0
+     }
+    ],
+    "f": []
+   }
+  ],
+  "player_biker": [
+   {
+    "slot": "hat",
+    "chance": 0.35,
+    "m": [
+     {
+      "d": 183,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ],
+    "f": [
+     {
+      "d": 182,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ]
+   },
+   {
+    "slot": "glasses",
+    "chance": 0.5,
+    "m": [
+     {
+      "d": 1,
+      "t0": 1
+     },
+     {
+      "d": 2,
+      "t0": 0
+     }
+    ],
+    "f": [
+     {
+      "d": 11,
+      "t0": 3
+     }
+    ]
+   }
+  ],
+  "player_smart": [
+   {
+    "slot": "neck",
+    "chance": 1.0,
+    "only": "shirt",
+    "m": [
+     {
+      "d": 10,
+      "t": {
+       "white": 0,
+       "red": 5,
+       "orange": 7,
+       "yellow": 8,
+       "green": 6,
+       "forest": 6,
+       "blue": 3,
+       "purple": 9,
+       "brightblue": 3,
+       "black": 2,
+       "grey": 1
+      }
+     }
+    ],
+    "f": [
+     {
+      "d": 21,
+      "t": {
+       "white": 0,
+       "black": 2,
+       "grey": 1
+      }
+     }
+    ]
+   },
+   {
+    "slot": "glasses",
+    "chance": 0.4,
+    "m": [
+     {
+      "d": 5,
+      "t0": 0
+     },
+     {
+      "d": 2,
+      "t0": 3
+     }
+    ],
+    "f": [
+     {
+      "d": 11,
+      "t0": 6
+     },
+     {
+      "d": 11,
+      "t0": 3
+     }
+    ]
+   }
+  ],
+  "player_mixed": [
+   {
+    "slot": "hat",
+    "chance": 0.3,
+    "m": [
+     {
+      "d": 183,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ],
+    "f": [
+     {
+      "d": 182,
+      "t": {
+       "orange": 9,
+       "forest": 18,
+       "teal": 14,
+       "lightblue": 16,
+       "blue": 12,
+       "purple": 24,
+       "burgundy": 6,
+       "cyan": 15,
+       "lime": 21,
+       "lavender": 23,
+       "brightblue": 13,
+       "black": 0,
+       "grey": 2
+      }
+     }
+    ]
+   },
+   {
+    "slot": "glasses",
+    "chance": 0.3,
+    "m": [
+     {
+      "d": 5,
+      "t0": 0
+     },
+     {
+      "d": 2,
+      "t0": 3
+     }
+    ],
+    "f": [
+     {
+      "d": 11,
+      "t0": 6
+     },
+     {
+      "d": 11,
+      "t0": 3
+     }
+    ]
+   },
+   {
+    "slot": "neck",
+    "chance": 0.2,
+    "m": [
+     {
+      "d": 1,
+      "t0": 1
+     },
+     {
+      "d": 1,
+      "t0": 0
+     }
+    ],
+    "f": []
+   }
+  ],
+  "lead": [
+   {
+    "slot": "neck",
+    "chance": 1.0,
+    "m": [
+     {
+      "d": 1,
+      "t0": 1
+     }
+    ],
+    "f": []
+   },
+   {
+    "slot": "watch",
+    "chance": 1.0,
+    "m": [
+     {
+      "d": 0,
+      "t0": 1
+     }
+    ],
+    "f": [
+     {
+      "d": 2,
+      "t0": 0
+     }
+    ]
+   },
+   {
+    "slot": "glasses",
+    "chance": 1.0,
+    "m": [
+     {
+      "d": 5,
+      "t0": 0
+     },
+     {
+      "d": 2,
+      "t0": 3
+     }
+    ],
+    "f": [
+     {
+      "d": 11,
+      "t0": 6
+     },
+     {
+      "d": 11,
+      "t0": 3
+     }
+    ]
+   }
+  ]
  }
 }

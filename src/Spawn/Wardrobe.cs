@@ -70,6 +70,15 @@ namespace FrontsAndRivals.Spawn
                     asked++;
                     return Function.Call<bool>(Hash.IS_PED_COMPONENT_VARIATION_VALID, female ? woman : man, c, d, t);
                 });
+                removed += OutfitRules.PruneExtras(Data, (female, c, d, t) =>
+                {
+                    asked++;
+                    return Function.Call<bool>(Hash.IS_PED_COMPONENT_VARIATION_VALID, female ? woman : man, c, d, t);
+                }, (female, prop, d, t) =>
+                {
+                    asked++;
+                    return PropValid(female ? woman : man, prop, d, t);
+                });
                 Log.Write("Outfit check: " + asked + " clothing pieces checked against this game, " + removed + " dropped"
                           + (removed > 0 ? " (those looks or colours simply aren't used)" : ""));
             }
@@ -81,7 +90,10 @@ namespace FrontsAndRivals.Spawn
         }
 
         /// <summary>A rival crew member: their crew's style and colour.</summary>
-        public static Dressing ForCrew(string crewId, int seed) { return Enabled ? OutfitRules.Choose(Data, crewId, CrewColors.ForCrew(crewId), seed, null) : null; }
+        public static Dressing ForCrew(string crewId, int seed) { return ForCrew(crewId, seed, false); }
+
+        /// <param name="lead">A boss or lieutenant: dressed a step up (gold chain, watch, shades).</param>
+        public static Dressing ForCrew(string crewId, int seed, bool lead) { return Enabled ? OutfitRules.Choose(Data, crewId, CrewColors.ForCrew(crewId), seed, null, lead) : null; }
 
         /// <summary>One of your guards: your colour, the guard's own gender, the same look every time.</summary>
         public static Dressing ForGuard(GuardState g)
@@ -95,7 +107,10 @@ namespace FrontsAndRivals.Spawn
 
         public static Model ModelOf(Dressing d) { return d.Female ? _f : _m; }
 
-        public static void Apply(Ped ped, Dressing d)
+        public static void Apply(Ped ped, Dressing d) { Apply(ped, d, false); }
+
+        /// <param name="attack">They're hitting one of your fronts: masks go on.</param>
+        public static void Apply(Ped ped, Dressing d, bool attack)
         {
             if (ped == null || d == null || !ped.Exists()) return;
             try
@@ -119,6 +134,14 @@ namespace FrontsAndRivals.Spawn
                 if (d.Shoes != null) Set(ped, 6, d.Shoes.Drawable, d.Shoes.Texture);
                 foreach (OutfitPart p in d.Look.Parts) Set(ped, p.Component, p.Drawable, p.TextureFor(d.Colour));
                 Function.Call(Hash.CLEAR_ALL_PED_PROPS, ped);
+                if (d.Extras != null)
+                    foreach (WornExtra x in d.Extras)
+                    {
+                        if (x.AttackOnly && !attack) continue;
+                        if (!x.IsProp) { Set(ped, x.Index, x.Drawable, x.Texture); continue; }
+                        if (PropValid(ped, x.Index, x.Drawable, x.Texture))
+                            Function.Call(Hash.SET_PED_PROP_INDEX, ped, x.Index, x.Drawable, x.Texture, true);
+                    }
             }
             catch (Exception ex) { Log.Error("Wardrobe", ex); }
         }
@@ -137,6 +160,16 @@ namespace FrontsAndRivals.Spawn
             var sb = new System.Text.StringBuilder(l.Gender);
             foreach (OutfitPart p in l.Parts) sb.Append(' ').Append(p.Component).Append('/').Append(p.Drawable);
             return sb.ToString();
+        }
+
+        /// <summary>A prop (hat, glasses, watch) this ped's model really has: the drawable and texture are within the
+        /// game's own counts for it.</summary>
+        private static bool PropValid(Ped ped, int prop, int drawable, int texture)
+        {
+            int drawables = Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_DRAWABLE_VARIATIONS, ped, prop);
+            if (drawable < 0 || drawable >= drawables) return false;
+            int textures = Function.Call<int>(Hash.GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS, ped, prop, drawable);
+            return texture >= 0 && texture < textures;
         }
 
         private static void Set(Ped ped, int component, int drawable, int texture)
