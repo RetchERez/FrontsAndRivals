@@ -47,6 +47,7 @@ namespace FrontsAndRivals.Dev
         private FrontDef _target;
         private Vector3 _returnPos;
         private float _returnHeading;
+        private bool _sawAttack, _sawLive;
         private int _returnMoney, _returnHour, _returnMinute, _returnDay, _returnMonth, _returnYear, _dayBefore;
 
         public bool Running { get { return _step != Step.Idle; } }
@@ -187,18 +188,23 @@ namespace FrontsAndRivals.Dev
                 case Step.ForceLive:
                 {
                     if (s.Attack != null) { Result(false, "Live defense: another attack was already under way"); Go(Step.GoAway); return; }
+                    ReadyCrews(s);
+                    _sawAttack = _sawLive = false;
                     _h.Director.RequestForcedAttack();
                     Go(Step.WaitLiveEnd);
                     return;
                 }
                 case Step.WaitLiveEnd:
                 {
+                    if (s.Attack != null) _sawAttack = true;
+                    if (s.Attack != null && s.Attack.Phase == AttackPhase.Live) _sawLive = true;
+                    if (!_sawAttack && Waited > 15000) { Result(false, "Live defense: the forced attack never started (no crew could attack)"); Go(Step.GoAway); return; }
                     if (s.Attack != null && s.Attack.Phase == AttackPhase.Window && s.Attack.Front != _target.Id) s.Attack.Front = _target.Id; // the test front, where you are
                     if (s.Attack != null && s.Attack.Phase == AttackPhase.Live)
                         foreach (Ped p in CrewPeds(Door(_target), 200f, s.Attack.Crew)) if (Waited > 15000) p.Kill(); // let them arrive, then end it
-                    if (s.Attack == null && Waited > 5000)
+                    if (_sawAttack && s.Attack == null)
                     {
-                        Result(e.PlayerOwns(_target.Id), "Live defense: the attack was fought off and the " + _target.ShortName + " is still yours");
+                        Result(_sawLive && e.PlayerOwns(_target.Id), _sawLive ? "Live defense: a live fight at the " + _target.ShortName + ", fought off, still yours" : "Live defense: the attack never turned into a live fight");
                         Go(Step.GoAway);
                         return;
                     }
@@ -217,14 +223,18 @@ namespace FrontsAndRivals.Dev
                 case Step.ForceAway:
                 {
                     if (Waited < 3000) return; // let the front stream out
+                    ReadyCrews(s);
+                    _sawAttack = false;
                     _h.Director.RequestForcedAttack();
                     Go(Step.WaitAwayEnd);
                     return;
                 }
                 case Step.WaitAwayEnd:
                 {
+                    if (s.Attack != null) _sawAttack = true;
+                    if (!_sawAttack && Waited > 15000) { Result(false, "Attack while you're away: the forced attack never started"); Go(Step.Raid); return; }
                     if (s.Attack != null && s.Attack.Phase == AttackPhase.Window && s.Attack.WindowEnds > _h.Now()) s.Attack.WindowEnds = _h.Now(); // skip the hold timer
-                    if (s.Attack == null && Waited > 4000)
+                    if (_sawAttack && s.Attack == null)
                     {
                         Result(true, "Attack while you're away: settled off-screen (the " + _target.ShortName + " is " + (e.PlayerOwns(_target.Id) ? "still yours" : "lost") + ")");
                         Go(Step.Raid);
@@ -300,6 +310,14 @@ namespace FrontsAndRivals.Dev
             try { File.WriteAllLines(Path.Combine(Path.GetDirectoryName(_h.SavePath()), "autotest-report.txt"), new[] { summary, "" }.Concat(_report)); }
             catch (Exception ex) { Log.Error("AutoTest report", ex); }
             DevTools.Notify(summary + (_fail > 0 ? " See autotest-report.txt." : ""));
+        }
+
+        /// <summary>Every crew ready to attack and no front in its quiet days, so a forced attack can always start
+        /// (the empire is put back afterwards).</summary>
+        private static void ReadyCrews(EmpireState s)
+        {
+            foreach (CrewState c in s.Crews) { c.QuietUntilDay = -1; if (c.Manpower < 10) c.Manpower = 10; }
+            s.FrontAttackedMs.Clear();
         }
 
         private static Vector3 Door(FrontDef f) { return new Vector3(f.Door.X, f.Door.Y, f.Door.Z); }
