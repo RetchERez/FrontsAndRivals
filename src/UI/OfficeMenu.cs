@@ -613,6 +613,13 @@ namespace FrontsAndRivals.UI
             blips.CheckboxChanged += (s, a) => Safe("setting", () => { e.State.HideBlips = !blips.Checked; Changed(true); });
             AddListRow(blips, null, false);
 
+            string[] turfModes = { "Pause Map", "Map and Radar", "Off" };
+            string[] turfKeys = { "map", "radar", "off" };
+            var turfMap = new NativeListItem<string>("Turf Map", "Each front's block shaded in its owner's colour on the map, so you can see who holds what at a glance.", turfModes);
+            turfMap.SelectedIndex = Math.Max(0, Array.IndexOf(turfKeys, e.State.TurfMap ?? "map"));
+            turfMap.ItemChanged += (s, a) => Safe("setting", () => { e.State.TurfMap = turfKeys[turfMap.SelectedIndex]; Changed(true); });
+            AddListRow(turfMap, null, false);
+
             var color = new NativeListItem<string>("Crew Colour", "The colour your crew wears, and the colour of your fronts and bodyguards on the map. Change it any time. "
                 + "The Dead Kings wear forest green, Hellfire MC orange and the Vinewood Elite royal blue.", CrewColors.Names().ToArray());
             color.SelectedIndex = CrewColors.IndexOf(e.State.CrewColor ?? CrewColors.DefaultPlayer);

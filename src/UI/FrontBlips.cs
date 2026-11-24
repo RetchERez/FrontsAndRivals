@@ -23,6 +23,7 @@ namespace FrontsAndRivals.UI
         }
 
         private readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
+        private readonly Dictionary<string, KeyValuePair<string, Blip>> _turf = new Dictionary<string, KeyValuePair<string, Blip>>();
         public bool ShowRivalFronts = true;
         public bool ShowForSaleFronts = true;
 
@@ -92,6 +93,40 @@ namespace FrontsAndRivals.UI
                 }
                 en.Blip = b;
             }
+            try { RefreshTurf(empire, content, attack); } catch (System.Exception ex) { FrontsAndRivals.Core.Log.Error("Turf map", ex); }
+        }
+
+        /// <summary>The turf map: each front's block shaded in its owner's colour on GTA's own map (a translucent radius
+        /// blip, like the game's search areas), so fronts close together merge into one patch of territory. Bigger fronts
+        /// hold more ground. A front under attack pulses. Office > Settings > Turf Map: pause map only (default), map and
+        /// radar, or off. Redrawn only when something about a front changed.</summary>
+        private void RefreshTurf(Empire empire, ContentDb content, AttackState attack)
+        {
+            string mode = empire.State.TurfMap ?? "map";
+            foreach (FrontDef def in content.Fronts)
+            {
+                string owner = empire.OwnerOf(def.Id);
+                bool show = def.Door.IsSet && mode != "off" && !empire.State.HideBlips && (owner == Owners.Player || Owners.IsCrew(owner));
+                bool contested = attack != null && attack.Front == def.Id && attack.Phase != AttackPhase.Warning;
+                string colourKey = owner == Owners.Player ? (empire.State.CrewColor ?? CrewColors.DefaultPlayer) : owner;
+                string want = show ? owner + "|" + colourKey + "|" + mode + "|" + contested : null;
+                KeyValuePair<string, Blip> cur;
+                bool has = _turf.TryGetValue(def.Id, out cur);
+                if (has && cur.Key == want && (want == null || (cur.Value != null && cur.Value.Exists()))) continue;
+                if (has && cur.Value != null && cur.Value.Exists()) cur.Value.Delete();
+                if (want == null) { _turf[def.Id] = new KeyValuePair<string, Blip>(null, null); continue; }
+                float radius = def.Tier >= 2 ? 130f : def.Tier == 1 ? 110f : 90f;
+                Blip turf = GTA.World.CreateBlip(new Vector3(def.Door.X, def.Door.Y, def.Door.Z), radius);
+                CrewDef crew = owner == Owners.Player ? null : content.Crew(owner);
+                turf.Color = owner == Owners.Player ? (BlipColor)CrewColors.Get(colourKey).Blip : (crew != null ? (BlipColor)crew.BlipColor : BlipColor.Grey);
+                turf.Alpha = 80;
+                turf.DisplayType = mode == "radar" ? BlipDisplayType.BothMapNoSelectable : BlipDisplayType.MainMapSelectable;
+                turf.IsHiddenOnLegend = true;
+                turf.Name = (owner == Owners.Player ? "Your turf" : (crew != null ? crew.Name + " turf" : "Turf"));
+                turf.Priority = 0; // under the front icons
+                if (contested) turf.IsFlashing = true;
+                _turf[def.Id] = new KeyValuePair<string, Blip>(want, turf);
+            }
         }
 
         private string Want(Empire empire, FrontDef def, string owner, AttackState attack)
@@ -126,6 +161,11 @@ namespace FrontsAndRivals.UI
                 try { Remove(en); } catch { }
             }
             _entries.Clear();
+            foreach (KeyValuePair<string, Blip> t in _turf.Values)
+            {
+                try { if (t.Value != null && t.Value.Exists()) t.Value.Delete(); } catch { }
+            }
+            _turf.Clear();
         }
     }
 }

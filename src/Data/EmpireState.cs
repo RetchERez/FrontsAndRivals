@@ -67,6 +67,7 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "messages", Order = 42)] public List<MessageEntry> Messages;
         /// <summary>The Fronts & Rivals version that last saved this empire (a copy is kept before a different version uses it).</summary>
         [DataMember(Name = "modVersion", Order = 43)] public string ModVersion;
+        [DataMember(Name = "turfMap", Order = 45)] public string TurfMap;           // Office: "map" (default), "radar" (map and radar) or "off"
         [DataMember(Name = "streetDay", Order = 44)] public int StreetDay = -1;      // the day each crew's StreetGrudgeToday counts for      // last midnight you held a front (Broker rescue)              // first-time tips already shown (UI.Tip flags)
     }
 
