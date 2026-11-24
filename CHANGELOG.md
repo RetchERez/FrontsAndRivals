@@ -2,12 +2,16 @@
 
 ## 3.0.0 (in progress)
 
-- Gang wardrobes, a look of their own for each crew: Dead Kings in green beanies and chains, Hellfire MC in biker
-  skull caps and black wraparounds, Vinewood Elite in royal blue trilbies, blue ties and aviators; your crew gets the
-  same in your colour and style
+- Crews wear uniforms: every Dead King in the same Dark Green hoodie, every Hellfire MC biker in the same Orange vinyl
+  cut, every Vinewood Elite member in the same Blue long suit with black trousers, with the same trousers and shoes
+  across the crew; your crew wears the uniform of the style you pick when it comes in your colour
+- Faces make them individuals: a wide range of haircuts, beards on most of the men, varied eyebrows, and ages from
+  their twenties to around Michael's age, with a touch of grey for some of the older ones
+- Each crew has its own headwear and cover: Dead Kings green beanies, Hellfire MC biker skull caps and wraparounds,
+  Vinewood Elite royal blue trilbies, ties and aviators; anyone under a hat gets a short cut so hair never pokes through
 - Crews hitting your fronts cover up their own way: Dead Kings pull up green bandanas, Hellfire MC skull bandanas, and
   the Vinewood Elite don't hide their faces
-- Bosses and lieutenants dress a step up (gold chain, gold watch, shades), so you can pick them out in a fight
+- Bosses and lieutenants dress a step up (gold watch, shades), so you can pick them out in a fight
 - No more cash bonus for defending your own front in person: keeping it is the reward
 - Long texts from the Office and the crews are never cut off any more
 - Crew names stand alone in texts and alerts ("Vinewood Elite are hitting the Car Wash"), so they read shorter

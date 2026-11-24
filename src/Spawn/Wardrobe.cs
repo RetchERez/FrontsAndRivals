@@ -129,6 +129,7 @@ namespace FrontsAndRivals.Spawn
                 Function.Call(Hash.SET_PED_HEAD_BLEND_DATA, ped, d.Mother, d.Father, 0, d.Mother, d.Father, 0, d.ShapeMix, d.SkinMix, 0f, false);
                 Set(ped, 2, d.Hair, 0);
                 Function.Call(Hash.SET_PED_HAIR_TINT, ped, d.HairTint, d.HairTint);
+                Faces(ped, d);
                 if (d.Under != null) Set(ped, 8, d.Under.Drawable, d.Under.Texture);
                 if (d.Legs != null) Set(ped, 4, d.Legs.Drawable, d.Legs.Texture);
                 if (d.Shoes != null) Set(ped, 6, d.Shoes.Drawable, d.Shoes.Texture);
@@ -160,6 +161,24 @@ namespace FrontsAndRivals.Spawn
             var sb = new System.Text.StringBuilder(l.Gender);
             foreach (OutfitPart p in l.Parts) sb.Append(' ').Append(p.Component).Append('/').Append(p.Drawable);
             return sb.ToString();
+        }
+
+        /// <summary>Beard, eyebrows and age on the face (GTA Online's head overlays: 1 facial hair, 2 eyebrows, 3 ageing),
+        /// hair-coloured. NativeDB: SET_PED_HEAD_OVERLAY(ped, overlay, index, opacity); 255 = none.
+        /// SET_PED_HEAD_OVERLAY_TINT(ped, overlay, colourType 1 = hair, colour, second colour).</summary>
+        private static void Faces(Ped ped, Dressing d)
+        {
+            Overlay(ped, 1, d.Beard, d.BeardOpacity, d.HairTint);
+            Overlay(ped, 2, d.Brows, d.BrowsOpacity, d.HairTint);
+            Overlay(ped, 3, d.Ageing > 0f ? d.AgeingStyle : -1, d.Ageing, -1);
+        }
+
+        private static void Overlay(Ped ped, int overlay, int index, float opacity, int tint)
+        {
+            int count = Function.Call<int>(Hash.GET_PED_HEAD_OVERLAY_NUM, overlay);
+            if (index < 0 || index >= count) { Function.Call(Hash.SET_PED_HEAD_OVERLAY, ped, overlay, 255, 0f); return; }
+            Function.Call(Hash.SET_PED_HEAD_OVERLAY, ped, overlay, index, opacity);
+            if (tint >= 0) Function.Call(Hash.SET_PED_HEAD_OVERLAY_TINT, ped, overlay, 1, tint, tint);
         }
 
         /// <summary>A prop (hat, glasses, watch) this ped's model really has: the drawable and texture are within the

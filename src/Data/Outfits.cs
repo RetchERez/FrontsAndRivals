@@ -33,6 +33,7 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "under")] public string Under;      // none / plain / shirt
         [DataMember(Name = "legs")] public string Legs;        // street / biker / suit, or null when the trousers are coloured
         [DataMember(Name = "shoes")] public string Shoes;      // street / boots / formal
+        [DataMember(Name = "uniform")] public bool Uniform;    // the crew's uniform: worn whenever it comes in the colour
 
         /// <summary>A major piece of this look comes in the colour.</summary>
         public bool Wears(string colour)
@@ -51,6 +52,7 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "chance")] public double Chance;
         [DataMember(Name = "only")] public string Only;        // the under-layer the look must have (a tie needs a shirt)
         [DataMember(Name = "when")] public string When;        // "attack": only on people hitting your fronts
+        [DataMember(Name = "tops")] public Dictionary<string, List<int>> Tops; // only with these tops (chains: open collars)
         [DataMember(Name = "m")] public List<OutfitPart> Male;
         [DataMember(Name = "f")] public List<OutfitPart> Female;
     }
@@ -86,6 +88,7 @@ namespace FrontsAndRivals.Data
         [DataMember(Name = "hairTints")] public List<int> HairTints;
         [DataMember(Name = "femaleChance")] public Dictionary<string, double> FemaleChance;
         [DataMember(Name = "extras")] public Dictionary<string, List<ExtraPiece>> Extras;
+        [DataMember(Name = "hatHair")] public Dictionary<string, List<int>> HatHair; // short cuts for anyone under a hat
 
         public static OutfitData Load(string path)
         {
@@ -106,6 +109,14 @@ namespace FrontsAndRivals.Data
         public float ShapeMix, SkinMix;
         public OutfitPiece Legs, Shoes, Under;
         public List<WornExtra> Extras = new List<WornExtra>();
+        /// <summary>0 in their twenties, 1 in their thirties, 2 around forty-five (Michael's age).</summary>
+        public int Age;
+        public float Ageing;                 // the face's ageing overlay strength (0 = none)
+        public int AgeingStyle;
+        public int Beard = -1;               // facial hair style, -1 = clean-shaven (women: always -1)
+        public float BeardOpacity;
+        public int Brows;                    // eyebrow style
+        public float BrowsOpacity;
     }
 
     public static class OutfitRules
@@ -198,6 +209,13 @@ namespace FrontsAndRivals.Data
             {
                 salt += 7;
                 if (x.Only != null && (look == null || look.Under != x.Only)) continue;
+                if (x.Tops != null)
+                {
+                    List<int> tops;
+                    int top = -1;
+                    if (look != null && look.Parts != null) foreach (OutfitPart lp in look.Parts) if (lp.Component == 11) top = lp.Drawable;
+                    if (!x.Tops.TryGetValue(female ? "f" : "m", out tops) || !tops.Contains(top)) continue; // would clip through this top
+                }
                 if (Pick(seed, salt, 1000) >= (int)Math.Round(x.Chance * 1000)) continue;
                 List<OutfitPart> options = female ? x.Female : x.Male;
                 if (options == null || options.Count == 0) continue;
@@ -247,6 +265,7 @@ namespace FrontsAndRivals.Data
             foreach (OutfitLook l in looks) if (l.Gender == g && l.Wears(colour)) fits.Add(l);
             if (fits.Count == 0 && !female0.HasValue) { female = !female; g = female ? "f" : "m"; foreach (OutfitLook l in looks) if (l.Gender == g && l.Wears(colour)) fits.Add(l); }
             if (fits.Count == 0) return null; // nothing in this colour: never dress someone out of their colour
+            if (fits.Exists(l => l.Uniform)) fits.RemoveAll(l => !l.Uniform); // everyone in the same uniform
             OutfitLook look = fits[Pick(seed, 11, fits.Count)];
 
             var d = new Dressing { Female = female, Look = look, Colour = colour };
@@ -270,7 +289,36 @@ namespace FrontsAndRivals.Data
             d.ShapeMix = female ? 0.1f + Pick(seed, 43, 30) / 100f : 0.6f + Pick(seed, 47, 30) / 100f;
             d.SkinMix = Pick(seed, 53, 101) / 100f;
             d.Extras = ChooseExtras(data, style, colour, look, female, seed, lead);
+            // Under a hat or helmet: a short cut, so long hair never pokes through.
+            List<int> shortHair;
+            if (d.Extras.Exists(x => x.Slot == "hat") && data.HatHair != null && data.HatHair.TryGetValue(g, out shortHair) && shortHair.Count > 0)
+                d.Hair = shortHair[Pick(seed, 59, shortHair.Count)];
+            Faces(d, female, seed, data.HairTints);
             return d;
+        }
+
+        /// <summary>Age, beard and eyebrows. About half are in their twenties, a third in their thirties and the rest
+        /// around forty-five, Michael's age (GTA's own ageing on the face, a touch of grey for some of the older ones).
+        /// Most men have some facial hair, more of them as they get older.</summary>
+        public static void Faces(Dressing d, bool female, int seed, List<int> hairTints)
+        {
+            int age = Pick(seed, 61, 100);
+            d.Age = age < 50 ? 0 : age < 85 ? 1 : 2;
+            d.AgeingStyle = Pick(seed, 67, 15);
+            d.Ageing = d.Age == 0 ? 0f : d.Age == 1 ? 0.15f + Pick(seed, 71, 20) / 100f : 0.4f + Pick(seed, 73, 25) / 100f;
+            if (d.Age == 2 && Pick(seed, 79, 100) < 30 && hairTints != null && hairTints.Contains(28)) d.HairTint = 28; // greying
+            d.Brows = Pick(seed, 83, 34);
+            d.BrowsOpacity = 0.6f + Pick(seed, 89, 40) / 100f;
+            d.Beard = -1;
+            if (!female)
+            {
+                int chance = d.Age == 0 ? 50 : d.Age == 1 ? 65 : 75;
+                if (Pick(seed, 97, 100) < chance)
+                {
+                    d.Beard = Pick(seed, 101, 29);
+                    d.BeardOpacity = 0.6f + Pick(seed, 103, 40) / 100f;
+                }
+            }
         }
     }
 }

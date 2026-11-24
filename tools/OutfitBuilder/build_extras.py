@@ -103,8 +103,14 @@ def main():
     def clean(items):
         return {g: [x for x in v if x] for g, v in items.items()}
 
-    def piece(slot, chance, items, only=None, when=None):
+    open_collar = {'m': [], 'f': []}
+    for g, f in (('m', 'male_tops'), ('f', 'female_tops')):
+        tops = load(folder, f)
+        open_collar[g] = sorted(int(k) for k, tex in tops.items() if any((v.get('Localized') or '').endswith('Revere Collar') for v in tex.values()))
+
+    def piece(slot, chance, items, only=None, when=None, tops=None):
         p = {'slot': slot, 'chance': chance}
+        if tops: p['tops'] = tops    # only with these tops (a chain shows on an open collar, clips through a hoodie)
         if only: p['only'] = only    # under-layer the look needs (a tie needs a shirt collar)
         if when: p['when'] = when    # 'attack': only on people hitting your fronts
         p.update(clean(items))
@@ -113,24 +119,85 @@ def main():
     extras = {
         # Each crew looks like nobody else:
         # Dead Kings: street. A green beanie, chains, and a plain green face bandana pulled up for a hit.
-        'CK': [piece('hat', 0.45, beanie), piece('neck', 0.35, chain), piece('mask', 1.0, mask_colour, when='attack')],
+        'CK': [piece('hat', 0.45, beanie), piece('neck', 0.8, chain, tops=open_collar), piece('mask', 1.0, mask_colour, when='attack')],
         # Hellfire MC: bikers. A biker skull cap (half helmet), black wraparounds, and a skull-print bandana for a hit.
         'IR': [piece('hat', 0.4, skull_cap), piece('glasses', 0.55, shades_biker), piece('mask', 1.0, mask_skull, when='attack')],
         # Vinewood Elite: money. A royal blue trilby on some of the men, a blue tie with every shirt, aviators.
         # No masks: they don't hide their faces.
         'VS': [piece('hat', 0.35, trilby), piece('neck', 1.0, tie, only='shirt'), piece('glasses', 0.5, shades_smart)],
         # Your crew, in your colour.
-        'player_street': [piece('hat', 0.4, beanie), piece('neck', 0.3, chain)],
+        'player_street': [piece('hat', 0.4, beanie), piece('neck', 0.8, chain, tops=open_collar)],
         'player_biker': [piece('hat', 0.35, skull_cap), piece('glasses', 0.5, shades_biker)],
         'player_smart': [piece('hat', 0.3, trilby), piece('neck', 1.0, tie, only='shirt'), piece('glasses', 0.4, shades_smart)],
-        'player_mixed': [piece('hat', 0.3, beanie), piece('glasses', 0.3, shades_smart), piece('neck', 0.2, chain)],
+        'player_mixed': [piece('hat', 0.3, beanie), piece('glasses', 0.3, shades_smart), piece('neck', 0.6, chain, tops=open_collar)],
         # Bosses and lieutenants: a step up, so you can pick them out in a fight.
-        'lead': [piece('neck', 1.0, gold_chain), piece('watch', 1.0, watch), piece('glasses', 1.0, shades_smart)],
+        'lead': [piece('neck', 1.0, gold_chain, tops=open_collar), piece('watch', 1.0, watch), piece('glasses', 1.0, shades_smart)],
     }
 
     path = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'Content', 'outfits.json')
     data = json.load(io.open(path, encoding='utf-8'))
     data['extras'] = extras
+
+    # Hair: a wide range of real cuts by their game names (first drawable with that name), and short cuts for anyone
+    # under a hat or helmet, so long hair never pokes through.
+    hair_m = load(folder, 'male_hair'); hair_f = load(folder, 'female_hair')
+    def hair_ids(d, names):
+        out = []
+        for n in names:
+            for k, tex in d.items():
+                if any((v.get('Localized') or '').startswith(n) for v in tex.values()):
+                    out.append(int(k)); break
+        return sorted(set(out))
+    data['hair'] = {
+        'm': hair_ids(hair_m, ['Buzzcut', 'Faux Hawk', 'Hipster Shaved', 'Side Parting Spiked', 'Shorter Cut', 'Biker',
+                               'Ponytail', 'Cornrows', 'Slicked', 'Short Brushed', 'Spikey', 'Caesar', 'Chopped', 'Dreads',
+                               'Long Hair', 'Shaggy Curls', 'Surfer Dude', 'Short Side Part', 'High Slicked Sides',
+                               'Long Slicked', 'Hipster Youth', 'Mullet', 'Classic Cornrows', 'Palm Cornrows', 'Hightop',
+                               'Loose Swept Back', 'Undercut Swept Back', 'Undercut Swept Side', 'Mod', 'Flattop',
+                               'Military Buzzcut', 'Afro Faded', 'Two Block', 'Short Curls Fade']),
+        'f': hair_ids(hair_f, ['Short', 'Layered Bob', 'Pigtails', 'Ponytail', 'Braided Mohawk', 'Braids', 'Bob',
+                               'Faux Hawk', 'French Twist', 'Long Bob', 'Loose Tied', 'Pixie', 'Shaved Bangs', 'Top Knot',
+                               'Wavy Bob', 'Messy Bun', 'Tight Bun', 'Twisted Bob', 'Big Bangs', 'Pinched Cornrows',
+                               'Leaf Cornrows', 'Wave Braids', 'Coil Braids', 'Rolled Quiff', 'Loose Swept Back',
+                               'Undercut Swept Back', 'Neat Bun', 'Short Bob', 'Afro']),
+    }
+    # Uniforms: each crew wears one outfit, the same item in the same named colour for everyone, with the same
+    # trousers and shoes; faces, hair, beards and the odd hat or shades make them individuals. Your crew wears the
+    # uniform of the style you pick when it comes in your colour (looks marked "uniform"), the nearest look otherwise.
+    UNIFORM = {'CK': {'m': 384, 'f': 407}, 'IR': {'m': 424, 'f': 452}, 'VS': {'m': 140, 'f': 137}}
+    PLAYER_UNIFORM = {'player_street': 'CK', 'player_biker': 'IR', 'player_smart': 'VS'}
+    def top_of(look):
+        return next((p['d'] for p in look['parts'] if p['c'] == 11), None)
+    styles = data['styles']
+    for crew, tops in UNIFORM.items():
+        kept, seen = [], set()
+        for look in styles[crew]:
+            if top_of(look) == tops[look['g']] and look['g'] not in seen:
+                seen.add(look['g'])
+                look['uniform'] = True
+                look['legs'] = (look.get('legs') and crew.lower()) or look.get('legs')
+                look['shoes'] = crew.lower()
+                kept.append(look)
+        assert len(kept) == 2, (crew, len(kept))
+        styles[crew] = kept
+    for pstyle, crew in PLAYER_UNIFORM.items():
+        for look in styles[pstyle]:
+            look.pop('uniform', None)
+        uni = [json.loads(json.dumps(l)) for l in styles[crew]]   # the same uniform, in your colour
+        styles[pstyle] = uni + [l for l in styles[pstyle] if top_of(l) not in (UNIFORM[crew]['m'], UNIFORM[crew]['f'])]
+    # one pair of trousers and shoes per crew (the first of the style's own neutral lists)
+    base = {'CK': 'street', 'IR': 'biker', 'VS': 'suit'}
+    base_shoes = {'CK': 'street', 'IR': 'boots', 'VS': 'formal'}
+    for g in ('m', 'f'):
+        n = data['neutral'][g]
+        for crew, cat in base.items():
+            n['legs'][crew.lower()] = n['legs'][cat][:1]
+            n['shoes'][crew.lower()] = n['shoes'][base_shoes[crew]][:1]
+
+    data['hatHair'] = {
+        'm': hair_ids(hair_m, ['Buzzcut', 'Shorter Cut', 'Short Brushed', 'Caesar', 'Short Side Part', 'Military Buzzcut', 'Cornrows']),
+        'f': hair_ids(hair_f, ['Short', 'Pixie', 'Tight Bun', 'Pinched Cornrows', 'Short Bob']),
+    }
     io.open(path, 'w', encoding='utf-8', newline='').write(json.dumps(data, indent=1, ensure_ascii=False) + '\n')
     for style, pieces in extras.items():
         print(style, [(p['slot'], {g: [(x['d'], len(x.get('t', {})) or 'fixed') for x in p[g]] for g in ('m', 'f')}) for p in pieces])

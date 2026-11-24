@@ -247,7 +247,14 @@ static class FrontTests
         {
             // Gang wardrobes: extras on top of each look
             var many = Enumerable.Range(0, 400).Select(i => OutfitRules.Choose(od, "CK", "forest", i)).Where(x => x != null).ToList();
-            T.True("Dead Kings: some wear a green beanie, some a chain", many.Any(x => x.Extras.Any(e => e.Slot == "hat")) && many.Any(x => x.Extras.Any(e => e.Slot == "neck")) && many.Any(x => !x.Extras.Any(e => e.Slot == "hat")));
+            T.True("Dead Kings: some wear a green beanie, and no chain clips through a hoodie", many.Any(x => x.Extras.Any(e => e.Slot == "hat")) && many.Any(x => !x.Extras.Any(e => e.Slot == "hat")) && many.All(x => !x.Extras.Any(e => e.Slot == "neck")));
+            T.True("Uniforms: every Dead King in the same Dark Green hoodie, same trousers, same shoes", many.Select(x => x.Look.Parts.First(p => p.Component == 11).Drawable + (x.Female ? 1000 : 0)).Distinct().Count() == 2
+                && many.Select(x => x.Look.Parts.First(p => p.Component == 11).TextureFor("forest")).Distinct().Count() <= 2 && many.Where(x => !x.Female).Select(x => x.Legs.Drawable * 100 + x.Legs.Texture).Distinct().Count() == 1 && many.Where(x => !x.Female).Select(x => x.Shoes.Drawable * 100 + x.Shoes.Texture).Distinct().Count() == 1);
+            T.True("...but they're individuals: different hair, beards and ages", many.Where(x => !x.Female).Select(x => x.Hair).Distinct().Count() > 5 && many.Any(x => x.Beard >= 0) && many.Any(x => !x.Female && x.Beard < 0) && many.Select(x => x.Age).Distinct().Count() == 3);
+            T.True("Women never get a beard", many.Where(x => x.Female).All(x => x.Beard < 0));
+            double old = many.Count(x => x.Age == 2) / (double)many.Count;
+            T.True("About half in their twenties, the rest in their thirties or around Michael's age (" + (int)(old * 100) + "% around 45)", old > 0.08 && old < 0.25 && many.Count(x => x.Age == 0) > many.Count * 0.38);
+            T.True("Under a hat, always a short cut", many.Where(x => x.Extras.Any(e => e.Slot == "hat")).All(x => od.HatHair[x.Female ? "f" : "m"].Contains(x.Hair)));
             T.True("Dead Kings pull up a bandana for attacks only", many.All(x => x.Extras.Where(e => e.Slot == "mask").All(e => e.AttackOnly)) && many.Any(x => x.Extras.Any(e => e.Slot == "mask")));
             var ck = od.Extras["CK"].First(e => e.Slot == "hat").Male[0];
             T.True("...and their beanie is the Dark Green one", many.Where(x => !x.Female).SelectMany(x => x.Extras).Where(e => e.Slot == "hat").All(e => e.Texture == ck.Textures["forest"]));
@@ -263,7 +270,7 @@ static class FrontTests
             T.True("Vinewood Elite: some of the men in a royal blue trilby", vs.Any(x => x.Extras.Any(e => e.Slot == "hat" && e.Texture == od.Extras["VS"].First(h => h.Slot == "hat").Male[0].Textures["blue"])) && vs.Where(x => x.Female).All(x => !x.Extras.Any(e => e.Slot == "hat")));
             T.True("Vinewood Elite: a tie only with a shirt, never masked", vs.All(x => !x.Extras.Any(e => e.Slot == "neck") || x.Look.Under == "shirt") && vs.Any(x => x.Extras.Any(e => e.Slot == "neck")) && vs.All(x => !x.Extras.Any(e => e.Slot == "mask")));
             var boss = OutfitRules.Choose(od, "CK", "forest", 5, false, true);
-            T.True("Bosses and lieutenants wear a gold chain, a watch and shades", boss.Extras.Any(e => e.Slot == "watch") && boss.Extras.Any(e => e.Slot == "glasses") && boss.Extras.Any(e => e.Slot == "neck"));
+            T.True("Bosses and lieutenants wear a gold watch and shades (a chain only on an open collar)", boss.Extras.Any(e => e.Slot == "watch") && boss.Extras.Any(e => e.Slot == "glasses") && !boss.Extras.Any(e => e.Slot == "neck"));
             T.True("The same person always wears the same extras", OutfitRules.Choose(od, "IR", "orange", 77).Extras.Count == OutfitRules.Choose(od, "IR", "orange", 77).Extras.Count);
             var red = Enumerable.Range(0, 300).Select(i => OutfitRules.Choose(od, "player_street", "red", i)).Where(x => x != null).ToList();
             T.True("Your crew never wears a hat in someone else's colour (there's no red beanie)", red.All(x => !x.Extras.Any(e => e.Slot == "hat")));
@@ -271,7 +278,9 @@ static class FrontTests
             int gone = OutfitRules.PruneExtras(od3, (f, c, d, t) => true, (f, prop, d, t) => prop != 0); // pretend the game has no hats
             T.True("The outfit check drops extras the game rejects", gone > 0 && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od3, "CK", "forest", i); return x == null || !x.Extras.Any(e => e.Slot == "hat"); }));
         }
-        T.True("Vinewood Elite are mostly suits", Enumerable.Range(0, 200).Count(i => OutfitRules.Choose(od, "VS", "blue", i).Look.Shoes == "formal") == 200);
+        T.True("Vinewood Elite all wear the blue long suit", Enumerable.Range(0, 200).All(i => { var x = OutfitRules.Choose(od, "VS", "blue", i); return x.Look.Uniform && x.Look.Under == "shirt"; }));
+        T.True("Your crew wears the uniform of your style when it comes in your colour, the nearest look otherwise", Enumerable.Range(0, 100).All(i => OutfitRules.Choose(od, "player_smart", "blue", i).Look.Uniform)
+            && Enumerable.Range(0, 100).All(i => { var x = OutfitRules.Choose(od, "player_smart", "red", i); return x != null && !x.Look.Uniform; }));
         T.True("The same guard always looks the same", OutfitRules.Choose(od, "player_street", "red", 42).Hair == OutfitRules.Choose(od, "player_street", "red", 42).Hair);
         T.True("Patrol stops last 12-25 seconds", Enumerable.Range(0, 100).All(i => StreamRules.PatrolDwellMs(i) >= 12000 && StreamRules.PatrolDwellMs(i) < 25000));
         be2.SetOwner("carwash_handson", Owners.Velvet); // lost it to another crew
