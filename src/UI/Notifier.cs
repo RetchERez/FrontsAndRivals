@@ -1,6 +1,7 @@
 // Fronts & Rivals: feed messages. Everything the world sends you goes through Send(), which queues it
 // (NotifyQueue: priorities, a minimum gap, the notification level and switches) and releases one at a time.
-// Messages wait while you're in a mission or cutscene. They show as general notifications, never cut off.
+// Messages wait while you're in a mission or cutscene. Mugshot messages show the real guard's face. Long texts are
+// sent in pieces, so they're never cut off.
 using System;
 using System.Collections.Generic;
 using GTA;
@@ -11,6 +12,14 @@ namespace FrontsAndRivals.UI
 {
     public sealed class Notifier
     {
+        private sealed class PendingShot
+        {
+            public int Handle;
+            public string Sender, Subject, Message;
+            public int StartedAt;
+        }
+
+        private readonly List<PendingShot> _shots = new List<PendingShot>();
         private readonly NotifyQueue _queue = new NotifyQueue();
 
         /// <summary>Drops everything still waiting to be sent (a new empire starting).</summary>
@@ -56,35 +65,53 @@ namespace FrontsAndRivals.UI
                            _settings(), Game.GameTime);
         }
 
-        /// <summary>A general notification right now (the game's plain feed, not a text message): the subject in bold on
-        /// the first line, who it's from in brackets when it isn't the Office, then the message. Long messages are sent in
-        /// 99-character pieces (the most the game takes in one piece), so nothing is ever cut off.</summary>
+        /// <summary>Plain feed message right now, with a stock contact picture. Use for replies to the player's own actions.</summary>
         public static void Post(string picture, string sender, string subject, string message)
         {
-            string head = subject ?? "";
-            if (!string.IsNullOrEmpty(sender) && sender != "The Office" && sender != subject) head += " (" + sender + ")";
-            string text = (head.Length > 0 ? "~h~" + head + "~h~~n~" : "") + (message ?? "");
-            Function.Call(Hash.BEGIN_TEXT_COMMAND_THEFEED_POST, "CELL_EMAIL_BCON"); // a label made of up to 10 pieces
-            foreach (string piece in NotifyQueue.Pieces(text, 99, 10)) Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, piece);
-            // NativeDB: blink, showInBrief (so it's also in the pause menu's Brief)
-            Function.Call<int>(Hash.END_TEXT_COMMAND_THEFEED_POST_TICKER, false, true);
+            // Long texts go in 99-character pieces (the most the game takes in one piece) under a label made of up to
+            // 10 pieces, so nothing is ever cut off.
+            Function.Call(Hash.BEGIN_TEXT_COMMAND_THEFEED_POST, "CELL_EMAIL_BCON");
+            foreach (string piece in NotifyQueue.Pieces(message ?? "", 99, 10)) Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, piece);
+            // NativeDB: txdName, textureName, flash, iconType, sender, subject
+            Function.Call<int>(Hash.END_TEXT_COMMAND_THEFEED_POST_MESSAGETEXT, picture, picture, false, 1, sender, subject);
         }
 
-        /// <summary>A guard's death or injury. Respects the notification settings.</summary>
+        /// <summary>A guard's death or injury with their real face. Respects the notification settings.</summary>
         public void PostWithMugshot(Ped ped, string sender, string subject, string message)
         {
             if (!NotifyQueue.Allowed(NoteKind.GuardDeath, _settings())) return;
             _queue.MarkSent(Game.GameTime);
-            Post(null, sender, subject, message);
+            if (ped == null || !ped.Exists()) { Post("CHAR_DEFAULT", sender, subject, message); return; }
+            int handle = Function.Call<int>(Hash.REGISTER_PEDHEADSHOT, ped);
+            _shots.Add(new PendingShot { Handle = handle, Sender = sender, Subject = subject, Message = message, StartedAt = Game.GameTime });
         }
 
-        /// <summary>Every tick, also while paused (the queue only releases when not held).</summary>
+        /// <summary>Every tick, also while paused (mugshots finish; the queue only releases when not held).</summary>
         public void Update()
         {
             if (!Hold)
             {
                 Note n = _queue.Next(_settings(), Game.GameTime);
                 if (n != null) Post(n.Picture, n.Sender, n.Subject, n.Message);
+            }
+            for (int i = _shots.Count - 1; i >= 0; i--)
+            {
+                PendingShot s = _shots[i];
+                bool ready = Function.Call<bool>(Hash.IS_PEDHEADSHOT_READY, s.Handle)
+                          && Function.Call<bool>(Hash.IS_PEDHEADSHOT_VALID, s.Handle);
+                if (ready)
+                {
+                    string txd = Function.Call<string>(Hash.GET_PEDHEADSHOT_TXD_STRING, s.Handle);
+                    Post(txd, s.Sender, s.Subject, s.Message);
+                    Function.Call(Hash.UNREGISTER_PEDHEADSHOT, s.Handle);
+                    _shots.RemoveAt(i);
+                }
+                else if (Game.GameTime - s.StartedAt > 3000)
+                {
+                    Function.Call(Hash.UNREGISTER_PEDHEADSHOT, s.Handle);
+                    Post("CHAR_DEFAULT", s.Sender, s.Subject, s.Message); // fall back, never lose the message
+                    _shots.RemoveAt(i);
+                }
             }
         }
     }

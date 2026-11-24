@@ -1,10 +1,10 @@
 {
   "warning": [
-    "Word is the {crew} want the {front}. Tonight.",
+    "Word is {crew} want the {front}. Tonight.",
     "Heads up. {crew} cars keep circling the {front}. Something's coming.",
-    "Somebody at the {crew} has been asking how many people you keep at the {front}.",
-    "My cousin says the {crew} are loading up. Their target is the {front}.",
-    "The {crew} are talking big about the {front}. Expect company."
+    "Somebody at {crew} has been asking how many people you keep at the {front}.",
+    "My cousin says {crew} are loading up. Their target is the {front}.",
+    "{crew} are talking big about the {front}. Expect company."
   ],
   "taunt": [
     "Hope your people at the {front} said goodbye. - {leader}",
@@ -21,17 +21,17 @@
     "You got lucky at the {front}. Luck runs out. - {leader}"
   ],
   "held": [
-    "{guard} and the others held the {front}. The {crew} left {lost} behind.",
-    "The {crew} hit the {front} and went home lighter. {guard} says it's quiet again.",
+    "{guard} and the others held the {front}. {crew} left {lost} behind.",
+    "{crew} hit the {front} and went home lighter. {guard} says it's quiet again.",
     "{front} is still ours. {guard} counted {lost} of theirs on the pavement."
   ],
   "lost": [
     "We lost the {front}. {leader} is running it now.",
-    "The {crew} took the {front}. Our people pulled back to the reserve.",
+    "{crew} took the {front}. Our people pulled back to the reserve.",
     "The {front} is gone. {leader} has their own people on the door."
   ],
   "damaged": [
-    "The {crew} trashed the {front}, but it's still ours. No take tonight while it gets cleaned up."
+    "{crew} trashed the {front}, but it's still ours. No take tonight while it gets cleaned up."
   ],
   "guardDied": [
     "{guard} didn't make it out of the {front}.",
@@ -54,37 +54,37 @@
     "Still feel the {front} every time it rains. - {leader}"
   ],
   "promotion": [
-    "{guard_new} walked away from the {front}. The {crew} made them a lieutenant.",
-    "The {crew} filled the empty chair. {guard_new} is a lieutenant now."
+    "{guard_new} walked away from the {front}. {crew} made them a lieutenant.",
+    "{crew} filled the empty chair. {guard_new} is a lieutenant now."
   ],
   "newBoss": [
-    "{leader} runs the {crew} now. They'll want to prove something."
+    "{leader} runs {crew} now. They'll want to prove something."
   ],
   "collapsed": [
-    "The {crew} have nobody left at the top. They'll go quiet for a while."
+    "{crew} have nobody left at the top. They'll go quiet for a while."
   ],
   "rebuilt": [
-    "The {crew} are back under {leader}. Smaller, hungrier."
+    "{crew} are back under {leader}. Smaller, hungrier."
   ],
   "frontTaken": [
-    "The {front} is yours. Put guards on it before the {crew} come back for it."
+    "The {front} is yours. Put guards on it before {crew} come back for it."
   ],
   "counterStrike": [
-    "The {crew} burned their soldiers on that hit. Their {front} is thin right now."
+    "{crew} burned their soldiers on that hit. Their {front} is thin right now."
   ],
   "turfGrab": [
-    "The {crew} moved into the {front} in {area} last night. Nobody stopped them.",
-    "The {crew} have their people on the {front} now."
+    "{crew} moved into the {front} in {area} last night. Nobody stopped them.",
+    "{crew} have their people on the {front} now."
   ],
   "turfWar": [
-    "The {crew} pushed the {rival} out of the {front} in {area}.",
-    "Shots in {area} last night. The {front} belongs to the {crew} now."
+    "{crew} pushed {rival} out of the {front} in {area}.",
+    "Shots in {area} last night. The {front} belongs to {crew} now."
   ],
   "brokerIntro": [
     "Fronts & Rivals: the Dead Kings run the Hands On Car Wash in Strawberry. Take out the soldiers watching it and it's your first front. Press {officeKeys} to open the Office."
   ],
   "brokerTip": [
-    "The {crew} hold the {front} in {area}. Clear their guards and claim the door, and it's yours."
+    "{crew} hold the {front} in {area}. Clear their guards and claim the door, and it's yours."
   ],
   "warnCK": [
     "This is our block. Keep walking.",

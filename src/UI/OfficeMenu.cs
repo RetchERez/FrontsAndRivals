@@ -824,7 +824,7 @@ namespace FrontsAndRivals.UI
             foreach (GuardState g in team) names.Add(g.ShortName);
             int odds = blocked == null ? (int)Math.Round(e.RaidOdds(def, Hour()) * 100) : 0;
             CrewDef holder = _content.Crew(e.OwnerOf(def.Id));
-            string shortNote = blocked == null && e.ShortHanded(def) ? " The " + (holder != null ? holder.Name : "crew") + " are short of people today, so fewer soldiers are guarding it." : "";
+            string shortNote = blocked == null && e.ShortHanded(def) ? " " + (holder != null ? holder.Name : "The crew") + " are short of people today, so fewer soldiers are guarding it." : "";
             string advice = odds < (int)(Rules.Raids.LongShot * 100) ? " A long shot: this one is best taken in person." : "";
             NativeItem raid = Row("Send a Crew", blocked ?? ("Sends your strongest from the reserve: " + string.Join(", ", names.ToArray()) + ". About " + odds
                 + "% to take it." + advice + shortNote + " One raid a day; they're gone a few minutes, and if it goes wrong they can be hurt or killed."),

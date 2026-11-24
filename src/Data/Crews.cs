@@ -343,7 +343,7 @@ namespace FrontsAndRivals.Data
         {
             switch (moment)
             {
-                case "warning": return "Word is the {crew} want the {front}. Tonight.";
+                case "warning": return "Word is {crew} want the {front}. Tonight.";
                 case "held": return "{guard} and the others held the {front}.";
                 case "lost": return "We lost the {front}. {leader} is running it now.";
                 case "guardDied": return "{guard} didn't make it out of the {front}.";

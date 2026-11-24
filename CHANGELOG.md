@@ -3,7 +3,8 @@
 ## 3.0.0 (in progress)
 
 - No more cash bonus for defending your own front in person: keeping it is the reward
-- Alerts show as general notifications instead of text messages, and long ones are never cut off
+- Long texts from the Office and the crews are never cut off any more
+- Crew names stand alone in texts and alerts ("Vinewood Elite are hitting the Car Wash"), so they read shorter
 
 ## 2.2.0 (2026-11-23)
 

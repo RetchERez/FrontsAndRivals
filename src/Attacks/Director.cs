@@ -113,7 +113,7 @@ namespace FrontsAndRivals.Attacks
                     a.Waited = true;
                     a.WindowEnds = now + Rules.Attacks.OnTheWayMs;
                     CrewDef waiting = _content.Crew(a.Crew);
-                    GTA.UI.Screen.ShowSubtitle("Your people are barely holding the " + front.ShortName + " against the ~r~" + (waiting != null ? waiting.Name : "crew") + "~s~. Get there.", 6000);
+                    GTA.UI.Screen.ShowSubtitle("Your people are barely holding the " + front.ShortName + " against ~r~" + (waiting != null ? waiting.Name : "crew") + "~s~. Get there.", 6000);
                 }
                 if (now >= a.WindowEnds) FinishAuto(e, a, front, hour, now, null, 0);
             }
@@ -180,7 +180,7 @@ namespace FrontsAndRivals.Attacks
             Tips.Show(Tip.Attack);
             int minutes = (int)Math.Max(1, Math.Round((a.WindowEnds - now) / (double)Rules.Attacks.Minute));
             bool live = _config.LiveDefense && !s.LiveDefenseOff;
-            string text = "The " + crew.Name + " are hitting the " + front.ShortName + " right now. Your people can hold about " + minutes
+            string text = crew.Name + " are hitting the " + front.ShortName + " right now. Your people can hold about " + minutes
                 + (minutes == 1 ? " minute." : " minutes.");
             if (live) text += " Get there and fight beside them, or leave it to them." + (s.RouteOff || s.HideBlips ? "" : " Route's on your GPS.");
             _notifierPost(NoteKind.AttackWarning, "The Office", front.ShortName + " under attack", text);
@@ -227,7 +227,7 @@ namespace FrontsAndRivals.Attacks
             if (!_live.Start(a, front, crew, leader, _config.PoliceRespond)) { _liveFailed = a; return false; }
             a.Phase = AttackPhase.Live;
             _streamer.SetFighting(front.Id, true);
-            GTA.UI.Screen.ShowSubtitle("The ~r~" + crew.Name + "~s~ are coming for the " + front.ShortName + ". Hold the door.", 6000);
+            GTA.UI.Screen.ShowSubtitle("~r~" + crew.Name + "~s~ are coming for the " + front.ShortName + ". Hold the door.", 6000);
             _changed();
             return true;
         }
@@ -339,7 +339,7 @@ namespace FrontsAndRivals.Attacks
                 if (wasThere)
                 {
                     // No pay for defending your own front: keeping it is the reward.
-                    _banners.Show("FRONT DEFENDED", "The " + crew.Name + " couldn't take the " + front.ShortName + ".");
+                    _banners.Show("FRONT DEFENDED", crew.Name + " couldn't take the " + front.ShortName + ".");
                     Log.Write("Director: defended in person");
                 }
                 Sounds.Play(Cue.FrontDefended);
@@ -353,7 +353,7 @@ namespace FrontsAndRivals.Attacks
             else
             {
                 _notifierPost(NoteKind.AttackResult, "The Office", front.ShortName + " lost", _content.Lines.Pick(rng, "lost", tokens));
-                _banners.Show("FRONT LOST", "The " + crew.Name + " took the " + front.ShortName + ".");
+                _banners.Show("FRONT LOST", crew.Name + " took the " + front.ShortName + ".");
                 Sounds.Play(Cue.FrontLost);
                 if (leader != null && leader.LeaderTrait == LeaderTrait.Showboat)
                     _notifierPost(NoteKind.Taunt, leader.DisplayName, crew.Name, _content.Lines.Pick(rng, "tauntAfterWin", tokens));
@@ -425,7 +425,7 @@ namespace FrontsAndRivals.Attacks
             if (!byYou && front.Door.DistanceTo(me.X, me.Y, me.Z) > ClaimNear) { Log.Write("Director: " + front.Id + " cleared without you, not claimed"); return; }
             if (Rules.Attacks.DugIn(e.State, e.Find(front.Id)))
             {
-                GTA.UI.Screen.ShowHelpText("The " + front.ShortName + " is clear, but the " + CrewName(crewId) + " only just took it and their people will be back. Take it after midnight.", 8000, true, false);
+                GTA.UI.Screen.ShowHelpText("The " + front.ShortName + " is clear, but " + CrewName(crewId) + " only just took it and their people will be back. Take it after midnight.", 8000, true, false);
                 return;
             }
             if (!e.Trusted(front))
@@ -452,7 +452,7 @@ namespace FrontsAndRivals.Attacks
             Sounds.Play(Cue.FrontTaken);
             if (OnTaken != null) OnTaken(front);
             _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is yours", first
-                ? "Nobody's guarding it yet. Open the Office, hire a couple of recruits and post them at the " + front.ShortName + " before the " + crew.Name + " come back."
+                ? "Nobody's guarding it yet. Open the Office, hire a couple of recruits and post them at the " + front.ShortName + " before " + crew.Name + " come back."
                 : _content.Lines.Pick(_rng(), "frontTaken", Tokens(crew, front, null, null)));
             // Your first front: once the shot is over, a help box shows how to staff it. Nobody comes free.
             if (first) _firstFrontHelpAt = Game.GameTime + 5000;
@@ -484,13 +484,13 @@ namespace FrontsAndRivals.Attacks
             if (o.Won)
             {
                 Sounds.Play(Cue.FrontTaken);
-                if (!CheckRuledAll(e)) _banners.Show("Front Taken", "Your crew took the " + front.Name + " from the " + crew.Name + ".", true);
-                _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is ours", "The raid worked: the " + crew.Name + " are out of the " + front.ShortName + "." + cost + " Post some guards there.");
+                if (!CheckRuledAll(e)) _banners.Show("Front Taken", "Your crew took the " + front.Name + " from " + crew.Name + ".", true);
+                _notifierPost(NoteKind.FrontChange, "The Office", front.ShortName + " is ours", "The raid worked: " + crew.Name + " are out of the " + front.ShortName + "." + cost + " Post some guards there.");
             }
             else
             {
                 Sounds.Play(Cue.FrontLost);
-                _notifierPost(NoteKind.AttackResult, "The Office", "Raid failed", "The " + crew.Name + " held the " + front.ShortName + "." + cost);
+                _notifierPost(NoteKind.AttackResult, "The Office", "Raid failed", crew.Name + " held the " + front.ShortName + "." + cost);
             }
             foreach (GuardState g in o.Dead)
                 _notifierPost(NoteKind.GuardDeath, "The Office", "Guard down", _content.Lines.Pick(_rng(), "guardDied", Tokens(crew, front, null, g.ShortName)));

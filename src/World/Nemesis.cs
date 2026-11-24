@@ -114,9 +114,9 @@ namespace FrontsAndRivals.Rules
         /// Furious or Vendetta, or calming back down below Furious.</summary>
         public static string AngerChangeText(string crewName, int before, int after)
         {
-            if (after > before && after == 2) return "The " + crewName + " are furious with you. Expect them to come for your fronts.";
-            if (after > before && after == 3) return "The " + crewName + " want you dead. Their soldiers won't bother warning you.";
-            if (after < before && before >= 2 && after <= 1) return "The " + crewName + " have calmed down. For now.";
+            if (after > before && after == 2) return crewName + " are furious with you. Expect them to come for your fronts.";
+            if (after > before && after == 3) return crewName + " want you dead. Their soldiers won't bother warning you.";
+            if (after < before && before >= 2 && after <= 1) return crewName + " have calmed down. For now.";
             return null;
         }
 
@@ -194,7 +194,7 @@ namespace FrontsAndRivals.Rules
                     return events;
                 }
                 heir.Role = MemberRole.Boss;
-                heir.AddLog("Took over the " + crewName + ".");
+                heir.AddLog("Took over " + crewName + ".");
                 events.Add(Ev("newBoss", "leader", heir.DisplayName, "crew", crewName));
             }
             if (def != null && crew.Lieutenants().Count < 3)
@@ -267,7 +267,7 @@ namespace FrontsAndRivals.Rules
             boss.Role = MemberRole.Boss;
             boss.Rep = 3;
             boss.Log.Clear();
-            boss.AddLog("Rebuilt the " + def.Name + ".");
+            boss.AddLog("Rebuilt " + def.Name + ".");
             Promote(s, def, crew, rng, "streets");
             crew.QuietUntilDay = -1;
             crew.Manpower = Math.Max(crew.Manpower, 6);
