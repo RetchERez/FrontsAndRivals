@@ -43,6 +43,7 @@ namespace FrontsAndRivals.Core
         private readonly object _phone; // PhoneContact, held as object so a missing iFruitAddon2.dll can't break Main
         private readonly Keys _officeKey = Keys.None;
         private readonly AutoScout _autoScout;
+        private readonly AutoTest _autoTest;
         private readonly FailureWindow _tickFailures = new FailureWindow();
 
         private EmpireState _state;
@@ -175,6 +176,13 @@ namespace FrontsAndRivals.Core
                 _autoScout = new AutoScout(_content, _placer, WorldChanged);
                 _office.OpenDevTools = _dev.OpenSoon;
                 new ScoutMenu(_dev, _content, () => _empire, () => _rng, WorldChanged, () => _gate, _placer, _autoScout);
+                _autoTest = new AutoTest(new AutoTest.Host
+                {
+                    Empire = () => _empire, Content = _content, Registry = _registry, Director = _director, Now = ActiveNow,
+                    Gate = () => _gate, SaveNow = SaveNow, SavePath = () => _saves.MainPath,
+                    Snapshot = TestSnapshot, Restore = TestRestore
+                });
+                _dev.AddAction("Auto-Test", "Plays through taking a front, staffing it, a live defense, an attack while away, a raid, midnight and a save on its own, about 5 minutes, then puts your empire, cash, place and time back. Results in autotest-report.txt.", _autoTest.Start);
                 _dev.ExtraStatus = () => "streams in " + _streamer.StreamIns + " / out " + _streamer.StreamOuts
                                        + "   leftovers " + _streamer.Leftovers;
                 Log.Write("DevTools on: F9 copies position, F10 opens the dev menu");
@@ -358,6 +366,7 @@ namespace FrontsAndRivals.Core
             _director.UpdateLive();
             if (_dev != null) _dev.UpdateSpawns();
             if (_autoScout != null) _autoScout.Update();
+            if (_autoTest != null) _autoTest.Update();
         }
 
         /// <summary>Any front with a door but no posts gets posts the first time the player comes within 100 m.
@@ -420,6 +429,42 @@ namespace FrontsAndRivals.Core
             int i = Array.IndexOf(Difficulty.Names, name);
             if (i < 0) for (int k = 0; k < Difficulty.Names.Length; k++) if (string.Equals(Difficulty.Names[k], name, StringComparison.OrdinalIgnoreCase)) i = k;
             return i < 0 ? 0 : i - 2;
+        }
+
+        private bool _testRestoring;
+        private string TestCopyPath { get { return Path.Combine(Path.GetDirectoryName(_saves.MainPath), "empire.before-autotest.json"); } }
+
+        /// <summary>Auto-Test: the empire is copied aside before the test touches it.</summary>
+        private bool TestSnapshot()
+        {
+            if (_state == null) return false;
+            try { SaveNow(); File.Copy(_saves.MainPath, TestCopyPath, true); return true; }
+            catch (Exception ex) { Log.Error("AutoTest snapshot", ex); return false; }
+        }
+
+        /// <summary>Auto-Test is over: everything it spawned goes, and the empire copied aside comes back exactly.</summary>
+        private void TestRestore()
+        {
+            _testRestoring = true;
+            try
+            {
+                ClearWorld("auto-test over");
+                File.Copy(TestCopyPath, _saves.MainPath, true);
+                SaveService.LoadResult loaded = _saves.Load();
+                _director.Reset();
+                _state = loaded.State;
+                _heatBand = -1;
+                _angerBands.Clear();
+                _rng = new Rng(_state.RngState);
+                _activeBase = _state.ActiveMs - _scheduler.ActiveMs;
+                _empire = new Empire(_state, _content);
+                Nemesis.EnsureCrews(_state, _content, _rng);
+                _streamer.Attach(_empire, _config.ShowRivalFronts);
+                EmpireChanged();
+                File.Delete(TestCopyPath);
+                Log.Write("AutoTest: your empire is back as it was (save #" + _state.SaveCount + ")");
+            }
+            finally { _testRestoring = false; }
         }
 
         /// <summary>Office > Settings > Start a new empire. The old one is copied to empire.old.json first.</summary>
@@ -530,6 +575,7 @@ namespace FrontsAndRivals.Core
                 if (_director != null) _director.OnWorldCleared(); // a live fight is auto-resolved before its peds go
                 if (_dev != null) _dev.CancelPending();
                 if (_autoScout != null) _autoScout.Cancel();
+                if (_autoTest != null && !_testRestoring) _autoTest.Cancel(why);
                 int n = _registry.DeleteAll();
                 if (_streamer != null) _streamer.Reset();
                 if (_workers != null) _workers.Forget();

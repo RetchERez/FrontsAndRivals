@@ -76,6 +76,9 @@ namespace FrontsAndRivals.Dev
             _menu.Add(counter);
         }
 
+        /// <summary>For other dev panels (Auto-Test) to add a button to this menu.</summary>
+        public void AddAction(string title, string description, Action action) { Add(title, description, action); }
+
         private void Add(string title, string description, Action action)
         {
             var item = new NativeItem(title, description);
