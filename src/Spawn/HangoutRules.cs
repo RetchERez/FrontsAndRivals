@@ -14,6 +14,8 @@ namespace FrontsAndRivals.Spawn
     public static class HangoutRules
     {
         public const float TurfRange = 600f;       // a crew front this close to a spot makes it that crew's turf
+        public const float DeepTurfRange = 250f;   // this close to one of their fronts, one more of their groups is about
+        public const double DeepTurfMinFps = 40;   // ...unless the game is already struggling
         public const float SpawnMin = 70f, SpawnMax = 150f; // from you: out of sight when they appear
         public const float DespawnRange = 280f;    // gone once you're well away
         /// <summary>Street crews warn you off at 15 m on foot (they watch from 30 m). AlertShots: how near a fight has to be for

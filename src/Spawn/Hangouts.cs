@@ -121,7 +121,8 @@ namespace FrontsAndRivals.Spawn
             int heat = e.State.Heat;
             double fps = Game.FPS;
             if (fps > 0 && fps < 300) _fps = _fps <= 0 ? fps : _fps * 0.8 + fps * 0.2; // smoothed over a few seconds
-            if (_groups.Count >= HangoutRules.MaxGroups(heat, _fps) || Game.GameTime < _nextSpawn) return;
+            int most = HangoutRules.MaxGroups(heat, _fps) + (DeepInTurf(e, p) && _fps >= HangoutRules.DeepTurfMinFps ? 1 : 0); // their streets feel like theirs
+            if (_groups.Count >= most || Game.GameTime < _nextSpawn) return;
             _nextSpawn = Game.GameTime + HangoutRules.RespawnMs(heat);
             try { Plan(e, p); } catch (Exception ex) { Log.Error("Hangouts plan", ex); }
         }
@@ -269,6 +270,14 @@ namespace FrontsAndRivals.Spawn
                 if (d < best) { best = d; owner = o; }
             }
             return owner;
+        }
+
+        /// <summary>Within DeepTurfRange of a rival crew's front: deep in their territory.</summary>
+        private bool DeepInTurf(Empire e, Vector3 p)
+        {
+            foreach (FrontDef def in _content.Fronts)
+                if (def.Door.IsSet && Owners.IsCrew(e.OwnerOf(def.Id)) && def.Door.DistanceTo(p.X, p.Y, p.Z) < HangoutRules.DeepTurfRange) return true;
+            return false;
         }
 
         public const float OtherSideGap = 80f;
