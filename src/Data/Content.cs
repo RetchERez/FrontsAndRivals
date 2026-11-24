@@ -200,6 +200,8 @@ namespace FrontsAndRivals.Data
             if (crews != null && crews.Crews != null)
                 foreach (CrewDef c in crews.Crews) if (ValidCrew(c)) Crews.Add(c); else _log("Content: skipped an incomplete crew in crews.json");
             if (Crews.Count == 0) { _log("Content: crews.json missing or empty, using built-in crews"); Crews = DefaultCrews(); }
+            // One source for every crew icon (fronts, soldiers, street crews, attackers): the crew colour table.
+            foreach (CrewDef c in Crews) c.BlipColor = CrewColors.Get(CrewColors.ForCrew(c.Id)).Blip;
             Lines = LineBook.Load(Path.Combine(_dir, "lines.json"), _log);
 
             int scouted = 0;

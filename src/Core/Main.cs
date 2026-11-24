@@ -182,6 +182,9 @@ namespace FrontsAndRivals.Core
                     Gate = () => _gate, SaveNow = SaveNow, SavePath = () => _saves.MainPath,
                     Snapshot = TestSnapshot, Restore = TestRestore
                 });
+                var mapColours = new BlipColourCheck();
+                _dev.AddAction("Map Colour Check", "Puts every candidate green, orange, blue and red map colour north of you, each named with its number, to pick the exact match for each crew.", mapColours.Show);
+                _dev.AddAction("Clear Map Colours", "Removes the map colour check.", mapColours.Clear);
                 var lineup = new WardrobeLineup(_registry);
                 _dev.AddAction("Wardrobe Lineup", "Four rows in front of you: Dead Kings, Hellfire MC, Vinewood Elite and your crew, each with three everyday looks, a masked attacker and a leader. Stand somewhere open.", lineup.Show);
                 _dev.AddAction("Clear Lineup", "Removes the wardrobe lineup.", lineup.Clear);
