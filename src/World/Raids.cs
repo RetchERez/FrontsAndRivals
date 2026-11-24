@@ -10,6 +10,13 @@ namespace FrontsAndRivals.Rules
     {
         public const long RaidMs = 3 * Attacks.Minute; // about how long until word comes back
         public const int MaxGuards = 4;
+
+        /// <summary>How many guards a raid can take: 4, then 5 once you hold 10 fronts and 6 at 20 (the whole reserve).
+        /// A bigger outfit sends a bigger party, so the big fronts stay worth raiding late in the game.</summary>
+        public static int PartySize(int frontsHeld) { return frontsHeld >= 20 ? 6 : frontsHeld >= 10 ? 5 : MaxGuards; }
+
+        /// <summary>Below this, the Office says the front is best taken in person.</summary>
+        public const double LongShot = 0.25;
         public const double DugInBonus = 1.8;          // the crew fights hard at its own door: challenging, but a good crew has the edge
 
         /// <summary>How many crew soldiers hold this front tonight: its size, fewer if weakened or the crew is short of

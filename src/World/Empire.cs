@@ -234,14 +234,16 @@ namespace FrontsAndRivals.Rules
 
         public bool OnRaid(GuardState g) { return g != null && _s.Raid != null && _s.Raid.GuardIds.Contains(g.Id); }
 
-        /// <summary>Your strongest healthy guards waiting in the reserve, up to four. Guards standing a post never go:
+        /// <summary>Your strongest healthy guards waiting in the reserve: up to four, five once you hold 10 fronts, six at 20
+        /// (Raids.PartySize). Guards standing a post never go:
         /// a raid squad is something you choose to keep, at the cost of posting fewer people.</summary>
         public List<GuardState> RaidTeam()
         {
             var team = new List<GuardState>();
             foreach (GuardState g in _s.Guards) if (g.Status == GuardStatus.Active && !g.IsPosted && !g.Escort && !OnRaid(g)) team.Add(g);
             team.Sort((a, b) => Power(b).CompareTo(Power(a)));
-            if (team.Count > Raids.MaxGuards) team.RemoveRange(Raids.MaxGuards, team.Count - Raids.MaxGuards);
+            int size = Raids.PartySize(OwnedCount());
+            if (team.Count > size) team.RemoveRange(size, team.Count - size);
             return team;
         }
 
@@ -257,6 +259,13 @@ namespace FrontsAndRivals.Rules
             if (!Trusted(def)) return "Too big to take yet: hold " + Economy.TrustNeeded(def.Tier) + " fronts first.";
             if (RaidTeam().Count == 0) return "Nobody in the reserve to send. Raids use guards who aren't standing a post.";
             return null;
+        }
+
+        /// <summary>The crew holding this front is short of people today, so fewer soldiers than usual stand guard there.</summary>
+        public bool ShortHanded(FrontDef def)
+        {
+            CrewState crew = Nemesis.Crew(_s, OwnerOf(def.Id));
+            return crew != null && Raids.Soldiers(def, Find(def.Id), crew, _s.Day) < FrontDef.CrewSoldiers(def);
         }
 
         /// <summary>The odds of taking this front with the team you'd send right now.</summary>

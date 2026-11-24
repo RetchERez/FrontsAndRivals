@@ -75,6 +75,21 @@ static class RulesTests
     static void RaidBalance()
     {
         T.Section("Balance: raids are fun, not free");
+        {
+            // Late game, big front, hot streets: what a raid is worth with the party sizes (printed for the balance notes).
+            var ir = new FrontsAndRivals.Data.CrewDef { SoldierPower = 16 };
+            var big = new FrontsAndRivals.Data.FrontDef { Tier = 2 };
+            var midFront = new FrontsAndRivals.Data.FrontDef { Tier = 1 };
+            foreach (int n in new[] { 4, 5, 6 })
+                foreach (Rank r in new[] { Rank.Veteran, Rank.Lieutenant })
+                {
+                    double pw = DefenseRating.Compute(Many(n, r, Weapon.CarbineRifle), new FrontUpgrades(), 12);
+                    Console.WriteLine("  raid odds: " + n + " " + r + "s with rifles vs big front (8 soldiers) heat 0/50/80: "
+                        + (int)(100 * Raids.WinChance(pw, Raids.FrontDefense(ir, big, 8, 0))) + "% / " + (int)(100 * Raids.WinChance(pw, Raids.FrontDefense(ir, big, 8, 50))) + "% / " + (int)(100 * Raids.WinChance(pw, Raids.FrontDefense(ir, big, 8, 80)))
+                        + "%;  mid front (5) heat 50: " + (int)(100 * Raids.WinChance(pw, Raids.FrontDefense(ir, midFront, 5, 50))) + "%");
+                }
+            T.True("Raid party: 4, then 5 at 10 fronts, 6 at 20", Raids.PartySize(0) == 4 && Raids.PartySize(9) == 4 && Raids.PartySize(10) == 5 && Raids.PartySize(20) == 6);
+        }
         double early = Raids.WinChance(DefenseRating.Compute(Many(3, Rank.Recruit, Weapon.Pistol), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 12 }, 2));
         double mid = Raids.WinChance(DefenseRating.Compute(Many(3, Rank.Soldier, Weapon.Smg), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 12 }, 3));
         double late = Raids.WinChance(DefenseRating.Compute(Many(4, Rank.Veteran, Weapon.CarbineRifle), new FrontUpgrades(), 12), Raids.CrewDefense(new FrontsAndRivals.Data.CrewDef { SoldierPower = 16 }, 4));
