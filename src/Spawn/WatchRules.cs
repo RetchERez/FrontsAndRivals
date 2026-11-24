@@ -110,6 +110,27 @@ namespace FrontsAndRivals.Spawn
             return Watch.Calm;
         }
 
+        /// <summary>A crew hanging out on the street isn't guarding anything: it only fights if you start it. Getting close
+        /// gets you looked at, right in their face gets you told to move along, and only shooting near them (closer than
+        /// StreetShotHeard), aiming at one of them or hurting one turns them on you. No fuse, no trespassing.</summary>
+        public static Watch NextStreet(Watch now, float distance, bool onFoot, bool aimingAtOne, bool shotHeardClose, bool hurtOne,
+                                       bool inTheGame, bool seen = true)
+        {
+            if (now == Watch.Hostile || hurtOne) return Watch.Hostile;
+            if (inTheGame && (shotHeardClose || aimingAtOne)) return Watch.Hostile;
+            if (!onFoot) return now == Watch.Calm || distance > StreetWatchRange + 10f ? Watch.Calm : Watch.Watching; // driving past: a look at most
+            if (now == Watch.Calm && !seen) return Watch.Calm;
+            if (distance <= StreetFaceRange) return Watch.Warning;                                   // in their face: "move along"
+            if (now == Watch.Warning && distance <= StreetFaceRange + 3f) return Watch.Warning;
+            if (distance <= StreetWatchRange) return Watch.Watching;
+            if (now != Watch.Calm && distance <= StreetWatchRange + 10f) return Watch.Watching;
+            return Watch.Calm;
+        }
+
+        public const float StreetFaceRange = 4f, StreetWatchRange = 15f;
+        /// <summary>Gunfire this close makes a street crew fight (a shot two blocks away doesn't).</summary>
+        public const float StreetShotHeard = 40f;
+
         /// <summary>"Last warning" comes halfway through the fuse.</summary>
         public static bool LastWarningDue(int warnedMs, int warnLimitMs)
         {

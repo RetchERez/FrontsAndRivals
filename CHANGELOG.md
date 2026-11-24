@@ -12,6 +12,8 @@
   and when a front is best taken in person; a raid rolls the odds you were shown, even if night falls on the way
 - One midnight report instead of a text for each thing; front pages show the last attack
 - A little more crew life deep in their own turf
+- Street crews aren't trigger-happy any more: they look at you, tell you to move along if you get in their face, and
+  only fight if you shoot near them, aim at one of them or hurt one (guarded fronts still warn you off and then shoot)
 - The map never shows a business twice: the game's own car wash icon at the Hands On Car Wash is hidden while the mod
   runs (it comes back when the mod stops), your fronts read "(Yours)" in the map legend, and Brewer's Drop is called
   Brewer's Drop in texts instead of "the Liquor Store"

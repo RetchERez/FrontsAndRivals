@@ -439,7 +439,8 @@ namespace FrontsAndRivals.Spawn
                 if (StreamRules.CrewProvoked(inTheGame, false, WatchFx.HeardShot(near), hurt)) AlertGroup(g);
                 return;
             }
-            // Everyone else on the street: notice, warn, then fight, like a front's soldiers but on a shorter fuse.
+            // Everyone else on the street isn't guarding anything: they look, tell you to move along if you're in their face,
+            // and only fight if you shoot near them, aim at one of them or hurt one (WatchRules.NextStreet).
             bool aiming = false, seen = false;
             bool aimingNow = WatchFx.Aiming();
             float scale = WatchFx.SightScale();
@@ -449,20 +450,11 @@ namespace FrontsAndRivals.Spawn
                 foreach (Ped ped in g.Peds)
                     if (Alive(ped) && WatchFx.Sees(ped, g.Watch == Watch.Calm)) { seen = true; break; }
             int gt = Game.GameTime;
-            if (g.Watch == Watch.Warning && gt - g.LastWatchAt > 3000) { g.WarnStart = gt; g.LastWarned = false; }
             g.LastWatchAt = gt;
-            CrewState angry = Nemesis.Crew(e.State, g.Crew);
-            int limit = WatchRules.StreetWarnMs(g.Crew, WatchRules.Temper(e.State.Heat, angry != null ? angry.Grudge : 0));
-            int warned = g.Watch == Watch.Warning ? gt - g.WarnStart : 0;
-            Watch next = WatchRules.Next(g.Watch, near, me.IsOnFoot, aiming, WatchFx.HeardShot(near), hurt, inTheGame,
-                                         warned, limit, HangoutRules.AlertOnFoot, seen, scale, WatchFx.Nearest(g.Peds));
+            bool shotClose = near <= WatchRules.StreetShotHeard && WatchFx.HeardShot(near);
+            Watch next = WatchRules.NextStreet(g.Watch, near, me.IsOnFoot, aiming, shotClose, hurt, inTheGame, seen);
             if (next == Watch.Hostile) { g.Watch = Watch.Hostile; AlertGroup(g); return; }
-            if (next != g.Watch) { g.Watch = next; EnterWatch(g, gt); return; }
-            if (next == Watch.Warning && inTheGame && !g.LastWarned && WatchRules.LastWarningDue(warned, limit))
-            {
-                g.LastWarned = true;
-                WatchFx.Say(_content, g.Crew, "lastWarning");
-            }
+            if (next != g.Watch) { g.Watch = next; EnterWatch(g, gt); }
         }
 
         /// <summary>Re-tasks a street crew when its mood changes: eyes on you, guns up, or back to hanging out.</summary>
@@ -480,7 +472,7 @@ namespace FrontsAndRivals.Spawn
                 int index = k++;
                 if (!Alive(ped)) continue;
                 ped.Task.ClearAll();
-                if (g.Watch == Watch.Warning) { WatchFx.Raise(ped); WatchFx.Blip(_content, ped, g.Crew); continue; }
+                if (g.Watch == Watch.Warning) { WatchFx.Eye(ped); continue; } // "move along": a hard look, no guns
                 WatchFx.DropBlip(ped);
                 if (g.Watch == Watch.Watching) WatchFx.Eye(ped);
                 else

@@ -347,6 +347,12 @@ static class FrontTests
             && WatchRules.Next(Watch.Calm, 2f, true, false, false, false, true, 0, 8000, R, false, 1f, 2f) == Watch.Hostile);
         T.True("Before your first front, aiming from far off is ignored", WatchRules.Next(Watch.Calm, 200f, true, true, false, false, false, 0, 8000, R) == Watch.Calm
             && WatchRules.Next(Watch.Calm, 40f, true, true, false, false, false, 0, 8000, R) == Watch.Warning);
+        T.True("Street crews: walking right up to them never starts a fight, and there's no fuse", WatchRules.NextStreet(Watch.Warning, 1f, true, false, false, false, true) == Watch.Warning
+            && WatchRules.NextStreet(Watch.Calm, 3f, true, false, false, false, true) == Watch.Warning && WatchRules.NextStreet(Watch.Calm, 10f, true, false, false, false, true) == Watch.Watching);
+        T.True("Street crews fight if you aim at one, shoot near them or hurt one", WatchRules.NextStreet(Watch.Calm, 20f, true, true, false, false, true) == Watch.Hostile
+            && WatchRules.NextStreet(Watch.Calm, 30f, true, false, true, false, true) == Watch.Hostile && WatchRules.NextStreet(Watch.Watching, 30f, true, false, false, true, true) == Watch.Hostile);
+        T.True("...and a shot two blocks away doesn't count", WatchRules.StreetShotHeard <= 40f);
+        T.True("Driving past a street crew: a look at most", WatchRules.NextStreet(Watch.Watching, 3f, false, false, false, false, true) == Watch.Watching && WatchRules.NextStreet(Watch.Calm, 3f, false, false, false, false, true) == Watch.Calm);
         T.True("Night edges: 9 pm is night, 4 am too", WatchRules.IsNight(21) && WatchRules.IsNight(4) && !WatchRules.IsNight(20));
         T.True("Silenced shots are only heard up close", WatchRules.HeardShot(true, false, 70f) && !WatchRules.HeardShot(true, true, 30f) && WatchRules.HeardShot(true, true, 15f) && !WatchRules.HeardShot(false, false, 5f));
         T.True("Street crews have a shorter fuse than a front", WatchRules.StreetWarnMs("CK", 20) < WatchRules.WarnMs("CK", 0, 20) && WatchRules.StreetWarnMs("CK", 95) == 0);
