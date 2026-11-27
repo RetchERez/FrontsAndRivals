@@ -297,6 +297,11 @@ namespace FrontsAndRivals.Core
                 loaded = new SaveService.LoadResult { State = SaveService.NewEmpire(), Source = "new" };
             }
             _state = loaded.State;
+            if (loaded.Recovered)
+                GTA.UI.Notification.Show(loaded.Source == "new"
+                    ? "~r~Fronts & Rivals~s~: your save couldn't be read, so a new empire started. The old file is kept in scripts\\FrontsAndRivals. See log."
+                    : "~y~Fronts & Rivals~s~: your save couldn't be read, so the last backup (" + loaded.Source + ") was loaded. See log.");
+            try { WarnIfInstalledTwice(); } catch (Exception ex) { Log.Error("Install check", ex); }
             _heatBand = -1; // a different save: no "cooled down" text for the switch
             _angerBands.Clear();
             if (loaded.Source != "new" && loaded.Source != "locked" && _state.ModVersion != ModVersion)
@@ -613,12 +618,37 @@ namespace FrontsAndRivals.Core
             _shutDown = true;
         }
 
+        private bool _saveFailTold;
+
+        /// <summary>Writes the empire. A failure is logged with its reason and, the first time, shown to the player, so a
+        /// save that can't be written (a read-only folder, a full disk, antivirus) is never a silent surprise.</summary>
+        /// <summary>Two copies of FrontsAndRivals.dll under scripts would both run and fight over the save: say so.</summary>
+        private void WarnIfInstalledTwice()
+        {
+            string dir = BaseDirectory;
+            for (string d = dir; d != null; d = Path.GetDirectoryName(d))
+                if (string.Equals(Path.GetFileName(d), "scripts", StringComparison.OrdinalIgnoreCase)) { dir = d; break; }
+            string[] copies = Directory.GetFiles(dir, "FrontsAndRivals*.dll", SearchOption.AllDirectories);
+            if (copies.Length <= 1) return;
+            Log.Write("WARNING: Fronts & Rivals is installed more than once: " + string.Join(" | ", copies));
+            GTA.UI.Notification.Show("~r~Fronts & Rivals~s~ is installed twice, so two copies are running. Keep only scripts\\FrontsAndRivals.dll. See log.");
+        }
+
         private void SaveNow()
         {
             if (_state == null) return;
             if (_rng != null) _state.RngState = _rng.State;
             _state.ActiveMs = ActiveNow();
-            _saves.Save(_state);
+            try { _saves.Save(_state); }
+            catch (Exception ex)
+            {
+                Log.Error("Save to " + _saves.MainPath, ex);
+                if (!_saveFailTold)
+                {
+                    _saveFailTold = true;
+                    GTA.UI.Notification.Show("~r~Fronts & Rivals~s~ couldn't save your empire (" + ex.GetType().Name + "). Check the scripts\\FrontsAndRivals folder isn't read-only. See log.");
+                }
+            }
         }
 
         private void OnSystemFailure(string job, string display, Exception ex, bool disabledNow)

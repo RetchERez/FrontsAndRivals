@@ -58,6 +58,32 @@ static class SaveTests
             // Backups rotate: after 4 more saves we have bak1..bak3 and no temp file.
             for (int i = 0; i < 4; i++) saves.Save(s);
             T.True("bak1, bak2, bak3 exist", File.Exists(saves.BackupPath(1)) && File.Exists(saves.BackupPath(2)) && File.Exists(saves.BackupPath(3)));
+
+            // A whole v3 empire: every newer field reads back, and a broken number can't spoil the save.
+            {
+                string dir2 = Path.Combine(Path.GetTempPath(), "fr_save_test2_" + Guid.NewGuid().ToString("N"));
+                var saves2 = new SaveService(dir2, log.Add);
+                var full = SaveService.NewEmpire();
+                full.TurfMap = "radar";
+                full.CrewColor = "forest"; full.CrewStyle = "Biker";
+                full.Fronts.Add(new FrontState { Id = "carwash_handson", Owner = "player", HeldSinceDay = 2, LastAttackDay = 5, LastAttackCrew = "VS", LastAttackHeld = true, Cameras = true });
+                full.Fronts.Add(new FrontState { Id = "liquor_brouge", Owner = "CK" });
+                full.Raid = new RaidState { Front = "liquor_brouge", Crew = "CK", EndsMs = 99, Odds = double.NaN, Hour = 21 };
+                full.Raid.GuardIds.Add(3);
+                full.Day = 9;
+                saves2.Save(full);
+                saves2.Save(full); // so the backup holds it too
+                var got = saves2.Load().State;
+                FrontState wash = got.Fronts.Find(f => f.Id == "carwash_handson");
+                T.True("Full v3 empire: fronts, owners and attack history read back", wash != null && wash.Owner == "player" && wash.LastAttackDay == 5 && wash.LastAttackCrew == "VS" && wash.LastAttackHeld && wash.Cameras
+                    && got.Fronts.Exists(f => f.Id == "liquor_brouge" && f.Owner == "CK"));
+                T.True("Full v3 empire: settings, raid hour and day read back", got.TurfMap == "radar" && got.CrewColor == "forest" && got.CrewStyle == "Biker" && got.Raid != null && got.Raid.Hour == 21 && got.Raid.GuardIds.Contains(3) && got.Day == 9);
+                T.True("A broken number (NaN odds) never goes into the save", got.Raid.Odds == 0);
+                File.WriteAllText(saves2.MainPath, "{ this is not json");
+                var rec = saves2.Load();
+                T.True("An unreadable save loads the last backup and says so", rec.Recovered && rec.Source.StartsWith("empire.bak") && rec.State.Fronts.Exists(f => f.Id == "carwash_handson"));
+                try { Directory.Delete(dir2, true); } catch { }
+            }
             T.True("No empire.tmp left behind", !File.Exists(saves.TempPath));
             T.True("Save is under 50 KB", new FileInfo(saves.MainPath).Length < 50 * 1024);
             int mainCount = saves.Load().State.SaveCount;

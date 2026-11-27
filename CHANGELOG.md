@@ -1,5 +1,13 @@
 # Changelog
 
+## Next (in progress)
+
+- If your save can't be read, the mod tells you and loads the last good backup instead of quietly starting a new
+  empire (the unreadable file is kept)
+- If the empire can't be saved (a read-only folder, a full disk, antivirus), the mod tells you once and logs why
+- A save always reads back: numbers that can't be written as JSON never go into it
+- Warns if Fronts & Rivals is installed twice, since two copies would fight over the save
+
 ## 3.0.0 (2026-11-23)
 
 - Only in free roam: the mod pauses and clears away during story missions, Strangers and Freaks, heists, side jobs,

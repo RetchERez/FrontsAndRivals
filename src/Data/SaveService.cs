@@ -17,6 +17,8 @@ namespace FrontsAndRivals.Data
             public EmpireState State;
             /// <summary>"empire.json", "empire.bak1".. or "new".</summary>
             public string Source;
+            /// <summary>There was a save on disk, but it couldn't be used: a backup or a fresh empire was loaded instead.</summary>
+            public bool Recovered;
         }
 
         private readonly string _dir;
@@ -39,6 +41,7 @@ namespace FrontsAndRivals.Data
         {
             if (Locked) return;
             Directory.CreateDirectory(_dir);
+            Sanitize(state);
             state.SaveCount++;
             string main = MainPath, tmp = TempPath;
 
@@ -62,13 +65,23 @@ namespace FrontsAndRivals.Data
             }
         }
 
+        /// <summary>Numbers JSON can't hold (NaN, infinity) never go into the save: a save must always read back.</summary>
+        public static void Sanitize(EmpireState s)
+        {
+            if (s == null) return;
+            if (s.Raid != null && (double.IsNaN(s.Raid.Odds) || double.IsInfinity(s.Raid.Odds))) s.Raid.Odds = 0;
+            if (s.Attack != null && (double.IsNaN(s.Attack.Strength) || double.IsInfinity(s.Attack.Strength))) s.Attack.Strength = 0;
+        }
+
         public LoadResult Load()
         {
             string[] names = { "empire.json", "empire.bak1", "empire.bak2", "empire.bak3" };
+            bool hadFile = false;
             foreach (string name in names)
             {
                 string path = Path.Combine(_dir, name);
                 if (!File.Exists(path)) continue;
+                hadFile = true;
                 try
                 {
                     EmpireState s = Read(path);
@@ -82,7 +95,7 @@ namespace FrontsAndRivals.Data
                         return new LoadResult { State = NewEmpire(), Source = "locked" };
                     }
                     if (name != "empire.json") _log("Loaded the save from backup " + name);
-                    return new LoadResult { State = s, Source = name };
+                    return new LoadResult { State = s, Source = name, Recovered = name != "empire.json" };
                 }
                 catch (Exception ex)
                 {
@@ -91,7 +104,8 @@ namespace FrontsAndRivals.Data
                 }
             }
 
-            return new LoadResult { State = NewEmpire(), Source = "new" };
+            if (hadFile) _log("No save or backup could be read: starting a new empire (the unreadable files are kept)");
+            return new LoadResult { State = NewEmpire(), Source = "new", Recovered = hadFile };
         }
 
         public static EmpireState NewEmpire()
