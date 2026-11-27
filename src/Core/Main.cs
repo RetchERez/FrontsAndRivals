@@ -57,6 +57,42 @@ namespace FrontsAndRivals.Core
         private bool _shutDown;
 
         private string dataDir() { return Path.Combine(BaseDirectory, "FrontsAndRivals"); }
+        private string _saveDir;
+
+        /// <summary>Where the empire is saved: Documents\Fronts & Rivals, outside the game folder, so a reinstall, a mod
+        /// manager redeploying the scripts folder or a game-folder cleanup can never wipe it. An empire saved by an older
+        /// version in scripts\FrontsAndRivals is copied over the first time. If Documents can't be written, the old folder
+        /// is used as before.</summary>
+        private static string SaveFolder(string oldDir)
+        {
+            try
+            {
+                string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                if (string.IsNullOrEmpty(docs)) return oldDir;
+                string dir = Path.Combine(docs, "Fronts & Rivals");
+                Directory.CreateDirectory(dir);
+                string probe = Path.Combine(dir, "write-check.tmp");
+                File.WriteAllText(probe, "ok");
+                File.Delete(probe);
+                if (!File.Exists(Path.Combine(dir, "empire.json")) && File.Exists(Path.Combine(oldDir, "empire.json")))
+                {
+                    int moved = 0;
+                    foreach (string f in Directory.GetFiles(oldDir, "empire*"))
+                    {
+                        File.Copy(f, Path.Combine(dir, Path.GetFileName(f)), false);
+                        moved++;
+                    }
+                    Log.Write("Saves: copied your empire (" + moved + " files) from " + oldDir + " to " + dir);
+                }
+                Log.Write("Saves: " + dir);
+                return dir;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Save folder in Documents (using " + oldDir + " instead)", ex);
+                return oldDir;
+            }
+        }
 
         public Main()
         {
@@ -90,7 +126,8 @@ namespace FrontsAndRivals.Core
             catch (Exception ex) { Log.Error("LemonUI version", ex); }
 
             Interval = 0; // every frame; the Scheduler spreads the real work out
-            _saves = new SaveService(dataDir, Log.Write);
+            _saveDir = SaveFolder(dataDir);
+            _saves = new SaveService(_saveDir, Log.Write);
             _scheduler = new Scheduler(OnSystemFailure);
             _content = new ContentDb(dataDir, Log.Write);
             _content.Load(); // files only, no game calls
@@ -299,7 +336,7 @@ namespace FrontsAndRivals.Core
             _state = loaded.State;
             if (loaded.Recovered)
                 GTA.UI.Notification.Show(loaded.Source == "new"
-                    ? "~r~Fronts & Rivals~s~: your save couldn't be read, so a new empire started. The old file is kept in scripts\\FrontsAndRivals. See log."
+                    ? "~r~Fronts & Rivals~s~: your save couldn't be read, so a new empire started. The old file is kept in " + _saveDir + ". See log."
                     : "~y~Fronts & Rivals~s~: your save couldn't be read, so the last backup (" + loaded.Source + ") was loaded. See log.");
             try { WarnIfInstalledTwice(); } catch (Exception ex) { Log.Error("Install check", ex); }
             _heatBand = -1; // a different save: no "cooled down" text for the switch
@@ -309,8 +346,8 @@ namespace FrontsAndRivals.Core
                 // A different version is about to use this empire: keep a copy of it as it was, just in case.
                 try
                 {
-                    string from = Path.Combine(dataDir(), "empire.json");
-                    string copy = Path.Combine(dataDir(), "empire.before-" + ModVersion + ".json");
+                    string from = Path.Combine(_saveDir, "empire.json");
+                    string copy = Path.Combine(_saveDir, "empire.before-" + ModVersion + ".json");
                     if (File.Exists(from) && !File.Exists(copy)) { File.Copy(from, copy); Log.Write("Kept a copy of the empire from " + (_state.ModVersion ?? "an older version") + " as " + Path.GetFileName(copy)); }
                 }
                 catch (Exception ex) { Log.Error("Version backup", ex); }
@@ -646,7 +683,7 @@ namespace FrontsAndRivals.Core
                 if (!_saveFailTold)
                 {
                     _saveFailTold = true;
-                    GTA.UI.Notification.Show("~r~Fronts & Rivals~s~ couldn't save your empire (" + ex.GetType().Name + "). Check the scripts\\FrontsAndRivals folder isn't read-only. See log.");
+                    GTA.UI.Notification.Show("~r~Fronts & Rivals~s~ couldn't save your empire (" + ex.GetType().Name + "). Check " + _saveDir + " isn't read-only. See log.");
                 }
             }
         }

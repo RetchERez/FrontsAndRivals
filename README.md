@@ -31,7 +31,7 @@ As with any mod, back up your saves first: copy your GTA V save folder (`Documen
 2. Copy the contents of this zip's `scripts` folder into `<GTA V>\scripts\`: `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `FrontsAndRivals` folder
 3. Start Story Mode; after Franklin's first mission, a help box points you at a car wash the Dead Kings hold
 
-Windows may need to let mods create files in the GTA V folder; the mod saves to `scripts\FrontsAndRivals\empire.json`.
+Your empire is saved in `Documents\Fronts & Rivals`, outside the game folder, so reinstalling the mod or a mod manager can never wipe it.
 
 ## Getting started
 
@@ -157,7 +157,7 @@ Everything else is in `scripts\FrontsAndRivals.ini`, with each line explained in
 
 ## Uninstall
 
-Delete `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `scripts\FrontsAndRivals` folder. Cash the mod paid out stays with your characters.
+Delete `FrontsAndRivals.dll`, `FrontsAndRivals.ini` and the `scripts\FrontsAndRivals` folder. Your empire stays in `Documents\Fronts & Rivals` in case you come back; delete that too for a clean slate. Cash the mod paid out stays with your characters.
 
 ## Known issues
 

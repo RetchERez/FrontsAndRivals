@@ -2,6 +2,8 @@
 
 ## Next (in progress)
 
+- Your empire is saved in Documents\Fronts & Rivals instead of the game's scripts folder, so reinstalling the mod, a
+  mod manager or a game-folder cleanup can never wipe it; an existing save is copied over the first time
 - If your save can't be read, the mod tells you and loads the last good backup instead of quietly starting a new
   empire (the unreadable file is kept)
 - If the empire can't be saved (a read-only folder, a full disk, antivirus), the mod tells you once and logs why
