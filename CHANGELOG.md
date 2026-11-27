@@ -1,6 +1,8 @@
 # Changelog
 
-## Next (in progress)
+## 3.1.0 (2026-11-27)
+
+Fixes from player reports:
 
 - Your empire is saved in Documents\Fronts & Rivals instead of the game's scripts folder, so reinstalling the mod, a
   mod manager or a game-folder cleanup can never wipe it; an existing save is copied over the first time

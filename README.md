@@ -1,4 +1,4 @@
-# Fronts & Rivals 3.0
+# Fronts & Rivals 3.1
 
 A free single-player script mod for Grand Theft Auto V Enhanced (Story Mode). Not affiliated with or endorsed by Rockstar Games.
 
@@ -43,7 +43,7 @@ Your empire is saved in `Documents\Fronts & Rivals`, outside the game folder, so
 - **Defend:** when a front is hit, a timer shows how long your guards can hold; race there and fight beside them, or leave it to them
 - **Take rival fronts:** take out every soldier at a crew's front and it's yours on the spot; or send a crew from the Office
 
-## What's in 3.0
+## What's in 3.1
 
 ### New in 3.0
 

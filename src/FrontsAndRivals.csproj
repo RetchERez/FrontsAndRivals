@@ -6,7 +6,7 @@
     <RootNamespace>FrontsAndRivals</RootNamespace>
     <Nullable>disable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Version>3.0.0</Version>
+    <Version>3.1.0</Version>
     <!-- Keep SHVDN/LemonUI/iFruitAddon2 DLLs out of bin: players install them, we never ship them. -->
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
   </PropertyGroup>
